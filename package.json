@@ -1,0 +1,28 @@
+{
+  "name": "dds-repo-base",
+  "version": "1.0.0",
+  "main": "index.js",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start:backend": "npm start --workspace=backend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "start:frontend": "npm start --workspace=frontend",
+    "start:dev": "concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
+    "lint": "eslint .",
+    "format": "prettier . --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "concurrently": "^9.2.0",
+    "eslint": "^9.31.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.3.0",
+    "prettier": "3.6.2"
+  }
+}
