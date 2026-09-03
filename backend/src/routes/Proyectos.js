@@ -40,4 +40,13 @@ router.patch("/:id/cerrar", (req, res) => {
     }
 });
 
+router.get("/:id/colaboradoras", (req, res) => {
+    try {
+        const colaboradoras = ProyectoService.listarColaboradoras(req.params.id);
+        res.json(colaboradoras);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 export default router;

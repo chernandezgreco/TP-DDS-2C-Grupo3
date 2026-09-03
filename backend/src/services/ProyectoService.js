@@ -59,4 +59,17 @@ export class ProyectoService {
         proyecto.cerrar();
         return proyecto;
     }
+
+    static listarColaboradoras(proyectoId) {
+        const proyecto = db.proyectos.find(p => p.id === proyectoId);
+        if (!proyecto) {
+            throw new Error("Proyecto no encontrado");
+        }
+
+        const idsColaboradoras = db.colaboraciones
+            .filter(c => c.proyectoId === proyectoId)
+            .map(c => c.colaboradoraId);
+
+        return db.colaboradoras.filter(c => idsColaboradoras.includes(c.id));
+    }
 }
