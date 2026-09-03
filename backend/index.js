@@ -37,3 +37,7 @@ app.listen(PORT, () => {
     console.log(`Backend escuchando en puerto ${PORT}`);
 });
 
+app.get("/", (req, res) => {
+    res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });
+});
+
