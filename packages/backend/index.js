@@ -16,6 +16,15 @@ app.get("/hello", (req, res) => {
   res.json({ message: "hello world" });
 });
 
-app.listen(process.env.SERVER_PORT, () => {
-  console.log(`Backend escuchando en puerto ${process.env.SERVER_PORT}`);
+// Health check: requerido por la cátedra para la 1ra entrega.
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", timestamp: new Date() });
+});
+
+// Render (y la mayoría de los hosts) inyectan su propio puerto en process.env.PORT.
+// En local seguimos usando SERVER_PORT (definido en .env) para no romper lo que ya tenían.
+const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Backend escuchando en puerto ${PORT}`);
 });

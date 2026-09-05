@@ -1,0 +1,12 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      SERVER_PORT: 3000
+      ALLOWED_ORIGINS: http://localhost:3000
+    # Cuando en la 2da entrega sumemos MongoDB, acá se agrega el servicio "mongo"
+    # y este backend pasa a depender de él (depends_on) con su MONGO_URI correspondiente.
