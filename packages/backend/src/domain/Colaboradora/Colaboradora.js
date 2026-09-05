@@ -4,7 +4,7 @@ export class Colaboradora {
         this.nombreFantasia = nombreFantasia;
         this.github = github;
         this.nombreApellido = nombreApellido;
-        this.habilidades = habilidades;
+        this.habilidades = habilidades || [];
         this.pronombres = pronombres;
         this.presentacion = presentacion;
     }

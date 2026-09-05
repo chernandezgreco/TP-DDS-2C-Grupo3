@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { ColectivoService } from "../services/ColectivosService.js";
-import { Proyecto } from "../domain/Proyecto/Proyecto.js"; // O la ruta correcta de tu modelo
-import { ProyectoService } from "../services/ProyectoService.js"; // Asegúrate de que la ruta del archivo sea la correcta
+import { ProyectoService } from "../services/ProyectoService.js"; 
 
 const router = Router();
 router.post("/", (req, res) => {

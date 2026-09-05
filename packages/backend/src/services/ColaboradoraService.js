@@ -1,6 +1,7 @@
 import { db } from "../data/db.js";
 import { Colaboradora } from "../domain/Colaboradora/Colaboradora.js";
 import { v4 as uuidv4 } from "uuid";
+import { HabilidadService } from "./HabilidadService.js";
 
 export class ColaboradoraService {
     static crearColaboradora(data) {
@@ -10,7 +11,7 @@ export class ColaboradoraService {
     }
     static listar() { return db.colaboradoras; }
 
-        static agregarHabilidad(idColaboradora,data) {
+    static agregarHabilidad(idColaboradora,data) {
     const colaboradora = db.colaboradores.find(c => c.id === idColaboradora);
     const habilidad = db.habilidades.find(p => p.codigo === data.codigo);
         if (!colaboradora) throw new Error("Colaboradora no encontrada");
@@ -29,5 +30,13 @@ export class ColaboradoraService {
             return false; 
         return colaboradora.habilidades.some(h => habilidadesBuscadas.some(hb => hb.codigo === h.codigo)
     );
+    }
+
+    static obtenerPorId(id) {
+    const colaboradora = db.colaboradoras.find(c => c.id === id);
+    if (!colaboradora) {
+        throw new Error("Colaboradora no encontrada");
+       }
+    return colaboradora;
     }
 }

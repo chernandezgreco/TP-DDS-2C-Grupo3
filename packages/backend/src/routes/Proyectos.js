@@ -3,15 +3,6 @@ import { ProyectoService } from "../services/ProyectoService.js";
 
 const router = Router();
 
-router.post("/", (req, res) => {
-    try {
-        const proyecto = ProyectoService.crearProyecto(req.body);
-        res.status(201).json(proyecto);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
 router.get("/", (req, res) => {
     try {
         const proyectos = ProyectoService.listar();

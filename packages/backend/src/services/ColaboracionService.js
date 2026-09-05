@@ -12,5 +12,6 @@ export class ColaboracionService {
             throw new Error("Colaboración no encontrada");
         }
         return colaboracion;
-    }
+    }  
+    
 }

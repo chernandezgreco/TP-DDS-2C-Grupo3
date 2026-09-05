@@ -79,4 +79,12 @@ static cerrarProyecto(colectivoId, proyectoId) {
 
         return db.colaboradoras.filter(c => idsColaboradoras.includes(c.id));
     }
+
+    static obtenerPorId(id) {
+    const proyecto = db.proyectos.find(c => c.id === id);
+    if (!proyecto) {
+        throw new Error("proyecto no encontrado");
+    }
+    return proyecto;
+    }
 }
