@@ -2,3 +2,7 @@ node_modules/
 /packages/**/node_modules/
 /packages/**/node_modules/
 .env
+
+# Notas personales de trabajo (no compartir)
+notas-personales.md
+notas-personales.local.md
