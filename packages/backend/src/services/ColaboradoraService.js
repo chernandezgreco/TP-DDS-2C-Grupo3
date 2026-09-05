@@ -9,4 +9,25 @@ export class ColaboradoraService {
         return nueva;
     }
     static listar() { return db.colaboradoras; }
+
+        static agregarHabilidad(idColaboradora,data) {
+    const colaboradora = db.colaboradores.find(c => c.id === idColaboradora);
+    const habilidad = db.habilidades.find(p => p.codigo === data.codigo);
+        if (!colaboradora) throw new Error("Colaboradora no encontrada");
+            if (!habilidad) {
+                HabilidadService.crearHabilidad(data)
+        }
+    const yaLaTiene = colaboradora.habilidades.some(h => h.id === habilidad.id);
+        if (yaLaTiene) throw new Error("La colaboradora ya tiene esta habilidad");
+    colaboradora.habilidades.push(data)    
+
+    }
+
+    static cumpleAlgunaHabilidad(habilidadesBuscadas, idColaboradora) {
+    const colaboradora = db.colaboradores.find(c => c.id === idColaboradora);
+        if (!colaboradora) 
+            return false; 
+        return colaboradora.habilidades.some(h => habilidadesBuscadas.some(hb => hb.codigo === h.codigo)
+    );
+    }
 }
