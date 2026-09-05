@@ -3,19 +3,6 @@ import { Proyecto } from "../domain/Proyecto/Proyecto.js";
 import { v4 as uuidv4 } from "uuid";
 
 export class ProyectoService {
-    static crearProyecto(data) {
-        const nuevo = new Proyecto(
-            uuidv4(),
-            data.titulo,
-            data.descripcion,
-            data.habilidadesRequeridas,
-            data.compromiso,
-            data.modalidad,
-            data.colectivoId
-        );
-        db.proyectos.push(nuevo);
-        return nuevo;
-    }
 
     static listar() {
         return db.proyectos;
@@ -52,13 +39,33 @@ export class ProyectoService {
         return nuevaColaboracion;
     }
 
-    static cerrarProyecto(proyectoId) {
-        const proyecto = db.proyectos.find(p => p.id === proyectoId);
-        if (!proyecto) throw new Error("Proyecto no encontrado");
-        
-        proyecto.cerrar();
-        return proyecto;
+    static  crearProyecto(data,IdColectivo){
+        const nuevo = new Proyecto(
+            uuidv4(),
+            data.titulo,
+            data.descripcion,
+            data.habilidadesRequeridas,
+            data.compromiso,
+            data.modalidad,
+            IdColectivo
+        );
+        db.proyectos.push(nuevo);
+        return nuevo;
     }
+
+static cerrarProyecto(colectivoId, proyectoId) {
+    const proyecto = db.proyectos.find(p => p.id === proyectoId);
+
+    if (!proyecto) throw new Error("Proyecto no encontrado");
+
+    // Validar que el proyecto pertenezca al colectivo
+    if (proyecto.colectivoId !== colectivoId) {
+        throw new Error("No autorizado: Este proyecto no pertenece a tu colectivo");
+    }
+
+    proyecto.cerrar();
+    return proyecto;
+}
 
     static listarColaboradoras(proyectoId) {
         const proyecto = db.proyectos.find(p => p.id === proyectoId);
