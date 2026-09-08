@@ -1,4 +1,5 @@
 import { db } from "../data/db.js";
+import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
 import { Proyecto } from "../domain/Proyecto/Proyecto.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -16,8 +17,17 @@ export class ProyectoService {
             throw new Error("Proyecto o colaboradora no encontrados");
         }
 
-        if (!proyecto.estaAbierto()) {
-            throw new Error("El proyecto se encuentra cerrado y no admite nuevas colaboraciones");
+        if (!proyecto.estaActivo()) {
+            throw new Error("El proyecto se encuentra finalizado y no admite nuevas colaboraciones");
+        }
+
+        const colaboracionExistente = db.colaboraciones.some(colaboracion =>
+            colaboracion.proyectoId === proyectoId &&
+            colaboracion.colaboradoraId === colaboradoraId
+        );
+
+        if (colaboracionExistente) {
+            throw new Error("La colaboradora ya se encuentra anotada en el proyecto");
         }
 
         const tieneHabilidad = colaboradora.habilidades.some(hab =>
@@ -28,18 +38,29 @@ export class ProyectoService {
             throw new Error("La colaboradora no cuenta con ninguna de las habilidades requeridas");
         }
 
-        const nuevaColaboracion = {
-            id: uuidv4(),
-            proyectoId,
-            colaboradoraId,
-            fecha: new Date()
-        };
+        const nuevaColaboracion = new Colaboracion(uuidv4(), proyectoId, colaboradoraId);
 
         db.colaboraciones.push(nuevaColaboracion);
         return nuevaColaboracion;
     }
 
     static  crearProyecto(data,IdColectivo){
+        if (!data || typeof data !== "object") {
+            throw new Error("Los datos del proyecto son obligatorios");
+        }
+        if (typeof data.titulo !== "string" || !data.titulo.trim()) {
+            throw new Error("El título del proyecto es obligatorio");
+        }
+        if (typeof data.descripcion !== "string" || !data.descripcion.trim()) {
+            throw new Error("La descripción del proyecto es obligatoria");
+        }
+
+        const colectivo = db.colectivos.find(colectivo => colectivo.id === IdColectivo);
+
+        if (!colectivo) {
+            throw new Error("Colectivo no encontrado");
+        }
+
         const nuevo = new Proyecto(
             uuidv4(),
             data.titulo,
@@ -89,6 +110,10 @@ static cerrarProyecto(colectivoId, proyectoId) {
     }
 
     static cumpleHabilidades(Habilidades){
+        if (!Array.isArray(Habilidades) || Habilidades.length === 0) {
+            throw new Error("El proyecto debe requerir al menos una habilidad");
+        }
+
         const habilidades = Habilidades.every(CodigoHabilidad => db.habilidades.find(habilidad=> habilidad.codigo === CodigoHabilidad))
         if(!habilidades){
              throw new Error("El Proyecto no cumple con las habilidades dadas de alta");

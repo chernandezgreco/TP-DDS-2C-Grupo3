@@ -11,7 +11,7 @@ router.get("/", (req, res) => res.json(ColectivoService.listar()));
 
 router.post("/:id/crearProyecto", (req, res) => {
     try {
-        ProyectoService.cumpleHabilidades(req.body.habilidadesRequeridas);
+        ProyectoService.cumpleHabilidades(req.body?.habilidadesRequeridas);
         const proyecto = ProyectoService.crearProyecto(req.body,req.params.id);
         res.status(201).json(proyecto);
    
@@ -20,9 +20,12 @@ router.post("/:id/crearProyecto", (req, res) => {
     }
 });
 
-router.patch("/:idColectivo/:idProyecto/cerrar", (req, res) => {
+router.patch("/:colectivoId/proyectos/:proyectoId/cerrar", (req, res) => {
     try {
-        const proyecto = ProyectoService.cerrarProyecto(req.params.idColectivo,req.params.idProyecto);
+        const proyecto = ProyectoService.cerrarProyecto(
+            req.params.colectivoId,
+            req.params.proyectoId
+        );
         res.json({ message: "Proyecto cerrado con éxito", proyecto });
     } catch (error) {
         res.status(400).json({ error: error.message });

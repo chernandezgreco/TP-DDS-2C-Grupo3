@@ -7,14 +7,18 @@ export class Proyecto {
         this.compromiso = compromiso;
         this.modalidad = modalidad;
         this.colectivoId = colectivoId;
-        this.estado = 'ABIERTO'; 
+        this.estado = "ACTIVO";
     }
 
     cerrar() {
-        this.estado = 'CERRADO';
+        if (this.estado === "FINALIZADO") {
+            return;
+        }
+
+        this.estado = "FINALIZADO";
     }
 
-    estaAbierto() {
-        return this.estado === 'ABIERTO';
+    estaActivo() {
+        return this.estado === "ACTIVO";
     }
 }

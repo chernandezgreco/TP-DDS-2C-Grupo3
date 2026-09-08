@@ -1,5 +1,4 @@
 import { db } from "../data/db.js";
-import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
 
 export class ColaboracionService {
     static listar() {

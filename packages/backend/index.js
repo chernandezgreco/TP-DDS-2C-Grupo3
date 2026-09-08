@@ -2,11 +2,11 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
-import proyectosRoutes from "./src/routes/proyectos.js";
+import proyectosRoutes from "./src/routes/Proyectos.js";
 import colectivosRoutes from "./src/routes/Colectivos.js";
 import colaboradorasRoutes from "./src/routes/Colaboradora.js";
 import habilidadesRoutes from "./src/routes/Habilidades.js";
-import colaboracionesRoutes from "./src/routes/colaboracion.js";
+import colaboracionesRoutes from "./src/routes/Colaboracion.js";
 
 
 
@@ -31,7 +31,7 @@ app.use("/api/colaboradoras", colaboradorasRoutes);
 app.use("/api/habilidades", habilidadesRoutes);
 app.use("/api/colaboracion", colaboracionesRoutes);
 
-const PORT = process.env.SERVER_PORT || 3000;
+const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`Backend escuchando en puerto ${PORT}`);

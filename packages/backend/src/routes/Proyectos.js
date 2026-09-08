@@ -12,20 +12,14 @@ router.get("/", (req, res) => {
     }
 });
 
-router.post("/:id/colaborar", (req, res) => {
+router.post("/:proyectoId/colaboraciones", (req, res) => {
     try {
-        const { colaboradoraId } = req.body;
-        const colaboracion = ProyectoService.anotarColaboradora(req.params.habilidadesRequeridas);
+        const { colaboradoraId } = req.body ?? {};
+        const colaboracion = ProyectoService.anotarColaboradora(
+            req.params.proyectoId,
+            colaboradoraId
+        );
         res.status(201).json(colaboracion);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-router.patch("/:id/cerrar", (req, res) => {
-    try {
-        const proyecto = ProyectoService.cerrarProyecto(req.params.id);
-        res.json({ message: "Proyecto cerrado con éxito", proyecto });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
