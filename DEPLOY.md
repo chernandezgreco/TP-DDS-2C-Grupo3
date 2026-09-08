@@ -16,6 +16,16 @@ curl http://localhost:3000/health
 
 ## Producción (Render, gratis)
 
+**Estado: ya deployado.**
+
+- URL pública: https://tp-dds-2c-grupo3.onrender.com
+- Health check: https://tp-dds-2c-grupo3.onrender.com/health
+- Dashboard del servicio (acceso del equipo, cuenta de Cami): https://dashboard.render.com/web/srv-dag6t2gu01pc73974f90
+- Región: Virginia (US East). Plan: Free ($0/mes, 0.1 CPU, 512 MB RAM).
+- El plan Free "duerme" el servicio sin tráfico y tarda unos segundos en responder en el primer request después de un rato inactivo — es normal, no hace falta plan pago para esta entrega.
+
+Pasos seguidos para llegar a este estado (quedan documentados por si hay que rehacer el servicio o alguien más del equipo necesita crear uno nuevo):
+
 1. Crear una cuenta en https://render.com (se puede loguear directo con GitHub).
 2. Dashboard → "New" → "Web Service".
 3. Conectar el repositorio `TP-DDS-2C-Grupo3` (Render pide autorizar acceso a tu cuenta/organización de GitHub).
