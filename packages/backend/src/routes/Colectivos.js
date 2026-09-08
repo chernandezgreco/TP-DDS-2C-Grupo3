@@ -11,8 +11,10 @@ router.get("/", (req, res) => res.json(ColectivoService.listar()));
 
 router.post("/:id/crearProyecto", (req, res) => {
     try {
+        ProyectoService.cumpleHabilidades(req.body.habilidadesRequeridas);
         const proyecto = ProyectoService.crearProyecto(req.body,req.params.id);
         res.status(201).json(proyecto);
+   
     } catch (error) {
         res.status(400).json({ error: error.message });
     }

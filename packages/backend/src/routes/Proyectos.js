@@ -15,7 +15,7 @@ router.get("/", (req, res) => {
 router.post("/:id/colaborar", (req, res) => {
     try {
         const { colaboradoraId } = req.body;
-        const colaboracion = ProyectoService.anotarColaboradora(req.params.id, colaboradoraId);
+        const colaboracion = ProyectoService.anotarColaboradora(req.params.habilidadesRequeridas);
         res.status(201).json(colaboracion);
     } catch (error) {
         res.status(400).json({ error: error.message });

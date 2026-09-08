@@ -37,4 +37,12 @@ export class ColaboradoraService {
        }
     return colaboradora;
     }
+
+    static cumpleHabilidades(Habilidades){
+        const habilidades = Habilidades.every(CodigoHabilidad => db.habilidades.find(habilidad=> habilidad.codigo === CodigoHabilidad))
+        if(!habilidades){
+             throw new Error("La Colaboradora no cumple con las habilidades dadas de alta");
+        }
+        return habilidades;
+    }
 }

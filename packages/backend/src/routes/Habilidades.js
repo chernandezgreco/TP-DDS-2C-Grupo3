@@ -6,4 +6,5 @@ router.post("/", (req, res) => {
     catch (e) { res.status(400).json({ error: e.message }); }
 });
 router.get("/", (req, res) => res.json(HabilidadService.listar()));
+
 export default router;

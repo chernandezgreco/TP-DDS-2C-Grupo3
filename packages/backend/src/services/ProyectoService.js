@@ -87,4 +87,12 @@ static cerrarProyecto(colectivoId, proyectoId) {
     }
     return proyecto;
     }
+
+    static cumpleHabilidades(Habilidades){
+        const habilidades = Habilidades.every(CodigoHabilidad => db.habilidades.find(habilidad=> habilidad.codigo === CodigoHabilidad))
+        if(!habilidades){
+             throw new Error("El Proyecto no cumple con las habilidades dadas de alta");
+        }
+        return habilidades;
+    }
 }
