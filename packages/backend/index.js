@@ -29,7 +29,7 @@ app.use("/api/proyectos", proyectosRoutes);
 app.use("/api/colectivos", colectivosRoutes);
 app.use("/api/colaboradoras", colaboradorasRoutes);
 app.use("/api/habilidades", habilidadesRoutes);
-app.use("/api/colaboracion", colaboracionesRoutes);
+app.use("/api/colaboraciones", colaboracionesRoutes);
 
 app.get("/", (req, res) => {
   res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });

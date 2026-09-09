@@ -12,9 +12,9 @@ router.get("/", (req, res) => {
     }
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:colaboracionId", (req, res) => {
     try {
-        const colaboracion = ColaboracionService.obtenerPorId(req.params.id);
+        const colaboracion = ColaboracionService.obtenerPorId(req.params.colaboracionId);
         res.json(colaboracion);
     } catch (error) {
         res.status(404).json({ error: error.message });

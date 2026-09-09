@@ -25,9 +25,9 @@ router.post("/:proyectoId/colaboraciones", (req, res) => {
     }
 });
 
-router.get("/:id/colaboradoras", (req, res) => {
+router.get("/:proyectoId/colaboradoras", (req, res) => {
     try {
-        const colaboradoras = ProyectoService.listarColaboradoras(req.params.id);
+        const colaboradoras = ProyectoService.listarColaboradoras(req.params.proyectoId);
         res.json(colaboradoras);
     } catch (error) {
         res.status(400).json({ error: error.message });

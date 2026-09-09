@@ -9,10 +9,10 @@ router.post("/", (req, res) => {
 });
 router.get("/", (req, res) => res.json(ColectivoService.listar()));
 
-router.post("/:id/crearProyecto", (req, res) => {
+router.post("/:colectivoId/proyectos", (req, res) => {
     try {
         ProyectoService.cumpleHabilidades(req.body?.habilidadesRequeridas);
-        const proyecto = ProyectoService.crearProyecto(req.body,req.params.id);
+        const proyecto = ProyectoService.crearProyecto(req.body, req.params.colectivoId);
         res.status(201).json(proyecto);
    
     } catch (error) {
@@ -20,8 +20,12 @@ router.post("/:id/crearProyecto", (req, res) => {
     }
 });
 
-router.patch("/:colectivoId/proyectos/:proyectoId/cerrar", (req, res) => {
+router.patch("/:colectivoId/proyectos/:proyectoId", (req, res) => {
     try {
+        if (req.body?.estado !== "FINALIZADO") {
+            throw new Error("El estado debe ser FINALIZADO");
+        }
+
         const proyecto = ProyectoService.cerrarProyecto(
             req.params.colectivoId,
             req.params.proyectoId
