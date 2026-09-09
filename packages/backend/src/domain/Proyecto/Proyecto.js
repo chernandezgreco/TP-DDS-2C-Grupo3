@@ -1,5 +1,17 @@
+import { Compromiso } from "../Compromiso/Compromiso.js";
+import { ModalidadColaboracion } from "../ModalidadColaboracion/ModalidadColaboracion.js";
+import { EstadoProyecto } from "./EstadoProyecto.js";
+
 export class Proyecto {
     constructor(id, titulo, descripcion, habilidadesRequeridas, compromiso, modalidad, colectivoId) {
+        if (!(compromiso instanceof Compromiso)) {
+            throw new Error("El compromiso del proyecto no es válido");
+        }
+
+        if (!(modalidad instanceof ModalidadColaboracion)) {
+            throw new Error("La modalidad de colaboración del proyecto no es válida");
+        }
+
         this.id = id;
         this.titulo = titulo;
         this.descripcion = descripcion;
@@ -7,18 +19,18 @@ export class Proyecto {
         this.compromiso = compromiso;
         this.modalidad = modalidad;
         this.colectivoId = colectivoId;
-        this.estado = "ACTIVO";
+        this.estado = EstadoProyecto.ACTIVO;
     }
 
     cerrar() {
-        if (this.estado === "FINALIZADO") {
+        if (this.estado === EstadoProyecto.FINALIZADO) {
             return;
         }
 
-        this.estado = "FINALIZADO";
+        this.estado = EstadoProyecto.FINALIZADO;
     }
 
     estaActivo() {
-        return this.estado === "ACTIVO";
+        return this.estado === EstadoProyecto.ACTIVO;
     }
 }

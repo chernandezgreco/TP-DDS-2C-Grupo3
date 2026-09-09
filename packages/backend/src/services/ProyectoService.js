@@ -1,5 +1,7 @@
 import { db } from "../data/db.js";
 import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
+import { Compromiso } from "../domain/Compromiso/Compromiso.js";
+import { ModalidadColaboracion } from "../domain/ModalidadColaboracion/ModalidadColaboracion.js";
 import { Proyecto } from "../domain/Proyecto/Proyecto.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -54,6 +56,12 @@ export class ProyectoService {
         if (typeof data.descripcion !== "string" || !data.descripcion.trim()) {
             throw new Error("La descripción del proyecto es obligatoria");
         }
+        if (!data.compromiso || typeof data.compromiso !== "object") {
+            throw new Error("El compromiso del proyecto es obligatorio");
+        }
+        if (!data.modalidad || typeof data.modalidad !== "object") {
+            throw new Error("La modalidad de colaboración del proyecto es obligatoria");
+        }
 
         const colectivo = db.colectivos.find(colectivo => colectivo.id === IdColectivo);
 
@@ -61,13 +69,23 @@ export class ProyectoService {
             throw new Error("Colectivo no encontrado");
         }
 
+        const compromiso = new Compromiso(
+            data.compromiso.cantidadHoras,
+            data.compromiso.tipo
+        );
+        const modalidad = new ModalidadColaboracion(
+            data.modalidad.gratuita,
+            data.modalidad.incentivoEconomico,
+            data.modalidad.contratacionEventual
+        );
+
         const nuevo = new Proyecto(
             uuidv4(),
             data.titulo,
             data.descripcion,
             data.habilidadesRequeridas,
-            data.compromiso,
-            data.modalidad,
+            compromiso,
+            modalidad,
             IdColectivo
         );
         db.proyectos.push(nuevo);
