@@ -14,6 +14,8 @@ export class ColaboradoraService {
             throw new Error("La cuenta de GitHub o GitLab es obligatoria");
         }
 
+        this.cumpleHabilidades(data.habilidades);
+
         const nueva = new Colaboradora(uuidv4(), data.nombreFantasia, data.github, data.nombreApellido, data.habilidades, data.pronombres, data.presentacion);
         db.colaboradoras.push(nueva);
         return nueva;

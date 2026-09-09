@@ -30,7 +30,7 @@ router.get("/:proyectoId/colaboradoras", (req, res) => {
         const colaboradoras = ProyectoService.listarColaboradoras(req.params.proyectoId);
         res.json(colaboradoras);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(404).json({ error: error.message });
     }
 });
 

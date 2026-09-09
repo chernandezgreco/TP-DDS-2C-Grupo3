@@ -2,10 +2,9 @@ import { Router } from "express";
 import { ColaboradoraService } from "../services/ColaboradoraService.js";
 const router = Router();
 router.post("/", (req, res) => {
-try { 
-        ColaboradoraService.cumpleHabilidades(req.body?.habilidades)
+try {
         res.status(201).json(ColaboradoraService.crearColaboradora(req.body)); }
-    catch (e) { 
+    catch (e) {
         res.status(400).json({ error: e.message }); }
 });
 router.get("/", (req, res) => res.json(ColaboradoraService.listar()));

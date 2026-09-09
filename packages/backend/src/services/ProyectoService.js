@@ -63,6 +63,8 @@ export class ProyectoService {
             throw new Error("La modalidad de colaboración del proyecto es obligatoria");
         }
 
+        this.cumpleHabilidades(data.habilidadesRequeridas);
+
         const colectivo = db.colectivos.find(colectivo => colectivo.id === IdColectivo);
 
         if (!colectivo) {
