@@ -1,0 +1,85 @@
+@startuml
+
+'https://plantuml.com/class-diagram
+
+
+class Colectivo {
+- nombre: String
+- descripcion: String
+- ubicacion: String
+- tipo: TipoColectivo
++ crearProyecto(titulo: String, descripcion: String, compromiso: Compromiso, modalidad: ModalidadColaboracion): Proyecto
++ cerrarProyecto(proyecto: Proyecto): void
+}
+
+enum TipoColectivo {
+    FUNDACION
+ASOCIACION_BARRIAL
+ONG
+ASAMBLEA
+}
+
+class Proyecto {
+- titulo: String
+- descripcion: String
+- estado: EstadoProyecto
++ agregarHabilidadRequerida(habilidad: Habilidad): void
++ anotarColaborador(persona: PersonaColaboradora): Colaboracion
++ cerrar(): void
+- validarHabilidadesRequeridas(persona: PersonaColaboradora): void
+}
+
+enum EstadoProyecto {
+    ACTIVO
+FINALIZADO
+}
+
+class Habilidad {
+- titulo: String
+- codigoUnico: String
+- descripcion: String
+}
+
+class PersonaColaboradora {
+- nombreFantasia: String
+- cuentaGithubGitlab: String
+- nombreApellido: String
+- pronombres: String
+- presentacion: String
++ agregarHabilidad(habilidad: Habilidad): void
++ cumpleAlgunaHabilidad(habilidadesRequeridas: List<Habilidad>): Boolean
+}
+
+class Colaboracion {
+- fechaInscripcion: Date
++ obtenerDatosContactoVisible(): String
+}
+
+class Compromiso {
+- cantidadHoras: Integer
+- tipo: TipoCompromiso
+}
+
+enum TipoCompromiso {
+    TOTALES
+SEMANALES
+MENSUALES
+}
+
+class ModalidadColaboracion {
+- gratuita: Boolean
+- incentivoEconomico: Boolean
+- contratacionEventual: Boolean
+}
+
+Colectivo "1" *-- "*" Proyecto : administra >
+Colectivo --> TipoColectivo : clasifica en >
+Proyecto "*" o-- "*" Habilidad : requiere >
+Proyecto "1" *-- "*" Colaboracion : posee >
+Proyecto --> EstadoProyecto : estado >
+Proyecto --> Compromiso : define >
+Proyecto --> ModalidadColaboracion : define >
+PersonaColaboradora "1" --> "*" Colaboracion : efectúa >
+PersonaColaboradora "*" o-- "*" Habilidad : domina >
+
+@enduml

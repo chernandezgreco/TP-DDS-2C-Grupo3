@@ -31,14 +31,12 @@ app.use("/api/colaboradoras", colaboradorasRoutes);
 app.use("/api/habilidades", habilidadesRoutes);
 app.use("/api/colaboracion", colaboracionesRoutes);
 
+app.get("/", (req, res) => {
+  res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });
+});
+
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Backend escuchando en puerto ${PORT}`);
-    console.log(`http://localhost:${PORT}`);
+  console.log(`Backend escuchando en puerto ${PORT}`);
 });
-
-app.get("/", (req, res) => {
-    res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });
-});
-
