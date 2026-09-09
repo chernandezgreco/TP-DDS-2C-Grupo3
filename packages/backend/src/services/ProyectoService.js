@@ -32,8 +32,8 @@ export class ProyectoService {
             throw new Error("La colaboradora ya se encuentra anotada en el proyecto");
         }
 
-        const tieneHabilidad = colaboradora.habilidades.some(hab =>
-            proyecto.habilidadesRequeridas.includes(hab)
+        const tieneHabilidad = colaboradora.cumpleAlgunaHabilidad(
+            proyecto.habilidadesRequeridas
         );
 
         if (!tieneHabilidad) {

@@ -21,22 +21,25 @@ export class ColaboradoraService {
     static listar() { return db.colaboradoras; }
 
     static agregarHabilidad(idColaboradora,data) {
-    const colaboradora = db.colaboradoras.find(c => c.id === idColaboradora);
-    const habilidad = db.habilidades.find(p => p.codigo === data.codigo);
+        const colaboradora = db.colaboradoras.find(c => c.id === idColaboradora);
         if (!colaboradora) throw new Error("Colaboradora no encontrada");
-            
-    const yaLaTiene = colaboradora.habilidades.some(h => h.id === habilidad.id);
-        if (yaLaTiene) throw new Error("La colaboradora ya tiene esta habilidad");
-    colaboradora.habilidades.push(data)    
 
+        if (!data || typeof data.codigo !== "string" || !data.codigo.trim()) {
+            throw new Error("El código de la habilidad es obligatorio");
+        }
+
+        const habilidad = db.habilidades.find(h => h.codigo === data.codigo.trim());
+        if (!habilidad) throw new Error("La habilidad no existe");
+
+        colaboradora.agregarHabilidad(habilidad.codigo);
+        return colaboradora;
     }
 
     static cumpleAlgunaHabilidad(habilidadesBuscadas, idColaboradora) {
-    const colaboradora = db.colaboradoras.find(c => c.id === idColaboradora);
-        if (!colaboradora) 
-            return false; 
-        return colaboradora.habilidades.some(h => habilidadesBuscadas.some(hb => hb.codigo === h.codigo)
-    );
+        const colaboradora = db.colaboradoras.find(c => c.id === idColaboradora);
+        if (!colaboradora) return false;
+
+        return colaboradora.cumpleAlgunaHabilidad(habilidadesBuscadas);
     }
 
     static obtenerPorId(id) {
