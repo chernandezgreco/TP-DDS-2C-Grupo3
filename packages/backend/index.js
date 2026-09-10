@@ -2,6 +2,14 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
+import proyectosRoutes from "./src/routes/Proyectos.js";
+import colectivosRoutes from "./src/routes/Colectivos.js";
+import colaboradorasRoutes from "./src/routes/Colaboradora.js";
+import habilidadesRoutes from "./src/routes/Habilidades.js";
+import colaboracionesRoutes from "./src/routes/Colaboracion.js";
+
+
+
 const app = express();
 app.use(express.json());
 app.use(
@@ -9,20 +17,24 @@ app.use(
     origin: process.env.ALLOWED_ORIGINS
       ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
       : true,
-  }),
+  })
 );
 
-app.get("/hello", (req, res) => {
-  res.json({ message: "hello world" });
-});
-
-// Health check: requerido por la cátedra para la 1ra entrega.
+// Endpoint de Health Check (Requerimiento de la 1ra entrega)
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK", timestamp: new Date() });
 });
 
-// Render (y la mayoría de los hosts) inyectan su propio puerto en process.env.PORT.
-// En local seguimos usando SERVER_PORT (definido en .env) para no romper lo que ya tenían.
+app.use("/api/proyectos", proyectosRoutes);
+app.use("/api/colectivos", colectivosRoutes);
+app.use("/api/colaboradoras", colaboradorasRoutes);
+app.use("/api/habilidades", habilidadesRoutes);
+app.use("/api/colaboraciones", colaboracionesRoutes);
+
+app.get("/", (req, res) => {
+  res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });
+});
+
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
 
 app.listen(PORT, () => {
