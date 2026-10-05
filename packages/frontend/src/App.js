@@ -5,9 +5,9 @@ function App() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:8000/hello")
+    fetch("http://localhost:8000/health")
       .then((response) => response.json())
-      .then((data) => setMessage(data.message))
+      .then((data) => setMessage(data.status))
       .catch((error) => console.error("Error cargando mensaje.", error));
   }, []);
 
