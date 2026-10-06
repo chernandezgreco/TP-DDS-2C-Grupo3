@@ -7,6 +7,7 @@ import colectivosRoutes from "./src/routes/Colectivos.js";
 import colaboradorasRoutes from "./src/routes/Colaboradora.js";
 import habilidadesRoutes from "./src/routes/Habilidades.js";
 import colaboracionesRoutes from "./src/routes/Colaboracion.js";
+import { manejarErrores } from "./src/middlewares/manejarErrores.js";
 
 
 
@@ -35,7 +36,10 @@ app.get("/", (req, res) => {
   res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });
 });
 
-const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
+// Tiene que ir después de todas las rutas: traduce los errores a status HTTP
+app.use(manejarErrores);
+
+const PORT = process.env.PORT || process.env.SERVER_PORT || 8000;
 
 app.listen(PORT, () => {
   console.log(`Backend escuchando en puerto ${PORT}`);

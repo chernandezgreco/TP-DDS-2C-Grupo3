@@ -6,10 +6,11 @@
     "packages/*"
   ],
   "scripts": {
-    "start:backend": "npm start --workspace=backend",
-    "dev:backend": "npm run dev --workspace=backend",
-    "start:frontend": "npm start --workspace=frontend",
-    "start:dev": "concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd packages/backend && node index.js",
+    "dev:backend": "cd packages/backend && node --watch index.js",
+    "start:frontend": "cd packages/frontend && react-scripts start",
+    "start:dev": "concurrently -n back,front \"cd packages/backend && node --watch index.js\" \"cd packages/frontend && react-scripts start\"",
+    "dev": "concurrently -n back,front \"cd packages/backend && node --watch index.js\" \"cd packages/frontend && react-scripts start\"",
     "lint": "eslint .",
     "format": "prettier . --write"
   },

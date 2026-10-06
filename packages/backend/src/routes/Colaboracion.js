@@ -1,24 +1,9 @@
 import { Router } from "express";
-import { ColaboracionService } from "../services/ColaboracionService.js";
+import { ColaboracionController } from "../controllers/ColaboracionController.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-    try {
-        const colaboraciones = ColaboracionService.listar();
-        res.json(colaboraciones);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-router.get("/:colaboracionId", (req, res) => {
-    try {
-        const colaboracion = ColaboracionService.obtenerPorId(req.params.colaboracionId);
-        res.json(colaboracion);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
+router.get("/", ColaboracionController.listar);
+router.get("/:colaboracionId", ColaboracionController.obtenerPorId);
 
 export default router;

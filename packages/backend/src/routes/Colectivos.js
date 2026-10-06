@@ -1,50 +1,15 @@
 import { Router } from "express";
-import { ColectivoService } from "../services/ColectivosService.js";
-import { ProyectoService } from "../services/ProyectoService.js"; 
+import { ColectivoController } from "../controllers/ColectivoController.js";
+import { ProyectoController } from "../controllers/ProyectoController.js";
+import { validar } from "../middlewares/validar.js";
+import { crearColectivoSchema } from "../schemas/ColectivoSchema.js";
+import { crearProyectoSchema, cerrarProyectoSchema } from "../schemas/ProyectoSchema.js";
 
 const router = Router();
-router.post("/", (req, res) => {
-    try { res.status(201).json(ColectivoService.crearColectivo(req.body)); }
-    catch (e) { res.status(400).json({ error: e.message }); }
-});
-router.get("/", (req, res) => res.json(ColectivoService.listar()));
+router.post("/", validar(crearColectivoSchema), ColectivoController.crear);
+router.get("/", ColectivoController.listar);
 
-router.post("/:colectivoId/proyectos", (req, res) => {
-    try {
-        const proyecto = ProyectoService.crearProyecto(req.body, req.params.colectivoId);
-        res.status(201).json(proyecto);
-
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-router.patch("/:colectivoId/proyectos/:proyectoId", (req, res) => {
-    try {
-        if (req.body?.estado !== "FINALIZADO") {
-            throw new Error("El estado debe ser FINALIZADO");
-        }
-
-        const proyecto = ProyectoService.cerrarProyecto(
-            req.params.colectivoId,
-            req.params.proyectoId
-        );
-        res.json({ message: "Proyecto cerrado con éxito", proyecto });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-
-
-
-
-
-
-
-
-
-
-
+router.post("/:colectivoId/proyectos", validar(crearProyectoSchema), ProyectoController.crear);
+router.patch("/:colectivoId/proyectos/:proyectoId", validar(cerrarProyectoSchema), ProyectoController.cerrar);
 
 export default router;

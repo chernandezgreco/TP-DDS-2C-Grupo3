@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { HabilidadService } from "../services/HabilidadService.js";
+import { HabilidadController } from "../controllers/HabilidadController.js";
+import { validar } from "../middlewares/validar.js";
+import { crearHabilidadSchema } from "../schemas/HabilidadSchema.js";
+
 const router = Router();
-router.post("/", (req, res) => {
-    try { res.status(201).json(HabilidadService.crearHabilidad(req.body)); }
-    catch (e) { res.status(400).json({ error: e.message }); }
-});
-router.get("/", (req, res) => res.json(HabilidadService.listar()));
+router.post("/", validar(crearHabilidadSchema), HabilidadController.crear);
+router.get("/", HabilidadController.listar);
 
 export default router;

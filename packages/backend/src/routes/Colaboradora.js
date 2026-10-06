@@ -1,12 +1,10 @@
 import { Router } from "express";
-import { ColaboradoraService } from "../services/ColaboradoraService.js";
+import { ColaboradoraController } from "../controllers/ColaboradoraController.js";
+import { validar } from "../middlewares/validar.js";
+import { crearColaboradoraSchema } from "../schemas/ColaboradoraSchema.js";
+
 const router = Router();
-router.post("/", (req, res) => {
-try {
-        res.status(201).json(ColaboradoraService.crearColaboradora(req.body)); }
-    catch (e) {
-        res.status(400).json({ error: e.message }); }
-});
-router.get("/", (req, res) => res.json(ColaboradoraService.listar()));
+router.post("/", validar(crearColaboradoraSchema), ColaboradoraController.crear);
+router.get("/", ColaboradoraController.listar);
 
 export default router;

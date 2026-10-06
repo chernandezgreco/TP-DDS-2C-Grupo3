@@ -1,4 +1,5 @@
 import { db } from "../data/db.js";
+import { NotFoundError } from "../domain/errores.js";
 
 export class ColaboracionService {
     static listar() {
@@ -8,7 +9,7 @@ export class ColaboracionService {
     static obtenerPorId(id) {
         const colaboracion = db.colaboraciones.find(c => c.id === id);
         if (!colaboracion) {
-            throw new Error("Colaboración no encontrada");
+            throw new NotFoundError("Colaboración no encontrada", { colaboracionId: id });
         }
         return colaboracion;
     }  

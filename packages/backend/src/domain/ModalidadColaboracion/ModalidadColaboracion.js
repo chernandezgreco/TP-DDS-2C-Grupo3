@@ -1,3 +1,5 @@
+import { DomainError } from "../errores.js";
+
 export class ModalidadColaboracion {
   constructor(
     gratuita = false,
@@ -7,7 +9,10 @@ export class ModalidadColaboracion {
     const modalidades = [gratuita, incentivoEconomico, contratacionEventual];
 
     if (modalidades.some((modalidad) => typeof modalidad !== "boolean")) {
-      throw new Error("Las modalidades de colaboración deben ser booleanas");
+      throw new DomainError("Las modalidades de colaboración deben ser booleanas", {
+        campo: "modalidad",
+        valor: { gratuita, incentivoEconomico, contratacionEventual },
+      });
     }
 
     this.gratuita = gratuita;
