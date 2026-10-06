@@ -7,6 +7,7 @@ import colectivosRoutes from "./src/routes/Colectivos.js";
 import colaboradorasRoutes from "./src/routes/Colaboradora.js";
 import habilidadesRoutes from "./src/routes/Habilidades.js";
 import colaboracionesRoutes from "./src/routes/Colaboracion.js";
+import perfilesRouter from './src/routes/Perfiles.js';
 
 
 
@@ -29,7 +30,8 @@ app.use("/api/proyectos", proyectosRoutes);
 app.use("/api/colectivos", colectivosRoutes);
 app.use("/api/colaboradoras", colaboradorasRoutes);
 app.use("/api/habilidades", habilidadesRoutes);
-app.use("/api/colaboraciones", colaboracionesRoutes);
+app.use("/api/perfiles", perfilesRouter);
+
 
 app.get("/", (req, res) => {
   res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });

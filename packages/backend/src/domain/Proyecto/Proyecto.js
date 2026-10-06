@@ -1,25 +1,25 @@
-import { Compromiso } from "../Compromiso/Compromiso.js";
-import { ModalidadColaboracion } from "../ModalidadColaboracion/ModalidadColaboracion.js";
 import { EstadoProyecto } from "./EstadoProyecto.js";
+import { Perfil } from "../Perfiles/Perfiles.js"; 
 
 export class Proyecto {
-    constructor(id, titulo, descripcion, habilidadesRequeridas, compromiso, modalidad, colectivoId) {
-        if (!(compromiso instanceof Compromiso)) {
-            throw new Error("El compromiso del proyecto no es válido");
-        }
-
-        if (!(modalidad instanceof ModalidadColaboracion)) {
-            throw new Error("La modalidad de colaboración del proyecto no es válida");
-        }
-
+    constructor(id, titulo, descripcion, colectivoId, perfiles = []) {
         this.id = id;
         this.titulo = titulo;
         this.descripcion = descripcion;
-        this.habilidadesRequeridas = habilidadesRequeridas;
-        this.compromiso = compromiso;
-        this.modalidad = modalidad;
         this.colectivoId = colectivoId;
         this.estado = EstadoProyecto.ACTIVO;
+        this.perfiles = perfiles; 
+    }
+
+    agregarPerfil(perfil) {
+        if (!(perfil instanceof Perfil)) {
+            throw new Error("El perfil no es válido");
+        }
+        this.perfiles.push(perfil);
+    }
+
+    eliminarPerfil(perfilId) {
+        this.perfiles = this.perfiles.filter(p => p.id !== perfilId);
     }
 
     cerrar() {

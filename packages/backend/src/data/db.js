@@ -3,5 +3,7 @@ export const db = {
     proyectos: [],
     habilidades: [],
     colaboradoras: [],
-    colaboraciones: []
+    colaboraciones: [],
+    logros: [],
+    mensajesInternos: []
 };
