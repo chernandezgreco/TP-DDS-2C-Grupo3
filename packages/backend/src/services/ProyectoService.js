@@ -11,40 +11,48 @@ export class ProyectoService {
         return db.proyectos;
     }
 
-    static anotarColaboradora(proyectoId, colaboradoraId) {
-        const proyecto = db.proyectos.find(p => p.id === proyectoId);
-        const colaboradora = db.colaboradoras.find(c => c.id === colaboradoraId);
+static anotarColaboradora(proyectoId, colaboradoraId) {
+    const proyecto = db.proyectos.find(p => p.id === proyectoId);
+    const colaboradora = db.colaboradoras.find(c => c.id === colaboradoraId);
 
-        if (!proyecto || !colaboradora) {
-            throw new Error("Proyecto o colaboradora no encontrados");
-        }
-
-        if (!proyecto.estaActivo()) {
-            throw new Error("El proyecto se encuentra finalizado y no admite nuevas colaboraciones");
-        }
-
-        const colaboracionExistente = db.colaboraciones.some(colaboracion =>
-            colaboracion.proyectoId === proyectoId &&
-            colaboracion.colaboradoraId === colaboradoraId
-        );
-
-        if (colaboracionExistente) {
-            throw new Error("La colaboradora ya se encuentra anotada en el proyecto");
-        }
-
-        const tieneHabilidad = colaboradora.cumpleAlgunaHabilidad(
-            proyecto.habilidadesRequeridas
-        );
-
-        if (!tieneHabilidad) {
-            throw new Error("La colaboradora no cuenta con ninguna de las habilidades requeridas");
-        }
-
-        const nuevaColaboracion = new Colaboracion(uuidv4(), proyectoId, colaboradoraId);
-
-        db.colaboraciones.push(nuevaColaboracion);
-        return nuevaColaboracion;
+    if (!proyecto || !colaboradora) {
+        throw new Error("Proyecto o colaboradora no encontrados");
     }
+
+    if (!proyecto.estaActivo()) {
+        throw new Error("El proyecto se encuentra finalizado y no admite nuevas colaboraciones");
+    }
+
+    const perfilAsignado = proyecto.perfiles.find(perfil => {
+    const habilidadesReq = perfil.habilidadesRequeridas || [];
+    const habilidadesColab = colaboradora.habilidades || [];
+    
+    const colabLower = habilidadesColab.map(h => h.toLowerCase());
+    
+    return habilidadesReq.every(req => 
+        colabLower.includes(req.toLowerCase())
+    );
+});
+
+if (!perfilAsignado) {
+    throw new Error("La colaboradora no cumple con las habilidades requeridas de ningún perfil disponible en este proyecto");
+}
+
+    const colaboracionExistente = db.colaboraciones.some(colaboracion =>
+        colaboracion.proyectoId === proyectoId &&
+        colaboracion.perfilId === perfilAsignado.id &&
+        colaboracion.colaboradoraId === colaboradoraId
+    );
+
+    if (colaboracionExistente) {
+        throw new Error("La colaboradora ya se encuentra anotada en este perfil del proyecto");
+    }
+
+    const nuevaColaboracion = new Colaboracion(uuidv4(), proyectoId, colaboradoraId, new Date());
+
+    db.colaboraciones.push(nuevaColaboracion);
+    return nuevaColaboracion;
+}
 
 static crearProyecto(data, IdColectivo) {
         if (!data || typeof data !== "object") {

@@ -18,4 +18,11 @@ export class Perfil {
         this.compromiso = compromiso; 
         this.modalidad = modalidad;
     }
-}
+    cumpleHabilidades(habilidadesColaborador = []) {
+    const habilidadesSeguras = Array.isArray(habilidadesColaborador) ? habilidadesColaborador : [];
+    const colabHabilidadesLower = habilidadesSeguras.map(h => h.toLowerCase());
+
+    return this.habilidadesRequeridas.every(habilidadReq => 
+        colabHabilidadesLower.includes(habilidadReq.toLowerCase())
+    );
+}}

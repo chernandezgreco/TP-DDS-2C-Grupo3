@@ -15,13 +15,16 @@ router.get("/", (req, res) => {
 router.post("/:proyectoId/colaboraciones", (req, res) => {
     try {
         const { colaboradoraId } = req.body ?? {};
+        const { proyectoId } = req.params;
+
         const colaboracion = ProyectoService.anotarColaboradora(
-            req.params.proyectoId,
+            proyectoId,
             colaboradoraId
         );
-        res.status(201).json(colaboracion);
+
+        return res.status(201).json(colaboracion);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: error.message });
     }
 });
 

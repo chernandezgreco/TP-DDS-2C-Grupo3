@@ -7,4 +7,4 @@ router.post("/", (req, res) => {
 });
 router.get("/", (req, res) => res.json(HabilidadService.listar()));
 
-export default router;
+export default router; 
