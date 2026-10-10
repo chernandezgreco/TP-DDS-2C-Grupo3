@@ -8,4 +8,12 @@ export class ColaboradoraController {
     static listar(req, res) {
         res.json(ColaboradoraService.listar());
     }
+
+    static agregarMedioContacto(req, res) {
+        res.status(201).json(ColaboradoraService.agregarMedioContacto(req.params.id, req.body));
+    }
+
+    static actualizarPreferencias(req, res) {
+        res.json(ColaboradoraService.actualizarPreferencias(req.params.id, req.body));
+    }
 }
