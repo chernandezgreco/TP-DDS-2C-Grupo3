@@ -12,77 +12,81 @@ export class ProyectoService {
         return db.proyectos;
     }
 
-    static anotarColaboradora(proyectoId, colaboradoraId) {
-        const proyecto = this.obtenerPorId(proyectoId);
-        const colaboradora = db.colaboradoras.find(c => c.id === colaboradoraId);
+static anotarColaboradora(proyectoId,colaboradoraId, anonimidad) {
+    const proyecto = db.proyectos.find(p => p.id === proyectoId);
+    const colaboradora = db.colaboradoras.find(c => c.id === colaboradoraId);
 
-        if (!colaboradora) {
-            throw new DomainError("Colaboradora no encontrada", { colaboradoraId });
-        }
-
-        if (!proyecto.estaActivo()) {
-            throw new DomainError("El proyecto se encuentra finalizado y no admite nuevas colaboraciones", {
-                proyecto: { id: proyecto.id, titulo: proyecto.titulo, estado: proyecto.estado },
-            });
-        }
-
-        const colaboracionExistente = db.colaboraciones.some(colaboracion =>
-            colaboracion.proyectoId === proyectoId &&
-            colaboracion.colaboradoraId === colaboradoraId
-        );
-
-        if (colaboracionExistente) {
-            throw new ConflictError("La colaboradora ya se encuentra anotada en el proyecto", {
-                proyectoId,
-                colaboradora: { id: colaboradora.id, nombreFantasia: colaboradora.nombreFantasia },
-            });
-        }
-
-        const tieneHabilidad = colaboradora.cumpleAlgunaHabilidad(
-            proyecto.habilidadesRequeridas
-        );
-
-        if (!tieneHabilidad) {
-            throw new DomainError("La colaboradora no cuenta con ninguna de las habilidades requeridas", {
-                habilidadesRequeridas: proyecto.habilidadesRequeridas,
-                habilidadesColaboradora: colaboradora.habilidades,
-            });
-        }
-
-        const nuevaColaboracion = new Colaboracion(uuidv4(), proyectoId, colaboradoraId);
-
-        db.colaboraciones.push(nuevaColaboracion);
-        return nuevaColaboracion;
+    if (!proyecto || !colaboradora) {
+        throw new Error("Proyecto o colaboradora no encontrados");
     }
 
-    static  crearProyecto(data,IdColectivo){
-        const compromiso = new Compromiso(
-            data.compromiso.cantidadHoras,
-            data.compromiso.tipo
-        );
-        const modalidad = new ModalidadColaboracion(
-            data.modalidad.gratuita,
-            data.modalidad.incentivoEconomico,
-            data.modalidad.contratacionEventual
-        );
+    if (!proyecto.estaActivo()) {
+        throw new Error("El proyecto se encuentra finalizado y no admite nuevas colaboraciones");
+    }
+
+    const perfilAsignado = proyecto.perfiles.find(perfil => {
+    const habilidadesReq = perfil.habilidadesRequeridas || [];
+    const habilidadesColab = colaboradora.habilidades || [];
+    
+    const colabLower = habilidadesColab.map(h => h.toLowerCase());
+    
+    return habilidadesReq.every(req => 
+        colabLower.includes(req.toLowerCase())
+    );
+});
+
+if (!perfilAsignado) {
+    throw new Error("La colaboradora no cumple con las habilidades requeridas de ningún perfil disponible en este proyecto");
+}
+
+    const colaboracionExistente = db.colaboraciones.some(colaboracion =>
+        colaboracion.proyectoId === proyectoId &&
+        colaboracion.perfilId === perfilAsignado.id &&
+        colaboracion.colaboradoraId === colaboradoraId
+    );
+
+    if (colaboracionExistente) {
+        throw new Error("La colaboradora ya se encuentra anotada en este perfil del proyecto");
+    }
+
+    const idColaboradoraFinal = anonimidad ? "Anonimo" : colaboradoraId;
+    console.log("Valor de anonimidad:", anonimidad)
+    const nuevaColaboracion = new Colaboracion(uuidv4(), proyectoId, idColaboradoraFinal, new Date());
+
+    
+
+    db.colaboraciones.push(nuevaColaboracion);
+    return nuevaColaboracion;
+}
+
+static crearProyecto(data, IdColectivo) {
+        console.log("--- DEBUG PROYECTO SERVICE ---");
+        console.log("Data que llega al servicio:", data);
+        console.log("Perfiles dentro de data:", data.perfiles);
+        if (!data || typeof data !== "object") {
+            throw new Error("Los datos del proyecto son obligatorios");
+        }
+        if (typeof data.titulo !== "string" || !data.titulo.trim()) {
+            throw new Error("El título del proyecto es obligatorio");
+        }
+        if (typeof data.descripcion !== "string" || !data.descripcion.trim()) {
+            throw new Error("La descripción del proyecto es obligatoria");
+        }
+
+        const colectivo = db.colectivos.find(c => c.id === IdColectivo);
+        if (!colectivo) {
+            throw new Error("Colectivo no encontrado");
+        }
+
+        const perfiles = Array.isArray(data.perfiles) ? data.perfiles : [];
 
         const nuevo = new Proyecto(
-            uuidv4(),
-            data.titulo,
-            data.descripcion,
-            data.habilidadesRequeridas,
-            compromiso,
-            modalidad,
-            IdColectivo
+            uuidv4(),          
+            data.titulo,       
+            data.descripcion,  
+            IdColectivo,       
+            data.perfiles           
         );
-
-        this.cumpleHabilidades(nuevo.habilidadesRequeridas);
-
-        const colectivo = db.colectivos.find(colectivo => colectivo.id === IdColectivo);
-
-        if (!colectivo) {
-            throw new NotFoundError("Colectivo no encontrado", { colectivoId: IdColectivo });
-        }
 
         db.proyectos.push(nuevo);
         return nuevo;
@@ -125,4 +129,92 @@ static cerrarProyecto(colectivoId, proyectoId) {
         }
         return true;
     }
+
+    static actualizarPerfil(proyectoId, perfilId, datosActualizados) {
+    const proyecto = db.proyectos.find(p => p.id === proyectoId);
+    if (!proyecto) throw new Error('Proyecto no encontrado');
+
+    const perfil = proyecto.perfiles.find(p => p.id === perfilId);
+    if (!perfil) throw new Error('Perfil no encontrado');
+
+    if (datosActualizados.descripcionPerfil) {
+      perfil.descripcionPerfil = datosActualizados.descripcionPerfil;
+    }
+    if (datosActualizados.habilidadesRequeridas) {
+      perfil.habilidadesRequeridas = datosActualizados.habilidadesRequeridas;
+    }
+    if (datosActualizados.habilidadesOpcionales) {
+      perfil.habilidadesOpcionales = datosActualizados.habilidadesOpcionales;
+    }
+    if (datosActualizados.compromiso) {
+      perfil.compromiso = new Compromiso(datosActualizados.compromiso);
+    }
+    if (datosActualizados.modalidad) {
+      perfil.modalidad = new ModalidadColaboracion(datosActualizados.modalidad);
+    }
+
+    return perfil;
+  }
+
+
+  static eliminarPerfil(proyectoId, perfilId) {
+    const proyecto = db.proyectos.find(p => p.id === proyectoId);
+    if (!proyecto) throw new Error('Proyecto no encontrado');
+
+    const existePerfil = proyecto.perfiles.some(p => p.id === perfilId);
+    if (!existePerfil) throw new Error('Perfil no encontrado');
+
+    proyecto.perfiles = proyecto.perfiles.filter(p => p.id !== perfilId);
+    
+    return { mensaje: 'Perfil eliminado correctamente' };
+  }
+
+  static agregarPerfilAProyecto(idProyecto, dataPerfil) {
+        
+        const proyecto = db.proyectos.find(p => p.id === idProyecto);
+        if (!proyecto) {
+            throw new Error("Proyecto no encontrado");
+        }
+
+       
+        if (!dataPerfil || typeof dataPerfil !== "object") {
+            throw new Error("Los datos del perfil son obligatorios");
+        }
+        if (typeof dataPerfil.descripcionPerfil !== "string" || !dataPerfil.descripcionPerfil.trim()) {
+            throw new Error("La descripción del perfil es obligatoria");
+        }
+
+        
+        const compromiso = new Compromiso(
+            dataPerfil.compromiso.cantidadHoras,
+            dataPerfil.compromiso.tipo
+        );
+
+      
+        const modalidad = new ModalidadColaboracion(
+            dataPerfil.modalidad.gratuita,
+            dataPerfil.modalidad.incentivoEconomico,
+            dataPerfil.modalidad.contratacionEventual
+        );
+
+       
+        const nuevoPerfil = new Perfil(
+            uuidv4(),
+            dataPerfil.descripcionPerfil,
+            dataPerfil.habilidadesRequeridas || [],
+            dataPerfil.habilidadesOpcionales || [],
+            compromiso,
+            modalidad
+        );
+
+        
+        if (!Array.isArray(proyecto.perfiles)) {
+            proyecto.perfiles = [];
+        }
+        proyecto.perfiles.push(nuevoPerfil);
+
+        return nuevoPerfil;
+    }
+
+
 }

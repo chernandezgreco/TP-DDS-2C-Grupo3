@@ -16,11 +16,13 @@ export class ProyectoController {
     }
 
     static anotarColaboradora(req, res) {
-        const colaboracion = ProyectoService.anotarColaboradora(req.params.proyectoId, req.body.colaboradoraId);
+        const colaboracion = ProyectoService.anotarColaboradora(req.params.proyectoId, req.body.colaboradoraId, req.body.anonimidad);
         res.status(201).json(colaboracion);
     }
 
     static listarColaboradoras(req, res) {
         res.json(ProyectoService.listarColaboradoras(req.params.proyectoId));
     }
+
+   
 }

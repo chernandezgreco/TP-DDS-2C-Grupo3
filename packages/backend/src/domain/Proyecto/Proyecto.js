@@ -2,36 +2,26 @@ import { Compromiso } from "../Compromiso/Compromiso.js";
 import { ModalidadColaboracion } from "../ModalidadColaboracion/ModalidadColaboracion.js";
 import { EstadoProyecto } from "./EstadoProyecto.js";
 import { esTextoNoVacio } from "../validaciones.js";
+import { Perfil } from "../Perfiles/Perfiles.js"; 
 import { DomainError } from "../errores.js";
 
 export class Proyecto {
-    constructor(id, titulo, descripcion, habilidadesRequeridas, compromiso, modalidad, colectivoId) {
+    constructor(id, titulo, descripcion, colectivoId,perfiles = []) {
+        
         if (!esTextoNoVacio(titulo)) {
             throw new DomainError("El título del proyecto es obligatorio", { campo: "titulo" });
         }
         if (!esTextoNoVacio(descripcion)) {
             throw new DomainError("La descripción del proyecto es obligatoria", { campo: "descripcion" });
         }
-        if (!Array.isArray(habilidadesRequeridas) || habilidadesRequeridas.length === 0) {
-            throw new DomainError("El proyecto debe requerir al menos una habilidad", { campo: "habilidadesRequeridas" });
-        }
 
-        if (!(compromiso instanceof Compromiso)) {
-            throw new DomainError("El compromiso del proyecto no es válido", { campo: "compromiso" });
-        }
-
-        if (!(modalidad instanceof ModalidadColaboracion)) {
-            throw new DomainError("La modalidad de colaboración del proyecto no es válida", { campo: "modalidad" });
-        }
 
         this.id = id;
         this.titulo = titulo;
         this.descripcion = descripcion;
-        this.habilidadesRequeridas = habilidadesRequeridas;
-        this.compromiso = compromiso;
-        this.modalidad = modalidad;
         this.colectivoId = colectivoId;
         this.estado = EstadoProyecto.ACTIVO;
+        this.perfiles = perfiles; 
     }
 
     updateEstado(newEstado) {
