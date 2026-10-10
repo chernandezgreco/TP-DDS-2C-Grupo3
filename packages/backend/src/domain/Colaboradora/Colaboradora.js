@@ -20,6 +20,8 @@ export class Colaboradora {
         this.habilidades = [...habilidades];
         this.pronombres = pronombres;
         this.presentacion = presentacion;
+        this.mediosContacto = [];
+        this.aceptaMensajeria = false;
     }
 
     agregarHabilidad(codigoHabilidad) {
@@ -35,5 +37,30 @@ export class Colaboradora {
 
     cumpleAlgunaHabilidad(habilidadesRequeridas) {
         return this.habilidades.some((codigo) => habilidadesRequeridas.includes(codigo));
+    }
+
+    agregarMedioContacto(medio) {
+        if (this.mediosContacto.some((existente) => existente.esIgualA(medio))) {
+            throw new ConflictError("La colaboradora ya tiene este medio de contacto", { tipo: medio.tipo });
+        }
+
+        this.mediosContacto.push(medio);
+    }
+
+    cambiarAceptaMensajeria(acepta) {
+        if (typeof acepta !== "boolean") {
+            throw new DomainError("aceptaMensajeria debe ser verdadero o falso", { campo: "aceptaMensajeria" });
+        }
+
+        this.aceptaMensajeria = acepta;
+    }
+
+    puedeSerContactada() {
+        return this.aceptaMensajeria;
+    }
+
+    // los medios de contacto son internos: no salen en ninguna respuesta JSON
+    toJSON() {
+        return { ...this, mediosContacto: undefined };
     }
 }
