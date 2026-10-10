@@ -78,14 +78,20 @@ static crearProyecto(data, IdColectivo) {
             throw new Error("Colectivo no encontrado");
         }
 
-        const perfiles = Array.isArray(data.perfiles) ? data.perfiles : [];
+const perfilesConId = (Array.isArray(data.perfiles) ? data.perfiles : []).map(perfil => {
+            const nuevoPerfil = { ...perfil };
+            nuevoPerfil.id = uuidv4();
+            return nuevoPerfil;
+        });
+
+        console.log("--- PERFILES CON ID GENERADO ---", perfilesConId);
 
         const nuevo = new Proyecto(
             uuidv4(),          
             data.titulo,       
             data.descripcion,  
             IdColectivo,       
-            data.perfiles           
+            perfilesConId           
         );
 
         db.proyectos.push(nuevo);
@@ -214,6 +220,17 @@ static cerrarProyecto(colectivoId, proyectoId) {
         proyecto.perfiles.push(nuevoPerfil);
 
         return nuevoPerfil;
+    }
+
+
+    static listarPerfilesPorProyecto(proyectoId) {
+        const proyecto = db.proyectos.find(p => p.id === proyectoId);
+        
+        if (!proyecto) {
+            throw new Error("Proyecto no encontrado");
+        }
+
+        return proyecto.perfiles || [];
     }
 
 

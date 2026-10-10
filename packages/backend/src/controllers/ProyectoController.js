@@ -23,6 +23,14 @@ export class ProyectoController {
     static listarColaboradoras(req, res) {
         res.json(ProyectoService.listarColaboradoras(req.params.proyectoId));
     }
-
+    static listarPerfiles(req, res) {
+        try {
+            const { id: proyectoId } = req.params; // 
+            const perfiles = ProyectoService.listarPerfilesPorProyecto(proyectoId);
+            return res.status(200).json(perfiles);
+        } catch (error) {
+            return res.status(404).json({ error: error.message });
+        }
+    }
    
 }
