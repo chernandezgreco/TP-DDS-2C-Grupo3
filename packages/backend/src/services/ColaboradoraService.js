@@ -1,5 +1,6 @@
 import { db } from "../data/db.js";
 import { Colaboradora } from "../domain/Colaboradora/Colaboradora.js";
+import { MedioContacto } from "../domain/Colaboradora/MedioContacto.js";
 import { DomainError, NotFoundError } from "../domain/errores.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -13,6 +14,18 @@ export class ColaboradoraService {
         return nueva;
     }
     static listar() { return db.colaboradoras; }
+
+    static agregarMedioContacto(idColaboradora, data) {
+        const colaboradora = this.obtenerPorId(idColaboradora);
+        colaboradora.agregarMedioContacto(new MedioContacto(data.tipo, data.valor));
+        return colaboradora.mediosContacto;
+    }
+
+    static actualizarPreferencias(idColaboradora, data) {
+        const colaboradora = this.obtenerPorId(idColaboradora);
+        colaboradora.cambiarAceptaMensajeria(data.aceptaMensajeria);
+        return colaboradora;
+    }
 
     static agregarHabilidad(idColaboradora,data) {
         const colaboradora = this.obtenerPorId(idColaboradora);

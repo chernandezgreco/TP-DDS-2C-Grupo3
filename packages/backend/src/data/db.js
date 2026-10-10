@@ -7,6 +7,8 @@ import { Compromiso } from "../domain/Compromiso/Compromiso.js";
 import { TipoCompromiso } from "../domain/Compromiso/TipoCompromiso.js";
 import { ModalidadColaboracion } from "../domain/ModalidadColaboracion/ModalidadColaboracion.js";
 import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
+import { MedioContacto } from "../domain/Colaboradora/MedioContacto.js";
+import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
 
 // Datos ficticios para probar los endpoints. Los IDs son fijos para poder usarlos directo en las requests.
 
@@ -82,10 +84,17 @@ const colaboraciones = [
     new Colaboracion("colaboracion-4", "proyecto-4", "colaboradora-4", new Date("2026-08-01")),
 ];
 
+colaboradoras[0].agregarMedioContacto(new MedioContacto(TipoMedioContacto.EMAIL, "ada@mail.com"));
+colaboradoras[0].agregarMedioContacto(new MedioContacto(TipoMedioContacto.WHATSAPP, "+5491157612305"));
+colaboradoras[0].cambiarAceptaMensajeria(true);
+
+const notificaciones = [];
+
 export const db = {
     colectivos,
     proyectos,
     habilidades,
     colaboradoras,
-    colaboraciones
+    colaboraciones,
+    notificaciones
 };
