@@ -60,9 +60,9 @@ if (!perfilAsignado) {
 }
 
 static crearProyecto(data, IdColectivo) {
-        console.log("--- DEBUG PROYECTO SERVICE ---");
         console.log("Data que llega al servicio:", data);
         console.log("Perfiles dentro de data:", data.perfiles);
+        
         if (!data || typeof data !== "object") {
             throw new Error("Los datos del proyecto son obligatorios");
         }
@@ -78,7 +78,32 @@ static crearProyecto(data, IdColectivo) {
             throw new Error("Colectivo no encontrado");
         }
 
-const perfilesConId = (Array.isArray(data.perfiles) ? data.perfiles : []).map(perfil => {
+        const perfiles = Array.isArray(data.perfiles) ? data.perfiles : [];
+
+for (const perfil of perfiles) {
+            const habilidadesReq = perfil.habilidadesRequeridas || [];
+
+            for (const habNombre of habilidadesReq) {
+                const habilidadExiste = db.habilidades.some(h => {
+                    if (typeof h === "string") {
+                        return h.toLowerCase() === habNombre.toLowerCase();
+                    }
+                    if (typeof h === "object" && h !== null) {
+                        const tituloHab = h.titulo || "";
+                        const codigoHab = h.codigo || "";
+                        return tituloHab.toLowerCase() === habNombre.toLowerCase() || 
+                               codigoHab.toLowerCase() === habNombre.toLowerCase();
+                    }
+                    return false;
+                });
+
+                if (!habilidadExiste) {
+                    throw new Error(`La habilidad requerida '${habNombre}' no está dada de alta en el sistema.`);
+                }
+            }
+        }
+
+        const perfilesConId = perfiles.map(perfil => {
             const nuevoPerfil = { ...perfil };
             nuevoPerfil.id = uuidv4();
             return nuevoPerfil;
@@ -91,7 +116,7 @@ const perfilesConId = (Array.isArray(data.perfiles) ? data.perfiles : []).map(pe
             data.titulo,       
             data.descripcion,  
             IdColectivo,       
-            perfilesConId           
+            perfilesConId         
         );
 
         db.proyectos.push(nuevo);
@@ -101,7 +126,6 @@ const perfilesConId = (Array.isArray(data.perfiles) ? data.perfiles : []).map(pe
 static cerrarProyecto(colectivoId, proyectoId) {
     const proyecto = this.obtenerPorId(proyectoId);
 
-    // Validar que el proyecto pertenezca al colectivo
     if (proyecto.colectivoId !== colectivoId) {
         throw new NotFoundError("El proyecto no pertenece a este colectivo", { proyectoId, colectivoId });
     }
