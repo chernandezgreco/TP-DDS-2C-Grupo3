@@ -65,6 +65,11 @@ export class Proyecto {
         return logro;
     }
 
+    actualizarLogro(logroId, datosActualizados) {
+        const logro = this.obtenerLogro(logroId);
+        return logro.actualizar(datosActualizados);
+    }
+
     eliminarLogro(logroId) {
         const logro = this.obtenerLogro(logroId);
 

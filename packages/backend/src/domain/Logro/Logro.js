@@ -60,4 +60,48 @@ export class Logro {
         this.enlaceFuentePublica = enlaceFuentePublica || null;
         this.fechaCreacion = fechaCreacion;
     }
+
+    actualizar(datos = {}) {
+        if (!datos || typeof datos !== "object" || Array.isArray(datos)) {
+            throw new DomainError("Los datos del logro no son válidos");
+        }
+
+        const descripcion =
+            datos.descripcion === undefined
+                ? this.descripcion
+                : datos.descripcion;
+
+        const porcentajeCompletitud =
+            datos.porcentajeCompletitud === undefined
+                ? this.porcentajeCompletitud
+                : datos.porcentajeCompletitud;
+
+        const enlaceSistema =
+            datos.enlaceSistema === undefined
+                ? this.enlaceSistema
+                : datos.enlaceSistema;
+
+        const enlaceFuentePublica =
+            datos.enlaceFuentePublica === undefined
+                ? this.enlaceFuentePublica
+                : datos.enlaceFuentePublica;
+
+        const logroActualizado = new Logro(
+            this.id,
+            descripcion,
+            porcentajeCompletitud,
+            enlaceSistema,
+            enlaceFuentePublica,
+            this.fechaCreacion,
+        );
+
+        this.descripcion = logroActualizado.descripcion;
+        this.porcentajeCompletitud =
+            logroActualizado.porcentajeCompletitud;
+        this.enlaceSistema = logroActualizado.enlaceSistema;
+        this.enlaceFuentePublica =
+            logroActualizado.enlaceFuentePublica;
+
+        return this;
+    }
 }
