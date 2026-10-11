@@ -3,10 +3,15 @@ import { ModalidadColaboracion } from "../ModalidadColaboracion/ModalidadColabor
 import { EstadoProyecto } from "./EstadoProyecto.js";
 import { esTextoNoVacio } from "../validaciones.js";
 import { Perfil } from "../Perfiles/Perfiles.js"; 
-import { DomainError } from "../errores.js";
+import {
+    ConflictError,
+    DomainError,
+    NotFoundError,
+} from "../errores.js";
+import { Logro } from "../Logro/Logro.js";
 
 export class Proyecto {
-    constructor(id, titulo, descripcion, colectivoId,perfiles = []) {
+    constructor(id, titulo, descripcion, colectivoId, perfiles = [], logros = []) {
         
         if (!esTextoNoVacio(titulo)) {
             throw new DomainError("El título del proyecto es obligatorio", { campo: "titulo" });
@@ -21,7 +26,53 @@ export class Proyecto {
         this.descripcion = descripcion;
         this.colectivoId = colectivoId;
         this.estado = EstadoProyecto.ACTIVO;
+        this.logros = logros;
         this.perfiles = perfiles; 
+    }
+
+    agregarLogro(logro) {
+        if (!(logro instanceof Logro)) {
+            throw new DomainError("El logro no es válido", {
+                campo: "logro",
+            });
+        }
+
+        const logroExistente = this.logros.some(
+            (logroActual) => logroActual.id === logro.id,
+        );
+
+        if (logroExistente) {
+            throw new ConflictError("El logro ya existe en el proyecto", {
+                logroId: logro.id,
+            });
+        }
+
+        this.logros.push(logro);
+        return logro;
+    }
+
+    obtenerLogro(logroId) {
+        const logro = this.logros.find(
+            (logroActual) => logroActual.id === logroId,
+        );
+
+        if (!logro) {
+            throw new NotFoundError("Logro no encontrado", {
+                logroId,
+            });
+        }
+
+        return logro;
+    }
+
+    eliminarLogro(logroId) {
+        const logro = this.obtenerLogro(logroId);
+
+        this.logros = this.logros.filter(
+            (logroActual) => logroActual.id !== logroId,
+        );
+
+        return logro;
     }
 
     updateEstado(newEstado) {
