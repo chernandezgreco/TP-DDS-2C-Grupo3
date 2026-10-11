@@ -1,20 +1,35 @@
-import { db } from "../data/db.js";
+import { HabilidadModel } from "../models/indexModel.js";
 import { Habilidad } from "../domain/Habilidad/Habilidad.js";
 import { ConflictError } from "../domain/errores.js";
 
 export class HabilidadService {
-    static crearHabilidad(data) {
+    static async crearHabilidad(data) {
         const codigo = data.titulo.toLowerCase().trim().replace(/\s+/g, '-');
-        const nueva = new Habilidad(codigo, data.titulo, data.descripcion);
-
-        const habilidadExistente = db.habilidades.find(habilidad => habilidad.codigo === nueva.codigo);
+        
+        const habilidadExistente = await HabilidadModel.findOne({ codigo });
 
         if (habilidadExistente) {
             throw new ConflictError("La habilidad ya existe", { habilidadExistente });
         }
 
-        db.habilidades.push(nueva);
-        return nueva;
+        const nuevaHabilidadDoc = await HabilidadModel.create({
+            codigo,
+            titulo: data.titulo,
+            descripcion: data.descripcion
+        });
+
+        return new Habilidad(
+            nuevaHabilidadDoc.codigo,
+            nuevaHabilidadDoc.titulo,
+            nuevaHabilidadDoc.descripcion
+        );
     }
-    static listar() { return db.habilidades; }
+
+    static async listar() {
+        const habilidadesDocs = await HabilidadModel.find();
+        
+        return habilidadesDocs.map(doc => 
+            new Habilidad(doc.codigo, doc.titulo, doc.descripcion)
+        );
+    }
 }
