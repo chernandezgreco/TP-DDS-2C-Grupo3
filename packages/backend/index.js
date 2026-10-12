@@ -7,6 +7,7 @@ import colectivosRoutes from "./src/routes/Colectivos.js";
 import colaboradorasRoutes from "./src/routes/Colaboradora.js";
 import habilidadesRoutes from "./src/routes/Habilidades.js";
 import colaboracionesRoutes from "./src/routes/Colaboracion.js";
+import logrosRoutes from "./src/routes/Logros.js";
 import { manejarErrores } from "./src/middlewares/manejarErrores.js";
 
 
@@ -26,6 +27,7 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK", timestamp: new Date() });
 });
 
+app.use("/api/proyectos/:proyectoId/logros", logrosRoutes);
 app.use("/api/proyectos", proyectosRoutes);
 app.use("/api/colectivos", colectivosRoutes);
 app.use("/api/colaboradoras", colaboradorasRoutes);
