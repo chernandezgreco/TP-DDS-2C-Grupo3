@@ -8,7 +8,8 @@ import { TipoCompromiso } from "../domain/Compromiso/TipoCompromiso.js";
 import { ModalidadColaboracion } from "../domain/ModalidadColaboracion/ModalidadColaboracion.js";
 import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
 import { MedioContacto } from "../domain/Colaboradora/MedioContacto.js";
-import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
+import { Notificacion } from "../domain/Notificacion/Notificacion.js";
+import { CONTACTO_INICIAL, NOTIFICACIONES_INICIALES } from "../seeds/contactoNotificaciones.js";
 
 // Datos ficticios para probar los endpoints. Los IDs son fijos para poder usarlos directo en las requests.
 
@@ -84,11 +85,15 @@ const colaboraciones = [
     new Colaboracion("colaboracion-4", "proyecto-4", "colaboradora-4", new Date("2026-08-01")),
 ];
 
-colaboradoras[0].agregarMedioContacto(new MedioContacto(TipoMedioContacto.EMAIL, "ada@mail.com"));
-colaboradoras[0].agregarMedioContacto(new MedioContacto(TipoMedioContacto.WHATSAPP, "+5491157612305"));
-colaboradoras[0].cambiarAceptaMensajeria(true);
+CONTACTO_INICIAL.forEach((contacto) => {
+    const colaboradora = colaboradoras.find((c) => c.id === contacto.colaboradoraId);
+    contacto.medios.forEach((m) => colaboradora.agregarMedioContacto(new MedioContacto(m.tipo, m.valor)));
+    colaboradora.cambiarAceptaMensajeria(contacto.aceptaMensajeria);
+});
 
-const notificaciones = [];
+const notificaciones = NOTIFICACIONES_INICIALES.map(
+    (n, i) => new Notificacion(`notificacion-${i + 1}`, n.colaboradoraId, n.colectivoId, n.proyectoId, n.texto)
+);
 
 export const db = {
     colectivos,
