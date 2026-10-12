@@ -1,0 +1,1383 @@
+{
+  "info": {
+    "name": "TP DDS - Contacto y notificaciones",
+    "description": "Requests para probar medios de contacto, preferencia de mensajeria y notificaciones.\n\nCorrer la coleccion completa en orden (Runner) con el server recien levantado. La carpeta 0 crea los datos de prueba y guarda los ids en variables de la coleccion, asi que no dependen de ids fijos (sirve en memoria y con MongoDB). Cada request tiene tests. Los errores responden { error, detalle }: 400 pedido invalido o regla de negocio, 404 recurso inexistente, 409 conflicto.\n\nAl enviar una notificacion, el server escribe en su consola una linea por cada medio de contacto (el envio es simulado).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "codigoHabilidad",
+      "value": ""
+    },
+    {
+      "key": "colectivoId",
+      "value": ""
+    },
+    {
+      "key": "otroColectivoId",
+      "value": ""
+    },
+    {
+      "key": "proyectoId",
+      "value": ""
+    },
+    {
+      "key": "colaboradoraId",
+      "value": ""
+    },
+    {
+      "key": "colaboradoraSinMensajeriaId",
+      "value": ""
+    },
+    {
+      "key": "notificacionId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0 - Preparacion (correr primero, en orden)",
+      "item": [
+        {
+          "name": "1. Crear habilidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/habilidades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "habilidades"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Contacto Habilidad {{$timestamp}}\",\n  \"descripcion\": \"Habilidad para probar contacto y notificaciones\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "const h = pm.response.json();",
+                  "pm.collectionVariables.set(\"codigoHabilidad\", h.codigo);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Crear colectivo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Colectivo Verde Urbano\",\n  \"descripcion\": \"Recuperacion de espacios publicos\",\n  \"tipo\": \"ONG\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"colectivoId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Crear otro colectivo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Asamblea del Rio\",\n  \"descripcion\": \"Cuidado del rio\",\n  \"tipo\": \"ASAMBLEA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"otroColectivoId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Crear proyecto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos/{{colectivoId}}/proyectos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos",
+                "{{colectivoId}}",
+                "proyectos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Reforestacion Urbana\",\n  \"descripcion\": \"Plantacion de arboles nativos\",\n  \"perfiles\": [\n    {\n      \"descripcionPerfil\": \"Desarrollo web\",\n      \"compromiso\": {\n        \"cantidadHoras\": 5,\n        \"tipo\": \"SEMANALES\"\n      },\n      \"habilidadesRequeridas\": [\n        \"{{codigoHabilidad}}\"\n      ],\n      \"habilidadesOpcionales\": [],\n      \"modalidad\": {\n        \"gratuita\": true,\n        \"incentivoEconomico\": false,\n        \"contratacionEventual\": false\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"proyectoId\", pm.response.json()._id || pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. Crear colaboradora Ana",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreFantasia\": \"AnaCoder\",\n  \"github\": \"https://github.com/anacoder\",\n  \"nombreApellido\": \"Ana Perez\",\n  \"habilidades\": [\n    \"{{codigoHabilidad}}\"\n  ],\n  \"pronombres\": \"ella\",\n  \"presentacion\": \"Me gusta la ecologia urbana\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"colaboradoraId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Crear colaboradora Beto (nunca acepta mensajeria)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreFantasia\": \"BetoDev\",\n  \"github\": \"https://github.com/betodev\",\n  \"nombreApellido\": \"Beto Gomez\",\n  \"habilidades\": [\n    \"{{codigoHabilidad}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"colaboradoraSinMensajeriaId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 - Medios de contacto",
+      "item": [
+        {
+          "name": "Agregar email - OK",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EMAIL\",\n  \"valor\": \"ana@mail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "const medios = pm.response.json();",
+                  "pm.test(\"Devuelve la lista con el email\", () => { pm.expect(medios).to.have.lengthOf(1); pm.expect(medios[0].tipo).to.eql(\"EMAIL\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar SMS con espacios y guiones - OK",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"SMS\",\n  \"valor\": \"11 5761-2305\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "const medios = pm.response.json();",
+                  "pm.test(\"Guarda el numero sin espacios ni guiones\", () => pm.expect(medios[1].valor).to.eql(\"1157612305\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar WhatsApp - OK",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"WHATSAPP\",\n  \"valor\": \"+54 9 11 5761-2305\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Ya tiene 3 medios\", () => pm.expect(pm.response.json()).to.have.lengthOf(3));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar medio - Error repetido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EMAIL\",\n  \"valor\": \"ana@mail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"El error dice: ya tiene este medio\", () => pm.expect(pm.response.json().error).to.include(\"ya tiene este medio\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar medio - Error email mal formado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EMAIL\",\n  \"valor\": \"ana-mail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El error dice: formato válido\", () => pm.expect(pm.response.json().error).to.include(\"formato válido\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar medio - Error telefono con letras",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"SMS\",\n  \"valor\": \"11abc5761\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El error dice: formato válido\", () => pm.expect(pm.response.json().error).to.include(\"formato válido\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar medio - Error tipo inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"FAX\",\n  \"valor\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El error dice: EMAIL, WHATSAPP o SMS\", () => pm.expect(pm.response.json().error).to.include(\"EMAIL, WHATSAPP o SMS\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar medio - Error sin valor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EMAIL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El error dice: obligatorio\", () => pm.expect(pm.response.json().error).to.include(\"obligatorio\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar medio - Error colaboradora inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/000000000000000000000000/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "000000000000000000000000",
+                "medios-contacto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EMAIL\",\n  \"valor\": \"otra@mail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"El error dice: no encontrada\", () => pm.expect(pm.response.json().error).to.include(\"no encontrada\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar colaboradoras - No muestra los medios de contacto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Ninguna colaboradora trae mediosContacto\", () => pm.response.json().forEach((c) => pm.expect(c).to.not.have.property(\"mediosContacto\")));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 - Preferencia de mensajeria",
+      "item": [
+        {
+          "name": "Aceptar mensajeria - OK",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "preferencias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aceptaMensajeria\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"aceptaMensajeria queda en true\", () => pm.expect(pm.response.json().aceptaMensajeria).to.eql(true));",
+                  "pm.test(\"No muestra los medios de contacto\", () => pm.expect(pm.response.json()).to.not.have.property(\"mediosContacto\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preferencia - Error valor que no es booleano",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "preferencias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aceptaMensajeria\": \"si\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El error dice: verdadero o falso\", () => pm.expect(pm.response.json().error).to.include(\"verdadero o falso\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preferencia - Error sin el campo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "preferencias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Preferencia - Error colaboradora inexistente",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/000000000000000000000000/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "000000000000000000000000",
+                "preferencias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aceptaMensajeria\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"El error dice: no encontrada\", () => pm.expect(pm.response.json().error).to.include(\"no encontrada\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 - Notificaciones",
+      "item": [
+        {
+          "name": "Notificar - Error no acepta mensajeria",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraSinMensajeriaId}}\",\n  \"colectivoId\": \"{{colectivoId}}\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"Te necesitamos en el proyecto de reforestacion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"El error dice: no acepta mensajes\", () => pm.expect(pm.response.json().error).to.include(\"no acepta mensajes\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notificar - OK (se replica por los 3 medios)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\",\n  \"colectivoId\": \"{{colectivoId}}\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"Te necesitamos en el proyecto de reforestacion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.collectionVariables.set(\"notificacionId\", r.notificacion.id);",
+                  "pm.test(\"Guarda el texto\", () => pm.expect(r.notificacion.texto).to.eql(\"Te necesitamos en el proyecto de reforestacion\"));",
+                  "pm.test(\"Usa los tres medios\", () => pm.expect(r.mediosUsados).to.have.members([\"EMAIL\", \"SMS\", \"WHATSAPP\"]));",
+                  "pm.test(\"No muestra los datos de contacto\", () => pm.expect(JSON.stringify(r)).to.not.include(\"ana@mail.com\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notificar - Error texto vacio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\",\n  \"colectivoId\": \"{{colectivoId}}\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"   \"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El error dice: texto\", () => pm.expect(pm.response.json().error).to.include(\"texto\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notificar - Error sin colaboradoraId",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colectivoId\": \"{{colectivoId}}\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"Hola\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El error dice: colaboradora\", () => pm.expect(pm.response.json().error).to.include(\"colaboradora\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notificar - Error colaboradora inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"000000000000000000000000\",\n  \"colectivoId\": \"{{colectivoId}}\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"Te necesitamos en el proyecto de reforestacion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"El error dice: no encontrada\", () => pm.expect(pm.response.json().error).to.include(\"no encontrada\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notificar - Error colectivo inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\",\n  \"colectivoId\": \"000000000000000000000000\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"Te necesitamos en el proyecto de reforestacion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"El error dice: Colectivo no encontrado\", () => pm.expect(pm.response.json().error).to.include(\"Colectivo no encontrado\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notificar - Error proyecto inexistente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\",\n  \"colectivoId\": \"{{colectivoId}}\",\n  \"proyectoId\": \"000000000000000000000000\",\n  \"texto\": \"Te necesitamos en el proyecto de reforestacion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"El error dice: Proyecto no encontrado\", () => pm.expect(pm.response.json().error).to.include(\"Proyecto no encontrado\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notificar - Error proyecto de otro colectivo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\",\n  \"colectivoId\": \"{{otroColectivoId}}\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"Te necesitamos en el proyecto de reforestacion\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"El error dice: no pertenece\", () => pm.expect(pm.response.json().error).to.include(\"no pertenece\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar notificaciones de la colaboradora - OK",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "notificaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "const lista = pm.response.json();",
+                  "pm.test(\"Tiene una sola notificacion\", () => pm.expect(lista).to.have.lengthOf(1));",
+                  "pm.test(\"Es la que se creo antes\", () => pm.expect(lista[0].id).to.eql(pm.collectionVariables.get(\"notificacionId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar notificaciones - Colaboradora sin ninguna",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraSinMensajeriaId}}/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraSinMensajeriaId}}",
+                "notificaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Lista vacia\", () => pm.expect(pm.response.json()).to.eql([]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar notificaciones - Error colaboradora inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/000000000000000000000000/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "000000000000000000000000",
+                "notificaciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"El error dice: no encontrada\", () => pm.expect(pm.response.json().error).to.include(\"no encontrada\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

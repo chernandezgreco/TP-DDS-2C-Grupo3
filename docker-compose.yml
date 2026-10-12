@@ -1,12 +1,32 @@
 services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    # solo accesible desde la propia maquina, nunca abierto a internet
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
     build:
       context: .
       dockerfile: packages/backend/Dockerfile
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       SERVER_PORT: 3000
       ALLOWED_ORIGINS: http://localhost:3000
-    # Cuando en la 2da entrega sumemos MongoDB, acá se agrega el servicio "mongo"
-    # y este backend pasa a depender de él (depends_on) con su MONGO_URI correspondiente.
+      MONGO_URI: mongodb://mongo:27017/codigo_a_voluntad
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:

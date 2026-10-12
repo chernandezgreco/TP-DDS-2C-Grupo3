@@ -52,7 +52,15 @@ const colaboradoraSchema = new mongoose.Schema({
     nombreApellido: { type: String, required: true },
     habilidades: [{ type: String }],
     pronombres: { type: String },
-    presentacion: { type: String }
+    presentacion: { type: String },
+    aceptaMensajeria: { type: Boolean, default: false },
+    mediosContacto: [
+        {
+            _id: false,
+            tipo: { type: String, enum: ["EMAIL", "WHATSAPP", "SMS"], required: true },
+            valor: { type: String, required: true }
+        }
+    ]
 });
 export const ColaboradoraModel = mongoose.model("Colaboradora", colaboradoraSchema);
 
@@ -66,3 +74,14 @@ const colaboracionSchema = new mongoose.Schema({
     fechaCreacion: { type: Date, default: Date.now }
 });
 export const ColaboracionModel = mongoose.model("Colaboracion", colaboracionSchema);
+
+
+// --- 6. NOTIFICACION ---
+const notificacionSchema = new mongoose.Schema({
+    colaboradoraId: { type: String, required: true },
+    colectivoId: { type: String, required: true },
+    proyectoId: { type: String, required: true },
+    texto: { type: String, required: true },
+    fecha: { type: Date, default: Date.now }
+});
+export const NotificacionModel = mongoose.model("Notificacion", notificacionSchema);

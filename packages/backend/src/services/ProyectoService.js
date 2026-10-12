@@ -151,7 +151,7 @@ export class ProyectoService {
     }
 
     static async obtenerPorId(id) {
-        const proyecto = await ProyectoModel.findOne({ id: id });
+        const proyecto = await ProyectoModel.findById(id);
         if (!proyecto) {
             throw new NotFoundError("Proyecto no encontrado", { proyectoId: id });
         }

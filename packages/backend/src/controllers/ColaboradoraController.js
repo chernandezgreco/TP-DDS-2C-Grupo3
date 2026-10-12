@@ -18,4 +18,12 @@ export class ColaboradoraController {
             res.status(500).json({ error: error.message });
         }
     }
+
+    static async agregarMedioContacto(req, res) {
+        res.status(201).json(await ColaboradoraService.agregarMedioContacto(req.params.id, req.body));
+    }
+
+    static async actualizarPreferencias(req, res) {
+        res.json(await ColaboradoraService.actualizarPreferencias(req.params.id, req.body));
+    }
 }
