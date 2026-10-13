@@ -8,13 +8,23 @@ Desde la raíz del repo:
 docker compose up --build
 ```
 
-Esto levanta el backend en `http://localhost:3000`. Probar con:
+Esto levanta el backend en `http://localhost:3000` y un contenedor de MongoDB con su volumen (`mongo-data`), así los datos no se pierden al reiniciar. Probar con:
 
 ```
 curl http://localhost:3000/health
 ```
 
+### Solo la base, para desarrollar sin Docker en el backend
+
+```
+docker compose up mongo
+```
+
+Deja Mongo en `localhost:27017`. En `packages/backend/.env` (copiar de `.env.example`) va `MONGO_URI=mongodb://localhost:27017/codigo_a_voluntad` y el backend se levanta con `npm run dev`.
+
 ## Producción (Render, gratis)
+
+**Importante:** la consigna pide una imagen Docker para el servidor y otra para MongoDB. Render gratis sirve para el backend solo, pero no permite correr un contenedor de Mongo con datos persistentes. Para la 2da entrega el despliegue completo va en un servidor propio (ver "Servidor propio" más abajo).
 
 **Estado: ya deployado.**
 
@@ -42,6 +52,20 @@ Pasos seguidos para llegar a este estado (quedan documentados por si hay que reh
 Cada `git push` a la rama conectada (`main` o la que se elija en la configuración del servicio) dispara un redeploy automático.
 
 **Nota:** el plan free de Render "duerme" el servicio tras un rato sin tráfico y tarda unos segundos en despertar en el primer request — normal para un despliegue inicial de TP, no hace falta plan pago para esta entrega.
+
+## Servidor propio (DigitalOcean o similar)
+
+Con el `docker-compose.yml` alcanza para levantar todo en un Droplet con Docker instalado:
+
+```
+git clone <repo> && cd TP-DDS-2C-Grupo3
+docker compose up -d --build
+curl http://<ip-del-servidor>:3000/health
+```
+
+- Mongo queda atado a `127.0.0.1`, no es accesible desde internet.
+- Los datos viven en el volumen `mongo-data` y sobreviven a reinicios y redeploys.
+- Para actualizar: `git pull && docker compose up -d --build`.
 
 ## Futuro (DigitalOcean)
 

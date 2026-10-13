@@ -1,17 +1,16 @@
-import { db } from "../data/db.js";
+import { ColaboracionModel } from "../models/indexModel.js";
 import { NotFoundError } from "../domain/errores.js";
 
 export class ColaboracionService {
-    static listar() {
-        return db.colaboraciones;
+    static async listar() {
+        return await ColaboracionModel.find();
     }
 
-    static obtenerPorId(id) {
-        const colaboracion = db.colaboraciones.find(c => c.id === id);
+    static async obtenerPorId(id) {
+        const colaboracion = await ColaboracionModel.findById(id);
         if (!colaboracion) {
             throw new NotFoundError("Colaboración no encontrada", { colaboracionId: id });
         }
         return colaboracion;
     }  
-    
 }

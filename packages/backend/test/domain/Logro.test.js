@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { describe, test } from "node:test";
 import { DomainError, NotFoundError } from "../../src/domain/errores.js";
 import { Logro } from "../../src/domain/Logro/Logro.js";
 import { Proyecto } from "../../src/domain/Proyecto/Proyecto.js";

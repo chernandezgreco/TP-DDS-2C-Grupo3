@@ -13,6 +13,10 @@ export const manejarErrores = (err, req, res, next) => {
         return res.status(400).json({ error: "El body no es un JSON válido" });
     }
 
+    if (err.name === "CastError") {
+        return res.status(404).json({ error: "El id no es válido", detalle: { valor: err.value } });
+    }
+
     for (const [Tipo, status] of STATUS) {
         if (err instanceof Tipo) {
             return res.status(status).json({ error: err.message, detalle: err.detalle });

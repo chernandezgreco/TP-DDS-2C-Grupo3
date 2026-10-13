@@ -8,6 +8,10 @@ import colaboradorasRoutes from "./src/routes/Colaboradora.js";
 import habilidadesRoutes from "./src/routes/Habilidades.js";
 import colaboracionesRoutes from "./src/routes/Colaboracion.js";
 import logrosRoutes from "./src/routes/Logros.js";
+import notificacionesRoutes from "./src/routes/Notificaciones.js";
+import { conectarMongo } from "./src/config/mongo.js";
+import swaggerUi from "swagger-ui-express";
+import { especificacion } from "./src/docs/swagger.js";
 import { manejarErrores } from "./src/middlewares/manejarErrores.js";
 
 
@@ -33,6 +37,9 @@ app.use("/api/colectivos", colectivosRoutes);
 app.use("/api/colaboradoras", colaboradorasRoutes);
 app.use("/api/habilidades", habilidadesRoutes);
 app.use("/api/colaboraciones", colaboracionesRoutes);
+app.use("/api/notificaciones", notificacionesRoutes);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(especificacion));
 
 app.get("/", (req, res) => {
   res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });
@@ -42,6 +49,8 @@ app.get("/", (req, res) => {
 app.use(manejarErrores);
 
 const PORT = process.env.PORT || process.env.SERVER_PORT || 8000;
+
+await conectarMongo();
 
 app.listen(PORT, () => {
   console.log(`Backend escuchando en puerto ${PORT}`);
