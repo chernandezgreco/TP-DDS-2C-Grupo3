@@ -22,6 +22,28 @@ docker compose up mongo
 
 Deja Mongo en `localhost:27017`. En `packages/backend/.env` (copiar de `.env.example`) va `MONGO_URI=mongodb://localhost:27017/codigo_a_voluntad` y el backend se levanta con `npm run dev`.
 
+### Datos iniciales (seeds)
+
+El script semilla **borra** las colecciones de la base de `MONGO_URI` y carga habilidades, colectivos, colaboradoras (con medios de contacto), proyectos con perfiles, colaboraciones, una notificación y logros. Se puede correr las veces que haga falta.
+
+```
+# desarrollo local (desde packages/backend)
+npm run seed
+
+# dentro del contenedor del backend
+docker compose exec backend npm run seed
+```
+
+Los ids son fijos (ver `src/seeds/datos.js`), por ejemplo:
+
+| Entidad | Id |
+|---|---|
+| Colectivo "Fundación Manos Unidas" | `650000000000000000000101` |
+| Proyecto "Web de donaciones" | `650000000000000000000201` |
+| Colaboradora "Ada" | `650000000000000000000301` |
+
+Los ids de los perfiles se generan al cargar: se obtienen con `GET /api/proyectos/{id}/perfiles`. La documentación de la API queda en `/api-docs`.
+
 ## Producción (Render, gratis)
 
 **Importante:** la consigna pide una imagen Docker para el servidor y otra para MongoDB. Render gratis sirve para el backend solo, pero no permite correr un contenedor de Mongo con datos persistentes. Para la 2da entrega el despliegue completo va en un servidor propio (ver "Servidor propio" más abajo).

@@ -1,3 +1,5 @@
+import { pathsCatalogo, schemasCatalogo } from "./catalogo.js";
+import { pathsProyectos, schemasProyectos } from "./proyectos.js";
 import { pathsContacto, schemasContacto } from "./contactoNotificaciones.js";
 import { pathsLogros, schemasLogros } from "./logros.js";
 
@@ -9,7 +11,7 @@ export const especificacion = {
         version: "2.0.0",
         description: "API del backend del TP de Desarrollo de Software (grupo 3)",
     },
-    paths: { ...pathsContacto, ...pathsLogros },
+    paths: { ...pathsCatalogo, ...pathsProyectos, ...pathsContacto, ...pathsLogros },
     components: {
         schemas: {
             Error: {
@@ -19,6 +21,8 @@ export const especificacion = {
                     detalle: { type: "object" },
                 },
             },
+            ...schemasCatalogo,
+            ...schemasProyectos,
             ...schemasContacto,
             ...schemasLogros,
         },
