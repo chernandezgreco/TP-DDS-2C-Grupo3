@@ -1,8 +1,8 @@
 import { LogroService } from "../services/LogroService.js";
 
 export class LogroController {
-    static crear(req, res) {
-        const logro = LogroService.crear(
+    static async crear(req, res) {
+        const logro = await LogroService.crear(
             req.params.proyectoId,
             req.body,
         );
@@ -10,16 +10,16 @@ export class LogroController {
         return res.status(201).json(logro);
     }
 
-    static listar(req, res) {
-        const logros = LogroService.listar(
+    static async listar(req, res) {
+        const logros = await LogroService.listar(
             req.params.proyectoId,
         );
 
         return res.json(logros);
     }
 
-    static obtener(req, res) {
-        const logro = LogroService.obtener(
+    static async obtener(req, res) {
+        const logro = await LogroService.obtener(
             req.params.proyectoId,
             req.params.logroId,
         );
@@ -27,8 +27,8 @@ export class LogroController {
         return res.json(logro);
     }
 
-    static actualizar(req, res) {
-        const logro = LogroService.actualizar(
+    static async actualizar(req, res) {
+        const logro = await LogroService.actualizar(
             req.params.proyectoId,
             req.params.logroId,
             req.body,
@@ -37,8 +37,8 @@ export class LogroController {
         return res.json(logro);
     }
 
-    static eliminar(req, res) {
-        const logro = LogroService.eliminar(
+    static async eliminar(req, res) {
+        const logro = await LogroService.eliminar(
             req.params.proyectoId,
             req.params.logroId,
         );

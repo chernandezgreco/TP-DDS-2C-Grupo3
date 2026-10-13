@@ -35,12 +35,30 @@ const perfilSchema = new mongoose.Schema({
     }
 });
 
+const logroSchema = new mongoose.Schema(
+    {
+        id: { type: String, required: true },
+        descripcion: { type: String, required: true, trim: true },
+        porcentajeCompletitud: {
+            type: Number,
+            required: true,
+            min: 0,
+            max: 100
+        },
+        enlaceSistema: { type: String, default: null },
+        enlaceFuentePublica: { type: String, default: null },
+        fechaCreacion: { type: Date, default: Date.now }
+    },
+    { _id: false }
+);
+
 const proyectoSchema = new mongoose.Schema({
     titulo: { type: String, required: true },
     descripcion: { type: String, required: true },
     colectivoId: { type: String, required: true },
     estado: { type: String, default: "ACTIVO" },
-    perfiles: [perfilSchema]
+    perfiles: [perfilSchema],
+    logros: { type: [logroSchema], default: [] }
 });
 export const ProyectoModel = mongoose.model("Proyecto", proyectoSchema);
 
