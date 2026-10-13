@@ -55,4 +55,17 @@ export class ProyectoController {
             return res.status(404).json({ error: error.message });
         }
     }
+    static async eliminarPerfil(req, res) {
+        try {
+            const { proyectoId, perfilId } = req.params; 
+            
+           
+            const resultado = await ProyectoService.eliminarPerfil(proyectoId, perfilId);
+            
+            
+            return res.status(200).json(resultado);
+        } catch (error) {
+            return res.status(400).json({ error: error.message });
+        }
+    }
 }

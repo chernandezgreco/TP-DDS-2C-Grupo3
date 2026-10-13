@@ -2,24 +2,26 @@ import { Router } from "express";
 import { ProyectoService } from '../services/ProyectoService.js'; 
 import { PerfilesService } from '../services/PerfilesService.js'; 
 
+
 const router = Router();
 
-router.post('/:proyectoId/crearPerfil', (req, res) => {
-  try {
-    const { proyectoId } = req.params;
-    const datosPerfil = req.body;
+router.post('/:proyectoId/crearPerfil', async (req, res) => {
+    try {
+        const { proyectoId } = req.params;
+        const datosPerfil = req.body;
 
-    const nuevoPerfil = PerfilesService.agregarPerfilAProyecto(proyectoId, datosPerfil);
-    
-    return res.status(201).json({
-      mensaje: 'Perfil agregado exitosamente',
-      perfil: nuevoPerfil
-    });
-  } catch (error) {
-    return res.status(400).json({ 
-      error: error.message 
-    });
-  }
+        
+        const nuevoPerfil = await PerfilesService.agregarPerfilAProyecto(proyectoId, datosPerfil);
+
+        return res.status(201).json({
+            mensaje: 'Perfil agregado exitosamente',
+            perfil: nuevoPerfil
+        });
+    } catch (error) {
+        return res.status(400).json({
+            error: error.message
+        });
+    }
 });
 
 

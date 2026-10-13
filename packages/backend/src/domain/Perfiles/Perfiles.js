@@ -1,3 +1,5 @@
+import { Compromiso } from "../Compromiso/Compromiso.js";
+import { ModalidadColaboracion } from "../ModalidadColaboracion/ModalidadColaboracion.js";
 export class Perfil {
     constructor(id, descripcionPerfil, habilidadesRequeridas, habilidadesOpcionales, compromiso, modalidad) {
         if (!(compromiso instanceof Compromiso)) {
