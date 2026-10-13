@@ -21,6 +21,7 @@ export const ColectivoModel = mongoose.model("Colectivo", colectivoSchema);
 
 // --- 3. PROYECTO ---
 const perfilSchema = new mongoose.Schema({
+    id: { type: String, required: true },
     descripcionPerfil: { type: String, required: true },
     compromiso: {
         cantidadHoras: { type: Number, required: true },
@@ -33,7 +34,7 @@ const perfilSchema = new mongoose.Schema({
         incentivoEconomico: { type: Boolean, required: true },
         contratacionEventual: { type: Boolean, required: true }
     }
-});
+}, { _id: false });
 
 const logroSchema = new mongoose.Schema(
     {

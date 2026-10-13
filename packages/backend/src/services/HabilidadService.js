@@ -5,7 +5,9 @@ import { ConflictError } from "../domain/errores.js";
 export class HabilidadService {
     static async crearHabilidad(data) {
         const codigo = data.titulo.toLowerCase().trim().replace(/\s+/g, '-');
-        
+        // el dominio valida antes de guardar
+        const borrador = new Habilidad(codigo, data.titulo, data.descripcion);
+
         const habilidadExistente = await HabilidadModel.findOne({ codigo });
 
         if (habilidadExistente) {
@@ -13,9 +15,9 @@ export class HabilidadService {
         }
 
         const nuevaHabilidadDoc = await HabilidadModel.create({
-            codigo,
-            titulo: data.titulo,
-            descripcion: data.descripcion
+            codigo: borrador.codigo,
+            titulo: borrador.titulo,
+            descripcion: borrador.descripcion
         });
 
         return new Habilidad(

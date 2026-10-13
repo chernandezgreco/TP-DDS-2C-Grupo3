@@ -9,6 +9,7 @@ import habilidadesRoutes from "./src/routes/Habilidades.js";
 import colaboracionesRoutes from "./src/routes/Colaboracion.js";
 import logrosRoutes from "./src/routes/Logros.js";
 import notificacionesRoutes from "./src/routes/Notificaciones.js";
+import perfilesRoutes from "./src/routes/Perfiles.js";
 import { conectarMongo } from "./src/config/mongo.js";
 import swaggerUi from "swagger-ui-express";
 import { especificacion } from "./src/docs/swagger.js";
@@ -33,6 +34,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api/proyectos/:proyectoId/logros", logrosRoutes);
 app.use("/api/proyectos", proyectosRoutes);
+app.use("/api/proyectos", perfilesRoutes);
 app.use("/api/colectivos", colectivosRoutes);
 app.use("/api/colaboradoras", colaboradorasRoutes);
 app.use("/api/habilidades", habilidadesRoutes);

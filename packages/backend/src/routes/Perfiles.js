@@ -25,12 +25,12 @@ router.post('/:proyectoId/crearPerfil', async (req, res) => {
 });
 
 
-router.put('/:proyectoId/perfiles/:perfilId', (req, res) => {
+router.put('/:proyectoId/perfiles/:perfilId', async (req, res) => {
   try {
     const { proyectoId, perfilId } = req.params;
     const datosActualizados = req.body;
 
-    const perfilActualizado = ProyectoService.actualizarPerfil(proyectoId, perfilId, datosActualizados);
+    const perfilActualizado = await ProyectoService.actualizarPerfil(proyectoId, perfilId, datosActualizados);
     
     return res.json({
       mensaje: 'Perfil actualizado exitosamente',
@@ -43,10 +43,10 @@ router.put('/:proyectoId/perfiles/:perfilId', (req, res) => {
   }
 });
 
-router.delete('/:proyectoId/perfiles/:perfilId', (req, res) => {
+router.delete('/:proyectoId/perfiles/:perfilId', async (req, res) => {
   try {
     const { proyectoId, perfilId } = req.params;
-    const resultado = ProyectoService.eliminarPerfil(proyectoId, perfilId);
+    const resultado = await ProyectoService.eliminarPerfil(proyectoId, perfilId);
     
     return res.json(resultado);
   } catch (error) {

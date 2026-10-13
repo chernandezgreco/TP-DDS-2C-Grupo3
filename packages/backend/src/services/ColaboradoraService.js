@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { ColaboradoraModel, HabilidadModel } from "../models/indexModel.js";
 import { Colaboradora } from "../domain/Colaboradora/Colaboradora.js";
 import { MedioContacto } from "../domain/Colaboradora/MedioContacto.js";
@@ -96,6 +97,14 @@ export class ColaboradoraService {
         }
 
         return aDominio(doc);
+    }
+
+    // ignora los ids que no son de Mongo (por ejemplo las colaboraciones anónimas)
+    static async listarPorIds(ids) {
+        const idsValidos = ids.filter((id) => mongoose.isObjectIdOrHexString(id));
+        const docs = await ColaboradoraModel.find({ _id: { $in: idsValidos } });
+
+        return docs.map(aDominio);
     }
 
     static async cumpleHabilidades(Habilidades) {

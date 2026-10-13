@@ -10,6 +10,7 @@ import { HabilidadModel } from "../models/indexModel.js";
 import { ColectivoModel } from "../models/indexModel.js";
 import { ColaboradoraModel } from "../models/indexModel.js";
 import { ColaboracionModel } from "../models/indexModel.js";
+import { ColaboradoraService } from "./ColaboradoraService.js";
 
 export class ProyectoService {
 
@@ -44,7 +45,7 @@ export class ProyectoService {
             throw new Error("La colaboradora no cumple con las habilidades requeridas de ningún perfil disponible en este proyecto");
         }
 
-        const colaboracionExistente = await ColaboradoraModel.findOne({
+        const colaboracionExistente = await ColaboracionModel.findOne({
             proyectoId: proyectoId,
             perfilId: perfilAsignado.id,
             colaboradoraId: colaboradoraId
@@ -147,7 +148,7 @@ export class ProyectoService {
         const colaboraciones = await ColaboracionModel.find({ proyectoId: proyectoId });
         const idsColaboradoras = colaboraciones.map(c => c.colaboradoraId);
 
-        return await ColaboradoraModel.find({ id: { $in: idsColaboradoras } });
+        return await ColaboradoraService.listarPorIds(idsColaboradoras);
     }
 
     static async obtenerPorId(id) {
@@ -175,8 +176,8 @@ static async actualizarPerfil(proyectoId, perfilId, datosActualizados) {
         const proyecto = await ProyectoModel.findById(proyectoId);
         if (!proyecto) throw new Error('Proyecto no encontrado');
 
-       
-        const perfil = proyecto.perfiles.id(perfilId) || proyecto.perfiles.find(p => p._id?.toString() === perfilId || p.id === perfilId);
+
+        const perfil = proyecto.perfiles.find(p => p.id === perfilId);
         if (!perfil) throw new Error('Perfil no encontrado');
 
         if (datosActualizados.descripcionPerfil) {
@@ -204,11 +205,11 @@ static async actualizarPerfil(proyectoId, perfilId, datosActualizados) {
         const proyecto = await ProyectoModel.findById(proyectoId);
         if (!proyecto) throw new Error('Proyecto no encontrado');
 
-        
-        const perfil = proyecto.perfiles.id(perfilId) || proyecto.perfiles.find(p => p._id?.toString() === perfilId || p.id === perfilId);
+
+        const perfil = proyecto.perfiles.find(p => p.id === perfilId);
         if (!perfil) throw new Error('Perfil no encontrado');
 
-        proyecto.perfiles.pull(perfil._id || perfilId);
+        proyecto.perfiles = proyecto.perfiles.filter(p => p.id !== perfilId);
 
         await proyecto.save();
         
@@ -216,7 +217,7 @@ static async actualizarPerfil(proyectoId, perfilId, datosActualizados) {
     }
 
     static async agregarPerfilAProyecto(idProyecto, dataPerfil) {
-        const proyecto = await ProyectoModel.findOne({ id: idProyecto });
+        const proyecto = await ProyectoModel.findById(idProyecto);
         if (!proyecto) {
             throw new Error("Proyecto no encontrado");
         }
