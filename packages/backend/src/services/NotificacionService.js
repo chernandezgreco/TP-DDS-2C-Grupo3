@@ -1,8 +1,9 @@
 import { Notificacion } from "../domain/Notificacion/Notificacion.js";
 import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
-import { ConflictError, DomainError, NotFoundError } from "../domain/errores.js";
-import { ColectivoModel, NotificacionModel } from "../models/indexModel.js";
+import { ConflictError, DomainError } from "../domain/errores.js";
+import { NotificacionModel } from "../models/indexModel.js";
 import { ColaboradoraService } from "./ColaboradoraService.js";
+import { ColectivoService } from "./ColectivosService.js";
 import { ProyectoService } from "./ProyectoService.js";
 import { EnviadorEmail } from "./enviadores/EnviadorEmail.js";
 import { EnviadorWhatsapp } from "./enviadores/EnviadorWhatsapp.js";
@@ -21,12 +22,9 @@ const aDominio = (doc) =>
 export class NotificacionService {
     static async crear(data) {
         const colaboradora = await ColaboradoraService.obtenerPorId(data.colaboradoraId);
-        const colectivo = await ColectivoModel.findById(data.colectivoId);
-        if (!colectivo) {
-            throw new NotFoundError("Colectivo no encontrado", { colectivoId: data.colectivoId });
-        }
+        const colectivo = await ColectivoService.obtenerPorId(data.colectivoId);
         const proyecto = await ProyectoService.obtenerPorId(data.proyectoId);
-        if (proyecto.colectivoId !== colectivo.id) {
+        if (!proyecto.perteneceA(colectivo.id)) {
             throw new DomainError("El proyecto no pertenece a este colectivo", { proyectoId: proyecto.id, colectivoId: colectivo.id });
         }
         if (!colaboradora.puedeSerContactada()) {

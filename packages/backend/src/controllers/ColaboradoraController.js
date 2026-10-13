@@ -2,21 +2,19 @@ import { ColaboradoraService } from "../services/ColaboradoraService.js";
 
 export class ColaboradoraController {
     static async crear(req, res) {
-        try {
-            const nuevaColaboradora = await ColaboradoraService.crearColaboradora(req.body);
-            res.status(201).json(nuevaColaboradora);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
+        res.status(201).json(await ColaboradoraService.crearColaboradora(req.body));
     }
 
     static async listar(req, res) {
-        try {
-            const colaboradoras = await ColaboradoraService.listar();
-            res.json(colaboradoras);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
+        res.json(await ColaboradoraService.listar());
+    }
+
+    static async obtener(req, res) {
+        res.json(await ColaboradoraService.obtenerPorId(req.params.id));
+    }
+
+    static async agregarHabilidad(req, res) {
+        res.status(201).json(await ColaboradoraService.agregarHabilidad(req.params.id, req.body));
     }
 
     static async agregarMedioContacto(req, res) {

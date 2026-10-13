@@ -1,4 +1,9 @@
 import mongoose from "mongoose";
+import { TipoColectivo } from "../domain/Colectivo/TipoColectivo.js";
+import { TipoCompromiso } from "../domain/Compromiso/TipoCompromiso.js";
+import { EstadoProyecto } from "../domain/Proyecto/EstadoProyecto.js";
+import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
+import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
 
 // --- 1. HABILIDAD ---
 const habilidadSchema = new mongoose.Schema({
@@ -12,8 +17,8 @@ export const HabilidadModel = mongoose.model("Habilidad", habilidadSchema);
 // --- 2. COLECTIVO ---
 const colectivoSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
-    descripcion: { type: String },
-    tipo: { type: String },
+    descripcion: { type: String, required: true },
+    tipo: { type: String, enum: Object.values(TipoColectivo), required: true },
     ubicacion: { type: String }
 });
 export const ColectivoModel = mongoose.model("Colectivo", colectivoSchema);
@@ -25,7 +30,7 @@ const perfilSchema = new mongoose.Schema({
     descripcionPerfil: { type: String, required: true },
     compromiso: {
         cantidadHoras: { type: Number, required: true },
-        tipo: { type: String, enum: ["TOTALES", "SEMANALES", "MENSUALES"], required: true }
+        tipo: { type: String, enum: Object.values(TipoCompromiso), required: true }
     },
     habilidadesRequeridas: [{ type: String, required: true }],
     habilidadesOpcionales: [{ type: String }],
@@ -57,8 +62,8 @@ const proyectoSchema = new mongoose.Schema({
     titulo: { type: String, required: true },
     descripcion: { type: String, required: true },
     colectivoId: { type: String, required: true },
-    estado: { type: String, default: "ACTIVO" },
-    perfiles: [perfilSchema],
+    estado: { type: String, enum: Object.values(EstadoProyecto), default: EstadoProyecto.ACTIVO },
+    perfiles: { type: [perfilSchema], default: [] },
     logros: { type: [logroSchema], default: [] }
 });
 export const ProyectoModel = mongoose.model("Proyecto", proyectoSchema);
@@ -66,9 +71,9 @@ export const ProyectoModel = mongoose.model("Proyecto", proyectoSchema);
 
 // --- 4. COLABORADORA ---
 const colaboradoraSchema = new mongoose.Schema({
-    nombreFantasia: { type: String },
-    github: { type: String },
-    nombreApellido: { type: String, required: true },
+    nombreFantasia: { type: String, required: true },
+    github: { type: String, required: true },
+    nombreApellido: { type: String },
     habilidades: [{ type: String }],
     pronombres: { type: String },
     presentacion: { type: String },
@@ -76,7 +81,7 @@ const colaboradoraSchema = new mongoose.Schema({
     mediosContacto: [
         {
             _id: false,
-            tipo: { type: String, enum: ["EMAIL", "WHATSAPP", "SMS"], required: true },
+            tipo: { type: String, enum: Object.values(TipoMedioContacto), required: true },
             valor: { type: String, required: true }
         }
     ]
@@ -89,7 +94,7 @@ const colaboracionSchema = new mongoose.Schema({
     proyectoId: { type: String, required: true },
     perfilId: { type: String, required: true },
     colaboradoraId: { type: String, required: true },
-    estado: { type: String, default: "PENDIENTE" },
+    estado: { type: String, enum: Object.values(EstadoColaboracion), default: EstadoColaboracion.PENDIENTE },
     fechaCreacion: { type: Date, default: Date.now }
 });
 export const ColaboracionModel = mongoose.model("Colaboracion", colaboracionSchema);

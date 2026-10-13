@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
-import { ColaboradoraModel, HabilidadModel } from "../models/indexModel.js";
+import { ColaboradoraModel } from "../models/indexModel.js";
 import { Colaboradora } from "../domain/Colaboradora/Colaboradora.js";
 import { MedioContacto } from "../domain/Colaboradora/MedioContacto.js";
-import { DomainError, NotFoundError } from "../domain/errores.js";
+import { NotFoundError } from "../domain/errores.js";
+import { HabilidadService } from "./HabilidadService.js";
+import { esIdValido } from "./ids.js";
 
 // arma la colaboradora de dominio a partir del documento de Mongo
 const aDominio = (doc) =>
@@ -20,15 +21,25 @@ const aDominio = (doc) =>
 
 export class ColaboradoraService {
     static async crearColaboradora(data) {
-        await this.cumpleHabilidades(data.habilidades);
+        // el dominio valida antes de guardar
+        const borrador = new Colaboradora(
+            null,
+            data.nombreFantasia,
+            data.github,
+            data.nombreApellido,
+            data.habilidades,
+            data.pronombres,
+            data.presentacion
+        );
+        await HabilidadService.validarExistentes(borrador.habilidades);
 
         const nuevaColaboradoraDoc = await ColaboradoraModel.create({
-            nombreFantasia: data.nombreFantasia,
-            github: data.github,
-            nombreApellido: data.nombreApellido,
-            habilidades: data.habilidades,
-            pronombres: data.pronombres,
-            presentacion: data.presentacion
+            nombreFantasia: borrador.nombreFantasia,
+            github: borrador.github,
+            nombreApellido: borrador.nombreApellido,
+            habilidades: borrador.habilidades,
+            pronombres: borrador.pronombres,
+            presentacion: borrador.presentacion
         });
 
         return aDominio(nuevaColaboradoraDoc);
@@ -64,34 +75,18 @@ export class ColaboradoraService {
 
     static async agregarHabilidad(idColaboradora, data) {
         const colaboradora = await this.obtenerPorId(idColaboradora);
+        await HabilidadService.validarExistentes([data.codigo]);
 
-        if (!data || typeof data.codigo !== "string" || !data.codigo.trim()) {
-            throw new DomainError("El código de la habilidad es obligatorio", { campo: "codigo" });
-        }
-
-        const codigoHabilidad = data.codigo.trim();
-        const habilidad = await HabilidadModel.findOne({ codigo: codigoHabilidad });
-        if (!habilidad) throw new DomainError("La habilidad no existe", { codigo: codigoHabilidad });
-
-        if (!colaboradora.habilidades.includes(codigoHabilidad)) {
-            colaboradora.habilidades.push(codigoHabilidad);
-            await ColaboradoraModel.findByIdAndUpdate(idColaboradora, {
-                habilidades: colaboradora.habilidades
-            });
-        }
+        colaboradora.agregarHabilidad(data.codigo);
+        await ColaboradoraModel.findByIdAndUpdate(idColaboradora, {
+            habilidades: colaboradora.habilidades
+        });
 
         return colaboradora;
     }
 
-    static async cumpleAlgunaHabilidad(habilidadesBuscadas, idColaboradora) {
-        const doc = await ColaboradoraModel.findById(idColaboradora);
-        if (!doc) return false;
-
-        return aDominio(doc).cumpleAlgunaHabilidad(habilidadesBuscadas);
-    }
-
     static async obtenerPorId(id) {
-        const doc = await ColaboradoraModel.findById(id);
+        const doc = esIdValido(id) ? await ColaboradoraModel.findById(id) : null;
         if (!doc) {
             throw new NotFoundError("Colaboradora no encontrada", { colaboradoraId: id });
         }
@@ -101,24 +96,15 @@ export class ColaboradoraService {
 
     // ignora los ids que no son de Mongo (por ejemplo las colaboraciones anónimas)
     static async listarPorIds(ids) {
-        const idsValidos = ids.filter((id) => mongoose.isObjectIdOrHexString(id));
-        const docs = await ColaboradoraModel.find({ _id: { $in: idsValidos } });
+        const docs = await ColaboradoraModel.find({ _id: { $in: ids.filter(esIdValido) } });
 
         return docs.map(aDominio);
     }
 
-    static async cumpleHabilidades(Habilidades) {
-        const habilidadesExistentes = await HabilidadModel.find({
-            codigo: { $in: Habilidades }
-        });
+    // colaboradoras que tienen al menos una de las habilidades indicadas
+    static async buscarPorHabilidades(codigos) {
+        const docs = await ColaboradoraModel.find({ habilidades: { $in: codigos } });
 
-        const codigosExistentes = habilidadesExistentes.map(h => h.codigo);
-        const inexistentes = Habilidades.filter(CodigoHabilidad => !codigosExistentes.includes(CodigoHabilidad));
-
-        if (inexistentes.length > 0) {
-            throw new DomainError("La Colaboradora no cumple con las habilidades dadas de alta", { habilidadesInexistentes: inexistentes });
-        }
-
-        return true;
+        return docs.map(aDominio);
     }
 }

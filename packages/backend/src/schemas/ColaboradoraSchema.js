@@ -16,6 +16,13 @@ export const crearColaboradoraSchema = z.object(
     { error: "Los datos de la colaboradora son obligatorios" }
 );
 
+export const agregarHabilidadSchema = z.object(
+    {
+        codigo: z.string({ error: "El código de la habilidad es obligatorio" }),
+    },
+    { error: "El código de la habilidad es obligatorio" }
+);
+
 export const medioContactoSchema = z.object(
     {
         tipo: z.enum(Object.values(TipoMedioContacto), { error: "El tipo debe ser EMAIL, WHATSAPP o SMS" }),

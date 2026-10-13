@@ -1,260 +1,150 @@
-import { db } from "../data/db.js";
-import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
+import { v4 as uuidv4 } from "uuid";
+import { ProyectoModel } from "../models/indexModel.js";
+import { Proyecto } from "../domain/Proyecto/Proyecto.js";
+import { EstadoProyecto } from "../domain/Proyecto/EstadoProyecto.js";
+import { Perfil } from "../domain/Perfil/Perfil.js";
 import { Compromiso } from "../domain/Compromiso/Compromiso.js";
 import { ModalidadColaboracion } from "../domain/ModalidadColaboracion/ModalidadColaboracion.js";
-import { Proyecto } from "../domain/Proyecto/Proyecto.js";
-import { ConflictError, DomainError, NotFoundError } from "../domain/errores.js";
-import { v4 as uuidv4 } from "uuid";
-import { ProyectoModel } from "../models/indexModel.js"; 
-import { HabilidadModel } from "../models/indexModel.js"; 
-import { ColectivoModel } from "../models/indexModel.js";
-import { ColaboradoraModel } from "../models/indexModel.js";
-import { ColaboracionModel } from "../models/indexModel.js";
+import { Logro } from "../domain/Logro/Logro.js";
+import { NotFoundError } from "../domain/errores.js";
+import { ColectivoService } from "./ColectivosService.js";
 import { ColaboradoraService } from "./ColaboradoraService.js";
+import { ColaboracionService } from "./ColaboracionService.js";
+import { HabilidadService } from "./HabilidadService.js";
+import { esIdValido } from "./ids.js";
+
+// --- Conversión entre Mongo y dominio. Es el único lugar que conoce la forma del documento ---
+
+export const crearPerfil = (id, datos) =>
+    new Perfil(
+        id,
+        datos.descripcionPerfil,
+        datos.habilidadesRequeridas,
+        datos.habilidadesOpcionales,
+        new Compromiso(datos.compromiso.cantidadHoras, datos.compromiso.tipo),
+        new ModalidadColaboracion(datos.modalidad.gratuita, datos.modalidad.incentivoEconomico, datos.modalidad.contratacionEventual)
+    );
+
+const aDominio = (doc) =>
+    new Proyecto(
+        doc._id.toString(),
+        doc.titulo,
+        doc.descripcion,
+        doc.colectivoId,
+        doc.perfiles.map((perfil) => crearPerfil(perfil.id, perfil)),
+        doc.logros.map((logro) => new Logro(
+            logro.id,
+            logro.descripcion,
+            logro.porcentajeCompletitud,
+            logro.enlaceSistema,
+            logro.enlaceFuentePublica,
+            logro.fechaCreacion,
+        )),
+        doc.estado
+    );
+
+export const aDocumento = (proyecto) => ({
+    titulo: proyecto.titulo,
+    descripcion: proyecto.descripcion,
+    colectivoId: proyecto.colectivoId,
+    estado: proyecto.estado,
+    perfiles: proyecto.perfiles.map((perfil) => ({
+        id: perfil.id,
+        descripcionPerfil: perfil.descripcionPerfil,
+        habilidadesRequeridas: perfil.habilidadesRequeridas,
+        habilidadesOpcionales: perfil.habilidadesOpcionales,
+        compromiso: { cantidadHoras: perfil.compromiso.cantidadHoras, tipo: perfil.compromiso.tipo },
+        modalidad: {
+            gratuita: perfil.modalidad.gratuita,
+            incentivoEconomico: perfil.modalidad.incentivoEconomico,
+            contratacionEventual: perfil.modalidad.contratacionEventual,
+        },
+    })),
+    logros: proyecto.logros.map((logro) => ({
+        id: logro.id,
+        descripcion: logro.descripcion,
+        porcentajeCompletitud: logro.porcentajeCompletitud,
+        enlaceSistema: logro.enlaceSistema,
+        enlaceFuentePublica: logro.enlaceFuentePublica,
+        fechaCreacion: logro.fechaCreacion,
+    })),
+});
 
 export class ProyectoService {
-
     static async listar() {
-        return await ProyectoModel.find({});
+        const docs = await ProyectoModel.find();
+
+        return docs.map(aDominio);
     }
 
-    static async anotarColaboradora(proyectoId, colaboradoraId, anonimidad) {
-        const proyecto = await ProyectoModel.findById(proyectoId);
-        const colaboradora = await ColaboradoraModel.findById(colaboradoraId);
-
-        if (!proyecto || !colaboradora) {
-            throw new Error("Proyecto o colaboradora no encontrados");
+    static async obtenerPorId(id) {
+        const doc = esIdValido(id) ? await ProyectoModel.findById(id) : null;
+        if (!doc) {
+            throw new NotFoundError("Proyecto no encontrado", { proyectoId: id });
         }
 
-        if (proyecto.estado !== "ACTIVO") {
-            throw new Error("El proyecto se encuentra finalizado y no admite nuevas colaboraciones");
-        }
-
-        const perfilAsignado = proyecto.perfiles.find(perfil => {
-            const habilidadesReq = perfil.habilidadesRequeridas || [];
-            const habilidadesColab = colaboradora.habilidades || [];
-            
-            const colabLower = habilidadesColab.map(h => h.toLowerCase());
-            
-            return habilidadesReq.every(req => 
-                colabLower.includes(req.toLowerCase())
-            );
-        });
-
-        if (!perfilAsignado) {
-            throw new Error("La colaboradora no cumple con las habilidades requeridas de ningún perfil disponible en este proyecto");
-        }
-
-        const colaboracionExistente = await ColaboracionModel.findOne({
-            proyectoId: proyectoId,
-            perfilId: perfilAsignado.id,
-            colaboradoraId: colaboradoraId
-        });
-
-        if (colaboracionExistente) {
-            throw new Error("La colaboradora ya se encuentra anotada en este perfil del proyecto");
-        }
-
-        const idColaboradoraFinal = anonimidad ? "Anonimo" : colaboradoraId;
-        console.log("Valor de anonimidad:", anonimidad);
-
-        const nuevaColaboracion = new ColaboracionModel({
-            id: uuidv4(),
-            proyectoId,
-            perfilId: perfilAsignado.id,
-            colaboradoraId: idColaboradoraFinal,
-            estado: "PENDIENTE",
-            fechaCreacion: new Date()
-        });
-
-        await nuevaColaboracion.save();
-        return nuevaColaboracion;
+        return aDominio(doc);
     }
 
-    static async crearProyecto(data, IdColectivo) {
-        console.log("Data que llega al servicio:", data);
-        console.log("Perfiles dentro de data:", data.perfiles);
-        
-        if (!data || typeof data !== "object") {
-            throw new Error("Los datos del proyecto son obligatorios");
-        }
-        if (typeof data.titulo !== "string" || !data.titulo.trim()) {
-            throw new Error("El título del proyecto es obligatorio");
-        }
-        if (typeof data.descripcion !== "string" || !data.descripcion.trim()) {
-            throw new Error("La descripción del proyecto es obligatoria");
-        }
+    static async guardar(proyecto) {
+        await ProyectoModel.updateOne({ _id: proyecto.id }, aDocumento(proyecto), { runValidators: true });
+        return proyecto;
+    }
 
-        const colectivo = await ColectivoModel.findById(IdColectivo);
-        if (!colectivo) {
-            throw new Error("Colectivo no encontrado");
-        }
+    static async crearProyecto(data, colectivoId) {
+        const colectivo = await ColectivoService.obtenerPorId(colectivoId);
 
-        const perfiles = Array.isArray(data.perfiles) ? data.perfiles : [];
+        // el dominio valida antes de guardar
+        const perfiles = (data.perfiles ?? []).map((perfil) => crearPerfil(uuidv4(), perfil));
+        const borrador = new Proyecto(null, data.titulo, data.descripcion, colectivo.id, perfiles);
+        await HabilidadService.validarExistentes(perfiles.flatMap((perfil) => perfil.todasLasHabilidades()));
 
-        for (const perfil of perfiles) {
-            const habilidadesReq = perfil.habilidadesRequeridas || [];
+        const doc = await ProyectoModel.create(aDocumento(borrador));
 
-            for (const habNombre of habilidadesReq) {
-                const habilidadExiste = await HabilidadModel.findOne({
-                    $or: [
-                        { titulo: { $regex: new RegExp(`^${habNombre}$`, "i") } },
-                        { codigo: { $regex: new RegExp(`^${habNombre}$`, "i") } }
-                    ]
-                });
-
-                if (!habilidadExiste) {
-                    throw new Error(`La habilidad requerida '${habNombre}' no está dada de alta en el sistema.`);
-                }
-            }
-        }
-
-        const perfilesConId = perfiles.map(perfil => {
-            const nuevoPerfil = { ...perfil };
-            nuevoPerfil.id = uuidv4();
-            return nuevoPerfil;
-        });
-
-        console.log("--- PERFILES CON ID GENERADO ---", perfilesConId);
-
-        const nuevoProyecto = new ProyectoModel({
-            id: uuidv4(),          
-            titulo: data.titulo,       
-            descripcion: data.descripcion,  
-            colectivoId: IdColectivo,       
-            perfiles: perfilesConId,
-            estado: "ACTIVO"
-        });
-
-        await nuevoProyecto.save();
-        return nuevoProyecto;
+        return aDominio(doc);
     }
 
     static async cerrarProyecto(colectivoId, proyectoId) {
         const proyecto = await this.obtenerPorId(proyectoId);
 
-        if (proyecto.colectivoId !== colectivoId) {
+        if (!proyecto.perteneceA(colectivoId)) {
             throw new NotFoundError("El proyecto no pertenece a este colectivo", { proyectoId, colectivoId });
         }
 
-        proyecto.estado = "FINALIZADO";
-        await proyecto.save();
-        return proyecto;
+        proyecto.cerrar();
+        return await this.guardar(proyecto);
+    }
+
+    static async anotarColaboradora(proyectoId, { colaboradoraId, perfilId, anonimidad }) {
+        const proyecto = await this.obtenerPorId(proyectoId);
+        const colaboradora = await ColaboradoraService.obtenerPorId(colaboradoraId);
+
+        const perfil = proyecto.perfilParaAnotar(colaboradora, perfilId);
+
+        return await ColaboracionService.crear(proyecto.id, perfil.id, colaboradora.id, anonimidad);
     }
 
     static async listarColaboradoras(proyectoId) {
-        await this.obtenerPorId(proyectoId);
+        const proyecto = await this.obtenerPorId(proyectoId);
 
-        const colaboraciones = await ColaboracionModel.find({ proyectoId: proyectoId });
-        const idsColaboradoras = colaboraciones.map(c => c.colaboradoraId);
+        const colaboraciones = await ColaboracionService.listarDeProyecto(proyecto.id);
+        const idsColaboradoras = colaboraciones.map((colaboracion) => colaboracion.colaboradoraId);
 
         return await ColaboradoraService.listarPorIds(idsColaboradoras);
     }
 
-    static async obtenerPorId(id) {
-        const proyecto = await ProyectoModel.findById(id);
-        if (!proyecto) {
-            throw new NotFoundError("Proyecto no encontrado", { proyectoId: id });
-        }
-        return proyecto;
-    }
+    // proyectos activos con al menos un perfil cuyas habilidades requeridas tiene la colaboradora
+    static async buscarProyectosPotenciales(colaboradoraId) {
+        const colaboradora = await ColaboradoraService.obtenerPorId(colaboradoraId);
 
-    static async cumpleHabilidades(Habilidades) {
-        const habilidadesEnDb = await HabilidadModel.find({});
-        const inexistentes = Habilidades.filter(CodigoHabilidad => 
-            !habilidadesEnDb.some(habilidad => habilidad.codigo === CodigoHabilidad)
-        );
+        const docs = await ProyectoModel.find({
+            estado: EstadoProyecto.ACTIVO,
+            "perfiles.habilidadesRequeridas": { $in: colaboradora.habilidades },
+        });
 
-        if (inexistentes.length > 0) {
-            throw new DomainError("El Proyecto no cumple con las habilidades dadas de alta", { habilidadesInexistentes: inexistentes });
-        }
-        return true;
-    }
-
-static async actualizarPerfil(proyectoId, perfilId, datosActualizados) {
-        
-        const proyecto = await ProyectoModel.findById(proyectoId);
-        if (!proyecto) throw new Error('Proyecto no encontrado');
-
-
-        const perfil = proyecto.perfiles.find(p => p.id === perfilId);
-        if (!perfil) throw new Error('Perfil no encontrado');
-
-        if (datosActualizados.descripcionPerfil) {
-            perfil.descripcionPerfil = datosActualizados.descripcionPerfil;
-        }
-        if (datosActualizados.habilidadesRequeridas) {
-            perfil.habilidadesRequeridas = datosActualizados.habilidadesRequeridas;
-        }
-        if (datosActualizados.habilidadesOpcionales) {
-            perfil.habilidadesOpcionales = datosActualizados.habilidadesOpcionales;
-        }
-        if (datosActualizados.compromiso) {
-            perfil.compromiso = datosActualizados.compromiso;
-        }
-        if (datosActualizados.modalidad) {
-            perfil.modalidad = datosActualizados.modalidad;
-        }
-
-        await proyecto.save();
-        return perfil;
-    }
-
-    static async eliminarPerfil(proyectoId, perfilId) {
-     
-        const proyecto = await ProyectoModel.findById(proyectoId);
-        if (!proyecto) throw new Error('Proyecto no encontrado');
-
-
-        const perfil = proyecto.perfiles.find(p => p.id === perfilId);
-        if (!perfil) throw new Error('Perfil no encontrado');
-
-        proyecto.perfiles = proyecto.perfiles.filter(p => p.id !== perfilId);
-
-        await proyecto.save();
-        
-        return { mensaje: 'Perfil eliminado correctamente' };
-    }
-
-    static async agregarPerfilAProyecto(idProyecto, dataPerfil) {
-        const proyecto = await ProyectoModel.findById(idProyecto);
-        if (!proyecto) {
-            throw new Error("Proyecto no encontrado");
-        }
-
-        if (!dataPerfil || typeof dataPerfil !== "object") {
-            throw new Error("Los datos del perfil son obligatorios");
-        }
-        if (typeof dataPerfil.descripcionPerfil !== "string" || !dataPerfil.descripcionPerfil.trim()) {
-            throw new Error("La descripción del perfil es obligatoria");
-        }
-
-        const nuevoPerfil = {
-            id: uuidv4(),
-            descripcionPerfil: dataPerfil.descripcionPerfil,
-            habilidadesRequeridas: dataPerfil.habilidadesRequeridas || [],
-            habilidadesOpcionales: dataPerfil.habilidadesOpcionales || [],
-            compromiso: dataPerfil.compromiso,
-            modalidad: dataPerfil.modalidad
-        };
-
-        if (!Array.isArray(proyecto.perfiles)) {
-            proyecto.perfiles = [];
-        }
-        proyecto.perfiles.push(nuevoPerfil);
-
-        await proyecto.save();
-        return nuevoPerfil;
-    }
-
-static async listarPerfilesPorProyecto(proyectoId) {
-        
-        const proyecto = await ProyectoModel.findById(proyectoId);
-        
-        if (!proyecto) {
-            throw new Error("Proyecto no encontrado");
-        }
-
-        return proyecto.perfiles || [];
+        return docs
+            .map(aDominio)
+            .map((proyecto) => ({ proyecto, perfilesCompatibles: proyecto.perfilesPara(colaboradora) }))
+            .filter(({ perfilesCompatibles }) => perfilesCompatibles.length > 0);
     }
 }

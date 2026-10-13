@@ -1,5 +1,10 @@
 import { ColectivoModel } from "../models/indexModel.js";
 import { Colectivo } from "../domain/Colectivo/Colectivo.js";
+import { NotFoundError } from "../domain/errores.js";
+import { esIdValido } from "./ids.js";
+
+const aDominio = (doc) =>
+    new Colectivo(doc._id.toString(), doc.nombre, doc.descripcion, doc.ubicacion, doc.tipo);
 
 export class ColectivoService {
     static async crearColectivo(data) {
@@ -13,22 +18,21 @@ export class ColectivoService {
             tipo: borrador.tipo
         });
 
-        return new Colectivo(
-            nuevoColectivoDoc._id.toString(), 
-            nuevoColectivoDoc.nombre, 
-            nuevoColectivoDoc.descripcion, 
-            nuevoColectivoDoc.ubicacion, 
-            nuevoColectivoDoc.tipo
-        );
+        return aDominio(nuevoColectivoDoc);
     }
 
     static async listar() {
-        
         const colectivosDocs = await ColectivoModel.find();
-        
-       
-        return colectivosDocs.map(doc => 
-            new Colectivo(doc._id.toString(), doc.nombre, doc.descripcion, doc.ubicacion, doc.tipo)
-        );
+
+        return colectivosDocs.map(aDominio);
+    }
+
+    static async obtenerPorId(id) {
+        const doc = esIdValido(id) ? await ColectivoModel.findById(id) : null;
+        if (!doc) {
+            throw new NotFoundError("Colectivo no encontrado", { colectivoId: id });
+        }
+
+        return aDominio(doc);
     }
 }

@@ -14,4 +14,9 @@ export class Habilidad {
         this.titulo = titulo;
         this.descripcion = descripcion;
     }
+
+    // el código único es, por ahora, el título normalizado
+    static codigoPara(titulo) {
+        return titulo.toLowerCase().trim().replace(/\s+/g, "-");
+    }
 }

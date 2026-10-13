@@ -33,8 +33,8 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/proyectos/:proyectoId/logros", logrosRoutes);
+app.use("/api/proyectos/:proyectoId/perfiles", perfilesRoutes);
 app.use("/api/proyectos", proyectosRoutes);
-app.use("/api/proyectos", perfilesRoutes);
 app.use("/api/colectivos", colectivosRoutes);
 app.use("/api/colaboradoras", colaboradorasRoutes);
 app.use("/api/habilidades", habilidadesRoutes);

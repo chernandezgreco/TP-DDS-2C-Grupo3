@@ -1,59 +1,16 @@
 import { Router } from "express";
-import { ProyectoService } from '../services/ProyectoService.js'; 
-import { PerfilesService } from '../services/PerfilesService.js'; 
+import { PerfilesController } from "../controllers/PerfilesController.js";
+import { validar } from "../middlewares/validar.js";
+import { actualizarPerfilSchema, crearPerfilSchema } from "../schemas/PerfilSchema.js";
 
+// Se monta en /api/proyectos/:proyectoId/perfiles
+const router = Router({ mergeParams: true });
 
-const router = Router();
-
-router.post('/:proyectoId/crearPerfil', async (req, res) => {
-    try {
-        const { proyectoId } = req.params;
-        const datosPerfil = req.body;
-
-        
-        const nuevoPerfil = await PerfilesService.agregarPerfilAProyecto(proyectoId, datosPerfil);
-
-        return res.status(201).json({
-            mensaje: 'Perfil agregado exitosamente',
-            perfil: nuevoPerfil
-        });
-    } catch (error) {
-        return res.status(400).json({
-            error: error.message
-        });
-    }
-});
-
-
-router.put('/:proyectoId/perfiles/:perfilId', async (req, res) => {
-  try {
-    const { proyectoId, perfilId } = req.params;
-    const datosActualizados = req.body;
-
-    const perfilActualizado = await ProyectoService.actualizarPerfil(proyectoId, perfilId, datosActualizados);
-    
-    return res.json({
-      mensaje: 'Perfil actualizado exitosamente',
-      perfil: perfilActualizado
-    });
-  } catch (error) {
-    return res.status(400).json({ 
-      error: error.message 
-    });
-  }
-});
-
-router.delete('/:proyectoId/perfiles/:perfilId', async (req, res) => {
-  try {
-    const { proyectoId, perfilId } = req.params;
-    const resultado = await ProyectoService.eliminarPerfil(proyectoId, perfilId);
-    
-    return res.json(resultado);
-  } catch (error) {
-    return res.status(400).json({ 
-      error: error.message 
-    });
-  }
-});
+router.get("/", PerfilesController.listar);
+router.post("/", validar(crearPerfilSchema), PerfilesController.crear);
+router.get("/:perfilId", PerfilesController.obtener);
+router.put("/:perfilId", validar(actualizarPerfilSchema), PerfilesController.actualizar);
+router.delete("/:perfilId", PerfilesController.eliminar);
+router.get("/:perfilId/colaboradoras-potenciales", PerfilesController.buscarColaboradorasPotenciales);
 
 export default router;
