@@ -1,4 +1,5 @@
 import { pathsContacto, schemasContacto } from "./contactoNotificaciones.js";
+import { pathsLogros, schemasLogros } from "./logros.js";
 
 // Cada modulo suma sus paths y schemas acá
 export const especificacion = {
@@ -8,7 +9,7 @@ export const especificacion = {
         version: "2.0.0",
         description: "API del backend del TP de Desarrollo de Software (grupo 3)",
     },
-    paths: { ...pathsContacto },
+    paths: { ...pathsContacto, ...pathsLogros },
     components: {
         schemas: {
             Error: {
@@ -19,6 +20,7 @@ export const especificacion = {
                 },
             },
             ...schemasContacto,
+            ...schemasLogros,
         },
     },
 };
