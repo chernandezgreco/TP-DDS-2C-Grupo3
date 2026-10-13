@@ -170,11 +170,13 @@ export class ProyectoService {
         return true;
     }
 
-    static async actualizarPerfil(proyectoId, perfilId, datosActualizados) {
-        const proyecto = await ProyectoModel.findOne({ id: proyectoId });
+static async actualizarPerfil(proyectoId, perfilId, datosActualizados) {
+        
+        const proyecto = await ProyectoModel.findById(proyectoId);
         if (!proyecto) throw new Error('Proyecto no encontrado');
 
-        const perfil = proyecto.perfiles.id(perfilId) || proyecto.perfiles.find(p => p.id === perfilId);
+       
+        const perfil = proyecto.perfiles.id(perfilId) || proyecto.perfiles.find(p => p._id?.toString() === perfilId || p.id === perfilId);
         if (!perfil) throw new Error('Perfil no encontrado');
 
         if (datosActualizados.descripcionPerfil) {
@@ -198,13 +200,16 @@ export class ProyectoService {
     }
 
     static async eliminarPerfil(proyectoId, perfilId) {
-        const proyecto = await ProyectoModel.findOne({ id: proyectoId });
+     
+        const proyecto = await ProyectoModel.findById(proyectoId);
         if (!proyecto) throw new Error('Proyecto no encontrado');
 
-        const existePerfil = proyecto.perfiles.some(p => p.id === perfilId);
-        if (!existePerfil) throw new Error('Perfil no encontrado');
+        
+        const perfil = proyecto.perfiles.id(perfilId) || proyecto.perfiles.find(p => p._id?.toString() === perfilId || p.id === perfilId);
+        if (!perfil) throw new Error('Perfil no encontrado');
 
-        proyecto.perfiles = proyecto.perfiles.filter(p => p.id !== perfilId);
+        proyecto.perfiles.pull(perfil._id || perfilId);
+
         await proyecto.save();
         
         return { mensaje: 'Perfil eliminado correctamente' };
@@ -241,8 +246,9 @@ export class ProyectoService {
         return nuevoPerfil;
     }
 
-    static async listarPerfilesPorProyecto(proyectoId) {
-        const proyecto = await ProyectoModel.findOne({ id: proyectoId });
+static async listarPerfilesPorProyecto(proyectoId) {
+        
+        const proyecto = await ProyectoModel.findById(proyectoId);
         
         if (!proyecto) {
             throw new Error("Proyecto no encontrado");
