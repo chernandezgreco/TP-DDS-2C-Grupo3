@@ -1,3 +1,4 @@
+import { describe, test } from "@jest/globals";
 import assert from "node:assert/strict";
 import { DomainError, NotFoundError } from "../../src/domain/errores.js";
 import { Logro } from "../../src/domain/Logro/Logro.js";

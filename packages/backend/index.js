@@ -41,6 +41,7 @@ app.use("/api/habilidades", habilidadesRoutes);
 app.use("/api/colaboraciones", colaboracionesRoutes);
 app.use("/api/notificaciones", notificacionesRoutes);
 
+app.get("/api-docs.json", (req, res) => res.json(especificacion));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(especificacion));
 
 app.get("/", (req, res) => {

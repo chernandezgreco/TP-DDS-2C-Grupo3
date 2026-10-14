@@ -1,0 +1,2217 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Código a Voluntad - API",
+    "version": "2.0.0",
+    "description": "API del backend del TP de Desarrollo de Software (grupo 3)"
+  },
+  "paths": {
+    "/api/colectivos": {
+      "post": {
+        "tags": [
+          "Colectivos"
+        ],
+        "summary": "Inscribe un colectivo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  },
+                  "tipo": {
+                    "type": "string"
+                  },
+                  "ubicacion": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "nombre",
+                  "descripcion",
+                  "tipo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Colectivo creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Colectivo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos (por ejemplo, un tipo inexistente)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Colectivos"
+        ],
+        "summary": "Lista los colectivos",
+        "responses": {
+          "200": {
+            "description": "Colectivos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Colectivo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/habilidades": {
+      "post": {
+        "tags": [
+          "Habilidades"
+        ],
+        "summary": "Da de alta una habilidad; el código se genera a partir del título",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "titulo",
+                  "descripcion"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Habilidad creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Habilidad"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe una habilidad con ese código",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Habilidades"
+        ],
+        "summary": "Lista las habilidades",
+        "responses": {
+          "200": {
+            "description": "Habilidades",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Habilidad"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras": {
+      "post": {
+        "tags": [
+          "Colaboradoras"
+        ],
+        "summary": "Registra una colaboradora",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombreFantasia": {
+                    "type": "string"
+                  },
+                  "github": {
+                    "type": "string"
+                  },
+                  "habilidades": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "nombreApellido": {
+                    "type": "string"
+                  },
+                  "pronombres": {
+                    "type": "string"
+                  },
+                  "presentacion": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "nombreFantasia",
+                  "github",
+                  "habilidades"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Colaboradora creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Colaboradora"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o habilidades que no están dadas de alta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Colaboradoras"
+        ],
+        "summary": "Lista las colaboradoras",
+        "responses": {
+          "200": {
+            "description": "Colaboradoras",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Colaboradora"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Id de la colaboradora",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000301"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Colaboradoras"
+        ],
+        "summary": "Obtiene una colaboradora",
+        "responses": {
+          "200": {
+            "description": "Colaboradora",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Colaboradora"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colaboradora inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras/{id}/habilidades": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Id de la colaboradora",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000301"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Colaboradoras"
+        ],
+        "summary": "Agrega una habilidad a la colaboradora",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "codigo": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "codigo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Colaboradora actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Colaboradora"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "La habilidad no está dada de alta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colaboradora inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La colaboradora ya tiene esa habilidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colectivos/{colectivoId}/proyectos": {
+      "parameters": [
+        {
+          "name": "colectivoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del colectivo",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000101"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Proyectos"
+        ],
+        "summary": "Crea un proyecto del colectivo, opcionalmente con sus perfiles",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  },
+                  "perfiles": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "descripcionPerfil": {
+                          "type": "string"
+                        },
+                        "habilidadesRequeridas": {
+                          "minItems": 1,
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "habilidadesOpcionales": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "compromiso": {
+                          "type": "object",
+                          "properties": {
+                            "cantidadHoras": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "exclusiveMinimum": true,
+                              "maximum": 9007199254740991
+                            },
+                            "tipo": {
+                              "type": "string",
+                              "enum": [
+                                "TOTALES",
+                                "SEMANALES",
+                                "MENSUALES"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "cantidadHoras",
+                            "tipo"
+                          ]
+                        },
+                        "modalidad": {
+                          "type": "object",
+                          "properties": {
+                            "gratuita": {
+                              "type": "boolean"
+                            },
+                            "incentivoEconomico": {
+                              "type": "boolean"
+                            },
+                            "contratacionEventual": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "gratuita",
+                            "incentivoEconomico",
+                            "contratacionEventual"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "descripcionPerfil",
+                        "habilidadesRequeridas",
+                        "compromiso",
+                        "modalidad"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "titulo",
+                  "descripcion"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Proyecto creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proyecto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o habilidades que no están dadas de alta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colectivo inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colectivos/{colectivoId}/proyectos/{proyectoId}": {
+      "parameters": [
+        {
+          "name": "colectivoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del colectivo",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000101"
+          }
+        },
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000201"
+          }
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Proyectos"
+        ],
+        "summary": "Cierra el proyecto: deja de admitir colaboraciones",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "FINALIZADO"
+                    ]
+                  }
+                },
+                "required": [
+                  "estado"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proyecto finalizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proyecto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto inexistente o de otro colectivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El proyecto ya estaba finalizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos": {
+      "get": {
+        "tags": [
+          "Proyectos"
+        ],
+        "summary": "Lista los proyectos",
+        "responses": {
+          "200": {
+            "description": "Proyectos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Proyecto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000201"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Proyectos"
+        ],
+        "summary": "Obtiene un proyecto con sus perfiles y logros",
+        "responses": {
+          "200": {
+            "description": "Proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proyecto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}/perfiles": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000201"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Perfiles"
+        ],
+        "summary": "Lista los perfiles del proyecto",
+        "responses": {
+          "200": {
+            "description": "Perfiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Perfil"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Perfiles"
+        ],
+        "summary": "Agrega un perfil al proyecto",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "descripcionPerfil": {
+                    "type": "string"
+                  },
+                  "habilidadesRequeridas": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "habilidadesOpcionales": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "compromiso": {
+                    "type": "object",
+                    "properties": {
+                      "cantidadHoras": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "exclusiveMinimum": true,
+                        "maximum": 9007199254740991
+                      },
+                      "tipo": {
+                        "type": "string",
+                        "enum": [
+                          "TOTALES",
+                          "SEMANALES",
+                          "MENSUALES"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "cantidadHoras",
+                      "tipo"
+                    ]
+                  },
+                  "modalidad": {
+                    "type": "object",
+                    "properties": {
+                      "gratuita": {
+                        "type": "boolean"
+                      },
+                      "incentivoEconomico": {
+                        "type": "boolean"
+                      },
+                      "contratacionEventual": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "gratuita",
+                      "incentivoEconomico",
+                      "contratacionEventual"
+                    ]
+                  }
+                },
+                "required": [
+                  "descripcionPerfil",
+                  "habilidadesRequeridas",
+                  "compromiso",
+                  "modalidad"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Perfil creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o habilidades que no están dadas de alta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}/perfiles/{perfilId}": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000201"
+          }
+        },
+        {
+          "name": "perfilId",
+          "in": "path",
+          "required": true,
+          "description": "UUID del perfil (se obtiene al listar los perfiles del proyecto)",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Perfiles"
+        ],
+        "summary": "Obtiene un perfil",
+        "responses": {
+          "200": {
+            "description": "Perfil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto o perfil inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Perfiles"
+        ],
+        "summary": "Actualiza los campos informados del perfil",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "descripcionPerfil": {
+                    "type": "string"
+                  },
+                  "habilidadesRequeridas": {
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "habilidadesOpcionales": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "compromiso": {
+                    "type": "object",
+                    "properties": {
+                      "cantidadHoras": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "exclusiveMinimum": true,
+                        "maximum": 9007199254740991
+                      },
+                      "tipo": {
+                        "type": "string",
+                        "enum": [
+                          "TOTALES",
+                          "SEMANALES",
+                          "MENSUALES"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "cantidadHoras",
+                      "tipo"
+                    ]
+                  },
+                  "modalidad": {
+                    "type": "object",
+                    "properties": {
+                      "gratuita": {
+                        "type": "boolean"
+                      },
+                      "incentivoEconomico": {
+                        "type": "boolean"
+                      },
+                      "contratacionEventual": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "gratuita",
+                      "incentivoEconomico",
+                      "contratacionEventual"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o ningún campo informado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto o perfil inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Perfiles"
+        ],
+        "summary": "Elimina el perfil",
+        "responses": {
+          "200": {
+            "description": "Perfil eliminado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Perfil"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto o perfil inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}/perfiles/{perfilId}/colaboradoras-potenciales": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000201"
+          }
+        },
+        {
+          "name": "perfilId",
+          "in": "path",
+          "required": true,
+          "description": "UUID del perfil (se obtiene al listar los perfiles del proyecto)",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Búsquedas"
+        ],
+        "summary": "Busca colaboradoras para un perfil",
+        "description": "Devuelve las colaboradoras con al menos una habilidad requerida por el perfil, ordenadas por cuántas habilidades del perfil (requeridas u opcionales) tienen.",
+        "responses": {
+          "200": {
+            "description": "Colaboradoras potenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Colaboradora"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto o perfil inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras/{id}/proyectos-potenciales": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Id de la colaboradora",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000301"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Búsquedas"
+        ],
+        "summary": "Busca proyectos para una colaboradora",
+        "description": "Devuelve los proyectos activos con al menos un perfil cuyas habilidades requeridas incluyen alguna de la colaboradora, junto con esos perfiles.",
+        "responses": {
+          "200": {
+            "description": "Proyectos potenciales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProyectoPotencial"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colaboradora inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}/colaboraciones": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000201"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Colaboraciones"
+        ],
+        "summary": "Anota a una colaboradora en el proyecto",
+        "description": "La colaboradora necesita al menos una habilidad requerida del perfil. Si no se indica perfilId, queda en el primer perfil que le corresponde.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "colaboradoraId": {
+                    "type": "string"
+                  },
+                  "perfilId": {
+                    "type": "string"
+                  },
+                  "anonimidad": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "colaboradoraId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Colaboración creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Colaboracion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No tiene ninguna habilidad requerida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto, perfil o colaboradora inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Proyecto finalizado o colaboradora ya anotada en ese perfil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}/colaboradoras": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "650000000000000000000201"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Colaboraciones"
+        ],
+        "summary": "Lista las colaboradoras anotadas en el proyecto",
+        "responses": {
+          "200": {
+            "description": "Colaboradoras",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Colaboradora"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboraciones": {
+      "get": {
+        "tags": [
+          "Colaboraciones"
+        ],
+        "summary": "Lista todas las colaboraciones",
+        "responses": {
+          "200": {
+            "description": "Colaboraciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Colaboracion"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboraciones/{colaboracionId}": {
+      "parameters": [
+        {
+          "name": "colaboracionId",
+          "in": "path",
+          "required": true,
+          "description": "Id de la colaboración",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Colaboraciones"
+        ],
+        "summary": "Obtiene una colaboración",
+        "responses": {
+          "200": {
+            "description": "Colaboración",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Colaboracion"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colaboración inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras/{id}/medios-contacto": {
+      "post": {
+        "tags": [
+          "Contacto y notificaciones"
+        ],
+        "summary": "Agrega un medio de contacto a la colaboradora",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Id de la colaboradora",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tipo": {
+                    "type": "string",
+                    "enum": [
+                      "EMAIL",
+                      "WHATSAPP",
+                      "SMS"
+                    ]
+                  },
+                  "valor": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tipo",
+                  "valor"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lista de medios de contacto de la colaboradora",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MedioContacto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tipo o valor inválido (email o teléfono mal formado)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colaboradora no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La colaboradora ya tiene ese medio de contacto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras/{id}/preferencias": {
+      "patch": {
+        "tags": [
+          "Contacto y notificaciones"
+        ],
+        "summary": "Cambia si la colaboradora acepta mensajería externa",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Id de la colaboradora",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "aceptaMensajeria": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "aceptaMensajeria"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Colaboradora actualizada (sin los medios de contacto)"
+          },
+          "400": {
+            "description": "aceptaMensajeria no es un booleano",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colaboradora no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras/{id}/notificaciones": {
+      "get": {
+        "tags": [
+          "Contacto y notificaciones"
+        ],
+        "summary": "Lista las notificaciones internas de la colaboradora",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Id de la colaboradora",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notificaciones de la colaboradora",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Notificacion"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colaboradora no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notificaciones": {
+      "post": {
+        "tags": [
+          "Contacto y notificaciones"
+        ],
+        "summary": "Envía una notificación de un colectivo a una colaboradora",
+        "description": "Guarda la notificación interna y la replica por cada medio de contacto. La colaboradora tiene que aceptar mensajería y tener al menos un medio.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "colaboradoraId": {
+                    "type": "string"
+                  },
+                  "colectivoId": {
+                    "type": "string"
+                  },
+                  "proyectoId": {
+                    "type": "string"
+                  },
+                  "texto": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "colaboradoraId",
+                  "colectivoId",
+                  "proyectoId",
+                  "texto"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Notificación creada y medios por los que se envió",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "notificacion": {
+                      "$ref": "#/components/schemas/Notificacion"
+                    },
+                    "mediosUsados": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MedioContacto"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o el proyecto no es del colectivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Colaboradora, colectivo o proyecto inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La colaboradora no acepta mensajería o no tiene medios de contacto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}/logros": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Identificador MongoDB del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Logros"
+        ],
+        "summary": "Crea un logro dentro del proyecto",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearLogro"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Logro creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logro"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto inexistente o identificador inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Logros"
+        ],
+        "summary": "Lista los logros del proyecto",
+        "responses": {
+          "200": {
+            "description": "Logros del proyecto; puede ser una lista vacía",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Logro"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto inexistente o identificador inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}/logros/{logroId}": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Identificador MongoDB del proyecto",
+          "schema": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          }
+        },
+        {
+          "name": "logroId",
+          "in": "path",
+          "required": true,
+          "description": "UUID del logro",
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Logros"
+        ],
+        "summary": "Obtiene un logro del proyecto",
+        "responses": {
+          "200": {
+            "description": "Logro encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto o logro inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Logros"
+        ],
+        "summary": "Actualiza los campos informados de un logro",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarLogro"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logro actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logro"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o ningún campo reconocido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto o logro inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Logros"
+        ],
+        "summary": "Elimina un logro del proyecto",
+        "responses": {
+          "200": {
+            "description": "Logro eliminado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Proyecto o logro inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "detalle": {
+            "type": "object"
+          }
+        }
+      },
+      "Colectivo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string",
+            "example": "Fundación Manos Unidas"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "ubicacion": {
+            "type": "string",
+            "example": "Avellaneda, Buenos Aires"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "FUNDACION",
+              "ASOCIACION_BARRIAL",
+              "ONG",
+              "ASAMBLEA"
+            ]
+          }
+        }
+      },
+      "Habilidad": {
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "description": "Título normalizado; es como se referencia la habilidad",
+            "example": "diseño-ux"
+          },
+          "titulo": {
+            "type": "string",
+            "example": "Diseño UX"
+          },
+          "descripcion": {
+            "type": "string"
+          }
+        }
+      },
+      "Colaboradora": {
+        "type": "object",
+        "description": "Los medios de contacto nunca se incluyen en las respuestas",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombreFantasia": {
+            "type": "string",
+            "example": "Ada"
+          },
+          "github": {
+            "type": "string",
+            "example": "github.com/ada-dev"
+          },
+          "nombreApellido": {
+            "type": "string"
+          },
+          "habilidades": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "react"
+            }
+          },
+          "pronombres": {
+            "type": "string"
+          },
+          "presentacion": {
+            "type": "string"
+          },
+          "aceptaMensajeria": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Perfil": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "descripcionPerfil": {
+            "type": "string",
+            "example": "Tester"
+          },
+          "habilidadesRequeridas": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "testing-e2e-con-cypress"
+            }
+          },
+          "habilidadesOpcionales": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "soapui"
+            }
+          },
+          "compromiso": {
+            "type": "object",
+            "properties": {
+              "cantidadHoras": {
+                "type": "integer",
+                "example": 5
+              },
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "TOTALES",
+                  "SEMANALES",
+                  "MENSUALES"
+                ]
+              }
+            }
+          },
+          "modalidad": {
+            "type": "object",
+            "properties": {
+              "gratuita": {
+                "type": "boolean"
+              },
+              "incentivoEconomico": {
+                "type": "boolean"
+              },
+              "contratacionEventual": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "Proyecto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string",
+            "example": "Web de donaciones"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "colectivoId": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ACTIVO",
+              "FINALIZADO"
+            ]
+          },
+          "perfiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Perfil"
+            }
+          },
+          "logros": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Logro"
+            }
+          }
+        }
+      },
+      "Colaboracion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "proyectoId": {
+            "type": "string"
+          },
+          "perfilId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "colaboradoraId": {
+            "type": "string",
+            "description": "\"Anonimo\" si la colaboración es anónima"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "ACEPTADA",
+              "RECHAZADA"
+            ]
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProyectoPotencial": {
+        "type": "object",
+        "properties": {
+          "proyecto": {
+            "$ref": "#/components/schemas/Proyecto"
+          },
+          "perfilesCompatibles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Perfil"
+            }
+          }
+        }
+      },
+      "MedioContacto": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "EMAIL",
+              "WHATSAPP",
+              "SMS"
+            ]
+          },
+          "valor": {
+            "type": "string",
+            "example": "santi@mail.com"
+          }
+        }
+      },
+      "Notificacion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "colaboradoraId": {
+            "type": "string"
+          },
+          "colectivoId": {
+            "type": "string"
+          },
+          "proyectoId": {
+            "type": "string"
+          },
+          "texto": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Logro": {
+        "type": "object",
+        "required": [
+          "id",
+          "descripcion",
+          "porcentajeCompletitud",
+          "enlaceSistema",
+          "enlaceFuentePublica",
+          "fechaCreacion"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "descripcion": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Texto obligatorio, sin espacios en blanco únicamente",
+            "example": "Primera versión publicada"
+          },
+          "porcentajeCompletitud": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 25
+          },
+          "enlaceSistema": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL válida; null o texto vacío permiten quitar el enlace",
+            "example": "https://sistema.example.com"
+          },
+          "enlaceFuentePublica": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL del código fuente público; admite null o texto vacío",
+            "example": "https://github.com/grupo/proyecto"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CrearLogro": {
+        "type": "object",
+        "required": [
+          "descripcion",
+          "porcentajeCompletitud"
+        ],
+        "properties": {
+          "descripcion": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Texto obligatorio, sin espacios en blanco únicamente",
+            "example": "Primera versión publicada"
+          },
+          "porcentajeCompletitud": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 25
+          },
+          "enlaceSistema": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL válida; null o texto vacío permiten quitar el enlace",
+            "example": "https://sistema.example.com"
+          },
+          "enlaceFuentePublica": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL del código fuente público; admite null o texto vacío",
+            "example": "https://github.com/grupo/proyecto"
+          }
+        }
+      },
+      "ActualizarLogro": {
+        "type": "object",
+        "minProperties": 1,
+        "description": "Informar al menos un campo reconocido. Los omitidos se conservan.",
+        "properties": {
+          "descripcion": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Texto obligatorio, sin espacios en blanco únicamente",
+            "example": "Primera versión publicada"
+          },
+          "porcentajeCompletitud": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 25
+          },
+          "enlaceSistema": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL válida; null o texto vacío permiten quitar el enlace",
+            "example": "https://sistema.example.com"
+          },
+          "enlaceFuentePublica": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL del código fuente público; admite null o texto vacío",
+            "example": "https://github.com/grupo/proyecto"
+          }
+        }
+      }
+    }
+  }
+}

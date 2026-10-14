@@ -1,0 +1,105 @@
+@startuml
+' Colecciones de MongoDB y documentos embebidos
+title Código a Voluntad - Persistencia en MongoDB
+
+hide circle
+hide methods
+skinparam linetype ortho
+
+entity "habilidads" as habilidades {
+    * _id: ObjectId
+    --
+    * codigo: String <<unique>>
+    * titulo: String
+    * descripcion: String
+}
+
+entity "colectivos" as colectivos {
+    * _id: ObjectId
+    --
+    * nombre: String
+    * descripcion: String
+    * tipo: TipoColectivo
+    ubicacion: String
+}
+
+entity "proyectos" as proyectos {
+    * _id: ObjectId
+    --
+    * titulo: String
+    * descripcion: String
+    * colectivoId: String
+    * estado: EstadoProyecto
+    perfiles: [Perfil]
+    logros: [Logro]
+}
+
+entity "Perfil (embebido)" as perfil {
+    * id: UUID
+    --
+    * descripcionPerfil: String
+    * habilidadesRequeridas: [codigo]
+    habilidadesOpcionales: [codigo]
+    * compromiso: { cantidadHoras, tipo }
+    * modalidad: { gratuita, incentivoEconomico, contratacionEventual }
+}
+
+entity "Logro (embebido)" as logro {
+    * id: UUID
+    --
+    * descripcion: String
+    * porcentajeCompletitud: Number
+    enlaceSistema: String
+    enlaceFuentePublica: String
+    fechaCreacion: Date
+}
+
+entity "colaboradoras" as colaboradoras {
+    * _id: ObjectId
+    --
+    * nombreFantasia: String
+    * github: String
+    nombreApellido: String
+    habilidades: [codigo]
+    pronombres: String
+    presentacion: String
+    aceptaMensajeria: Boolean
+    mediosContacto: [{ tipo, valor }]
+}
+
+entity "colaboracions" as colaboraciones {
+    * _id: ObjectId
+    --
+    * proyectoId: String
+    * perfilId: UUID
+    * colaboradoraId: String
+    estado: EstadoColaboracion
+    fechaCreacion: Date
+}
+
+entity "notificacions" as notificaciones {
+    * _id: ObjectId
+    --
+    * colaboradoraId: String
+    * colectivoId: String
+    * proyectoId: String
+    * texto: String
+    fecha: Date
+}
+
+proyectos ||--o{ perfil : embebe
+proyectos ||--o{ logro : embebe
+colectivos ||..o{ proyectos : colectivoId
+proyectos ||..o{ colaboraciones : proyectoId
+perfil ||..o{ colaboraciones : perfilId
+colaboradoras ||..o{ colaboraciones : colaboradoraId
+colaboradoras ||..o{ notificaciones : colaboradoraId
+habilidades ||..o{ perfil : codigo
+habilidades ||..o{ colaboradoras : codigo
+
+note bottom of proyectos
+  Perfiles y logros viven dentro del documento del
+  proyecto: se leen y se guardan junto con él.
+end note
+
+@enduml

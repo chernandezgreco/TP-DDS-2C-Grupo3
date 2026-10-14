@@ -1,85 +1,179 @@
 @startuml
+' Diagrama de clases del dominio - 2da entrega
+' https://plantuml.com/class-diagram
 
-'https://plantuml.com/class-diagram
+title Código a Voluntad - Dominio (2da entrega)
 
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+hide empty members
 
-class Colectivo {
-- nombre: String
-- descripcion: String
-- ubicacion: String
-- tipo: TipoColectivo
-+ crearProyecto(titulo: String, descripcion: String, compromiso: Compromiso, modalidad: ModalidadColaboracion): Proyecto
-+ cerrarProyecto(proyecto: Proyecto): void
+package "Colectivos y proyectos" {
+    class Colectivo {
+        - id: String
+        - nombre: String
+        - descripcion: String
+        - ubicacion: String [0..1]
+        - tipo: TipoColectivo
+    }
+
+    enum TipoColectivo {
+        FUNDACION
+        ASOCIACION_BARRIAL
+        ONG
+        ASAMBLEA
+    }
+
+    class Proyecto {
+        - id: String
+        - titulo: String
+        - descripcion: String
+        - estado: EstadoProyecto
+        + perteneceA(colectivoId): Boolean
+        + estaActivo(): Boolean
+        + cerrar(): void
+        + agregarPerfil(perfil): Perfil
+        + obtenerPerfil(perfilId): Perfil
+        + actualizarPerfil(perfilId, datos): Perfil
+        + eliminarPerfil(perfilId): Perfil
+        + perfilesPara(colaboradora): List<Perfil>
+        + perfilParaAnotar(colaboradora, perfilId?): Perfil
+        + agregarLogro(logro): Logro
+        + obtenerLogro(logroId): Logro
+        + actualizarLogro(logroId, datos): Logro
+        + eliminarLogro(logroId): Logro
+    }
+
+    enum EstadoProyecto {
+        ACTIVO
+        FINALIZADO
+    }
+
+    class Perfil {
+        - id: String
+        - descripcionPerfil: String
+        - habilidadesRequeridas: List<String> [1..*]
+        - habilidadesOpcionales: List<String>
+        + admiteA(colaboradora): Boolean
+        + afinidadCon(colaboradora): Integer
+        + todasLasHabilidades(): List<String>
+        + actualizar(datos): Perfil
+    }
+
+    class Compromiso {
+        - cantidadHoras: Integer
+        - tipo: TipoCompromiso
+    }
+
+    enum TipoCompromiso {
+        TOTALES
+        SEMANALES
+        MENSUALES
+    }
+
+    class ModalidadColaboracion {
+        - gratuita: Boolean
+        - incentivoEconomico: Boolean
+        - contratacionEventual: Boolean
+    }
+
+    class Logro {
+        - id: String
+        - descripcion: String
+        - porcentajeCompletitud: Number [0..100]
+        - enlaceSistema: URL [0..1]
+        - enlaceFuentePublica: URL [0..1]
+        - fechaCreacion: Date
+        + actualizar(datos): Logro
+    }
 }
 
-enum TipoColectivo {
-    FUNDACION
-ASOCIACION_BARRIAL
-ONG
-ASAMBLEA
+package "Personas colaboradoras" {
+    class Colaboradora {
+        - id: String
+        - nombreFantasia: String
+        - github: String
+        - nombreApellido: String [0..1]
+        - habilidades: List<String> [1..*]
+        - pronombres: String [0..1]
+        - presentacion: String [0..1]
+        - aceptaMensajeria: Boolean
+        + agregarHabilidad(codigo): void
+        + cumpleAlgunaHabilidad(codigos): Boolean
+        + agregarMedioContacto(medio): void
+        + cambiarAceptaMensajeria(acepta): void
+        + puedeSerContactada(): Boolean
+    }
+
+    class MedioContacto {
+        - tipo: TipoMedioContacto
+        - valor: String
+        + esIgualA(otro): Boolean
+    }
+
+    enum TipoMedioContacto {
+        EMAIL
+        WHATSAPP
+        SMS
+    }
+
+    class Habilidad {
+        - codigo: String
+        - titulo: String
+        - descripcion: String
+        + {static} codigoPara(titulo): String
+    }
 }
 
-class Proyecto {
-- titulo: String
-- descripcion: String
-- estado: EstadoProyecto
-+ agregarHabilidadRequerida(habilidad: Habilidad): void
-+ anotarColaborador(persona: PersonaColaboradora): Colaboracion
-+ cerrar(): void
-- validarHabilidadesRequeridas(persona: PersonaColaboradora): void
+package "Colaboraciones y mensajes" {
+    class Colaboracion {
+        - id: String
+        - estado: EstadoColaboracion
+        - fechaCreacion: Date
+    }
+
+    enum EstadoColaboracion {
+        PENDIENTE
+        ACEPTADA
+        RECHAZADA
+    }
+
+    class Notificacion {
+        - id: String
+        - texto: String
+        - fecha: Date
+    }
 }
 
-enum EstadoProyecto {
-    ACTIVO
-FINALIZADO
-}
+Colectivo "1" -- "*" Proyecto : administra >
+Colectivo --> TipoColectivo
+Proyecto --> EstadoProyecto
+Proyecto "1" *-- "*" Perfil : necesita >
+Proyecto "1" *-- "*" Logro : registra >
+Perfil *-- "1" Compromiso
+Perfil *-- "1" ModalidadColaboracion
+Compromiso --> TipoCompromiso
+Perfil "*" ..> "1..*" Habilidad : requiere / acepta (por código) >
+Colaboradora "*" ..> "1..*" Habilidad : domina (por código) >
+Colaboradora "1" *-- "*" MedioContacto : registra (no públicos) >
+MedioContacto --> TipoMedioContacto
+Colaboracion "*" --> "1" Proyecto
+Colaboracion "*" --> "1" Perfil
+Colaboracion "*" --> "1" Colaboradora
+Colaboracion --> EstadoColaboracion
+Notificacion "*" --> "1" Colaboradora : destinataria >
+Notificacion "*" --> "1" Colectivo : remitente >
+Notificacion "*" --> "1" Proyecto : sobre >
 
-class Habilidad {
-- titulo: String
-- codigoUnico: String
-- descripcion: String
-}
+note right of Perfil
+  Una colaboradora puede anotarse en un perfil
+  si tiene al menos una de sus habilidades requeridas.
+end note
 
-class PersonaColaboradora {
-- nombreFantasia: String
-- cuentaGithubGitlab: String
-- nombreApellido: String
-- pronombres: String
-- presentacion: String
-+ agregarHabilidad(habilidad: Habilidad): void
-+ cumpleAlgunaHabilidad(habilidadesRequeridas: List<Habilidad>): Boolean
-}
-
-class Colaboracion {
-- fechaInscripcion: Date
-+ obtenerDatosContactoVisible(): String
-}
-
-class Compromiso {
-- cantidadHoras: Integer
-- tipo: TipoCompromiso
-}
-
-enum TipoCompromiso {
-    TOTALES
-SEMANALES
-MENSUALES
-}
-
-class ModalidadColaboracion {
-- gratuita: Boolean
-- incentivoEconomico: Boolean
-- contratacionEventual: Boolean
-}
-
-Colectivo "1" *-- "*" Proyecto : administra >
-Colectivo --> TipoColectivo : clasifica en >
-Proyecto "*" o-- "*" Habilidad : requiere >
-Proyecto "1" *-- "*" Colaboracion : posee >
-Proyecto --> EstadoProyecto : estado >
-Proyecto --> Compromiso : define >
-Proyecto --> ModalidadColaboracion : define >
-PersonaColaboradora "1" --> "*" Colaboracion : efectúa >
-PersonaColaboradora "*" o-- "*" Habilidad : domina >
+note bottom of Colaboracion
+  Contribución anónima: hoy se registra con
+  colaboradoraId = "Anonimo" (pendiente de rediseño:
+  guardar la persona real + un indicador de anonimidad).
+end note
 
 @enduml

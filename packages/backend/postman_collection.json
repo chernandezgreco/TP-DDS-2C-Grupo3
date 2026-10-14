@@ -1,21 +1,102 @@
 {
   "info": {
-    "name": "TP DDS - Código a Voluntad",
-    "description": "Requests para probar el backend con los datos ficticios de src/data/db.js. Los datos se resetean al reiniciar el server, así que corré la colección completa en orden (Runner) con el server recién levantado.\n\nCada request tiene un test que verifica el status esperado. Los errores responden { error, detalle }: 400 = pedido inválido o regla de negocio, 404 = recurso de la URL inexistente, 409 = conflicto (ya existe / ya anotada).",
+    "name": "Código a Voluntad - API (2da entrega)",
+    "description": "Colección de la API del backend. Cubre todas las operaciones y los casos de error principales.\n\n**Cómo usarla**\n1. Levantar el backend y cargar los datos semilla: `npm run seed` (o `docker compose exec backend npm run seed`).\n2. Ajustar la variable `baseUrl` si hace falta (por defecto `http://localhost:3000`).\n3. Correr la colección completa con el Runner (o `newman run`), en orden: cada request guarda en variables los ids que usan las siguientes.\n\nLas variables `seed*` son los ids fijos de los datos semilla (ver `packages/backend/src/seeds/datos.js`).\nCada corrida crea entidades nuevas con nombres únicos, así que se puede repetir sin volver a cargar el seed.\n\nLa documentación completa de la API está en Swagger: `{{baseUrl}}/api-docs`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8000"
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "seedColectivoManosUnidas",
+      "value": "650000000000000000000101"
+    },
+    {
+      "key": "seedColectivoAsamblea",
+      "value": "650000000000000000000102"
+    },
+    {
+      "key": "seedProyectoWebDonaciones",
+      "value": "650000000000000000000201"
+    },
+    {
+      "key": "seedProyectoEncuestaFinalizado",
+      "value": "650000000000000000000204"
+    },
+    {
+      "key": "seedColaboradoraAda",
+      "value": "650000000000000000000301"
+    },
+    {
+      "key": "seedColaboradoraLu",
+      "value": "650000000000000000000303"
+    },
+    {
+      "key": "idInexistente",
+      "value": "650000000000000000000999"
+    },
+    {
+      "key": "sufijo",
+      "value": ""
+    },
+    {
+      "key": "habilidadCodigo",
+      "value": ""
+    },
+    {
+      "key": "colectivoId",
+      "value": ""
+    },
+    {
+      "key": "colaboradoraId",
+      "value": ""
+    },
+    {
+      "key": "proyectoId",
+      "value": ""
+    },
+    {
+      "key": "perfilId",
+      "value": ""
+    },
+    {
+      "key": "perfilNuevoId",
+      "value": ""
+    },
+    {
+      "key": "perfilFrontendWebId",
+      "value": ""
+    },
+    {
+      "key": "colaboracionId",
+      "value": ""
+    },
+    {
+      "key": "logroId",
+      "value": ""
     }
   ],
   "item": [
     {
-      "name": "General",
+      "name": "0. Salud y documentación",
+      "description": "Chequeos básicos del servidor.",
       "item": [
         {
           "name": "Health check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status OK\", () => { const b = pm.response.json(); pm.expect(b.status === \"OK\").to.be.true; });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -28,97 +109,56 @@
                 "health"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Especificación OpenAPI (JSON)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"tiene rutas\", () => { const b = pm.response.json(); pm.expect(Object.keys(b.paths).length > 0).to.be.true; });"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Home",
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": []
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Error JSON mal formado",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/habilidades",
+              "raw": "{{baseUrl}}/api-docs.json",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "habilidades"
+                "api-docs.json"
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": ",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
+          }
         }
       ]
     },
     {
-      "name": "Habilidades",
+      "name": "1. Habilidades",
+      "description": "Las habilidades se identifican por su código: el título normalizado.",
       "item": [
         {
           "name": "Listar habilidades",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"hay habilidades del seed\", () => { const b = pm.response.json(); pm.expect(b.length >= 9).to.be.true; });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -132,22 +172,32 @@
                 "habilidades"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Crear habilidad",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"sufijo\", Date.now().toString());"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"el código es el título normalizado\", () => { const b = pm.response.json(); pm.expect(b.codigo === b.titulo.toLowerCase().trim().replace(/\\s+/g, '-')).to.be.true; });",
+                  "pm.collectionVariables.set(\"habilidadCodigo\", pm.response.json().codigo);"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Crear habilidad - OK",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -158,7 +208,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Testing\",\n  \"descripcion\": \"Testing automatizado\"\n}",
+              "raw": "{\n  \"titulo\": \"Kotlin {{sufijo}}\",\n  \"descripcion\": \"Desarrollo Android con Kotlin\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -175,22 +225,21 @@
                 "habilidades"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Crear habilidad repetida (409)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Crear habilidad - Error ya existe",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -201,7 +250,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"React\",\n  \"descripcion\": \"Duplicada\"\n}",
+              "raw": "{\n  \"titulo\": \"React\",\n  \"descripcion\": \"Otra vez\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -218,23 +267,21 @@
                 "habilidades"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Crear habilidad sin descripción (400)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Crear habilidad - Error sin título",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -245,7 +292,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"descripcion\": \"Sin título\"\n}",
+              "raw": "{\n  \"titulo\": \"Go\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -262,28 +309,28 @@
                 "habilidades"
               ]
             }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
+          }
         }
       ]
     },
     {
-      "name": "Colectivos",
+      "name": "2. Colectivos",
+      "description": "",
       "item": [
         {
           "name": "Listar colectivos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"hay colectivos del seed\", () => { const b = pm.response.json(); pm.expect(b.length >= 3).to.be.true; });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -297,22 +344,22 @@
                 "colectivos"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Crear colectivo",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"colectivoId\", pm.response.json().id);"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Crear colectivo - OK",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -323,7 +370,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Asociación Barrio Norte\",\n  \"descripcion\": \"Apoyo escolar\",\n  \"ubicacion\": \"Córdoba\",\n  \"tipo\": \"ASOCIACION_BARRIAL\"\n}",
+              "raw": "{\n  \"nombre\": \"Cooperativa Sur {{sufijo}}\",\n  \"descripcion\": \"Huerta comunitaria\",\n  \"ubicacion\": \"Lanús, Buenos Aires\",\n  \"tipo\": \"ASOCIACION_BARRIAL\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -340,22 +387,21 @@
                 "colectivos"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Crear colectivo con tipo inválido (400)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Crear colectivo - Error tipo inválido",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -366,7 +412,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Colectivo X\",\n  \"descripcion\": \"Desc\",\n  \"ubicacion\": \"CABA\",\n  \"tipo\": \"EMPRESA\"\n}",
+              "raw": "{\n  \"nombre\": \"X\",\n  \"descripcion\": \"Y\",\n  \"tipo\": \"EMPRESA\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -383,352 +429,28 @@
                 "colectivos"
               ]
             }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Crear proyecto - OK",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Agenda cultural\",\n  \"descripcion\": \"Web con la agenda de actividades del barrio\",\n  \"habilidadesRequeridas\": [\n    \"react\",\n    \"diseno-ux\"\n  ],\n  \"compromiso\": {\n    \"cantidadHoras\": 4,\n    \"tipo\": \"SEMANALES\"\n  },\n  \"modalidad\": {\n    \"gratuita\": true,\n    \"incentivoEconomico\": false,\n    \"contratacionEventual\": false\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/colectivos/colectivo-2/proyectos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "colectivos",
-                "colectivo-2",
-                "proyectos"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Crear proyecto - Error habilidad inexistente",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Proyecto X\",\n  \"descripcion\": \"Desc\",\n  \"habilidadesRequeridas\": [\n    \"cobol\"\n  ],\n  \"compromiso\": {\n    \"cantidadHoras\": 4,\n    \"tipo\": \"SEMANALES\"\n  },\n  \"modalidad\": {\n    \"gratuita\": true,\n    \"incentivoEconomico\": false,\n    \"contratacionEventual\": false\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/colectivos/colectivo-2/proyectos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "colectivos",
-                "colectivo-2",
-                "proyectos"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Crear proyecto - Error colectivo inexistente",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Proyecto X\",\n  \"descripcion\": \"Desc\",\n  \"habilidadesRequeridas\": [\n    \"react\"\n  ],\n  \"compromiso\": {\n    \"cantidadHoras\": 4,\n    \"tipo\": \"SEMANALES\"\n  },\n  \"modalidad\": {\n    \"gratuita\": true,\n    \"incentivoEconomico\": false,\n    \"contratacionEventual\": false\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/colectivos/colectivo-99/proyectos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "colectivos",
-                "colectivo-99",
-                "proyectos"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Cerrar proyecto - OK",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"estado\": \"FINALIZADO\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/colectivos/colectivo-1/proyectos/proyecto-2",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "colectivos",
-                "colectivo-1",
-                "proyectos",
-                "proyecto-2"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Cerrar proyecto - Error otro colectivo",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"estado\": \"FINALIZADO\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/colectivos/colectivo-2/proyectos/proyecto-1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "colectivos",
-                "colectivo-2",
-                "proyectos",
-                "proyecto-1"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Cerrar proyecto - Error estado inválido",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"estado\": \"ACTIVO\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/colectivos/colectivo-1/proyectos/proyecto-2",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "colectivos",
-                "colectivo-1",
-                "proyectos",
-                "proyecto-2"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Cerrar proyecto - Error proyecto inexistente",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/colectivos/colectivo-1/proyectos/proyecto-99",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "colectivos",
-                "colectivo-1",
-                "proyectos",
-                "proyecto-99"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"estado\": \"FINALIZADO\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
+          }
         }
       ]
     },
     {
-      "name": "Colaboradoras",
+      "name": "3. Colaboradoras",
+      "description": "Los medios de contacto se registran pero nunca aparecen en las respuestas.",
       "item": [
         {
           "name": "Listar colaboradoras",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"no expone medios de contacto\", () => { const b = pm.response.json(); pm.expect(b.every((c) => c.mediosContacto === undefined)).to.be.true; });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -742,22 +464,22 @@
                 "colaboradoras"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Crear colaboradora",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"colaboradoraId\", pm.response.json().id);"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Crear colaboradora - OK",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -768,7 +490,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombreFantasia\": \"Radia\",\n  \"github\": \"github.com/radia\",\n  \"nombreApellido\": \"Radia Torres\",\n  \"habilidades\": [\n    \"python\",\n    \"bases-de-datos\"\n  ],\n  \"pronombres\": \"ella\",\n  \"presentacion\": \"Data engineer\"\n}",
+              "raw": "{\n  \"nombreFantasia\": \"Kim\",\n  \"github\": \"github.com/kim-{{sufijo}}\",\n  \"nombreApellido\": \"Kim Rodríguez\",\n  \"habilidades\": [\n    \"{{habilidadCodigo}}\"\n  ],\n  \"pronombres\": \"ella\",\n  \"presentacion\": \"Dev mobile\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -785,22 +507,21 @@
                 "colaboradoras"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Crear colaboradora con habilidad inexistente (400)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Crear colaboradora - Error sin habilidades",
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -811,7 +532,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombreFantasia\": \"Sin skills\",\n  \"github\": \"github.com/sinskills\",\n  \"habilidades\": []\n}",
+              "raw": "{\n  \"nombreFantasia\": \"X\",\n  \"github\": \"github.com/x\",\n  \"habilidades\": [\n    \"cobol\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -828,23 +549,80 @@
                 "colaboradoras"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Obtener colaboradora",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}"
+              ]
+            }
+          }
         },
         {
-          "name": "Crear colaboradora - Error habilidad inexistente",
+          "name": "Obtener colaboradora inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{idInexistente}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{idInexistente}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Agregar habilidad",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"tiene react\", () => { const b = pm.response.json(); pm.expect(b.habilidades.includes(\"react\")).to.be.true; });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -855,7 +633,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombreFantasia\": \"Cobolera\",\n  \"github\": \"github.com/cobol\",\n  \"habilidades\": [\n    \"cobol\"\n  ]\n}",
+              "raw": "{\n  \"codigo\": \"react\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -863,37 +641,351 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/colaboradoras",
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/habilidades",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "colaboradoras"
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "habilidades"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Agregar habilidad repetida (409)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"react\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/habilidades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "habilidades"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Agregar medio de contacto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EMAIL\",\n  \"valor\": \"kim{{sufijo}}@mail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Agregar medio de contacto inválido (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"EMAIL\",\n  \"valor\": \"no-es-un-mail\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/medios-contacto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "medios-contacto"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Aceptar mensajería interna",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"acepta\", () => { const b = pm.response.json(); pm.expect(b.aceptaMensajeria === true).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aceptaMensajeria\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "preferencias"
+              ]
+            }
+          }
         }
       ]
     },
     {
-      "name": "Proyectos",
+      "name": "4. Proyectos",
+      "description": "Los perfiles se pueden cargar al crear el proyecto o después con su CRUD.",
       "item": [
         {
+          "name": "Crear proyecto con perfiles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"arranca activo\", () => { const b = pm.response.json(); pm.expect(b.estado === \"ACTIVO\").to.be.true; });",
+                  "pm.collectionVariables.set(\"proyectoId\", pm.response.json().id);",
+                  "pm.collectionVariables.set(\"perfilId\", pm.response.json().perfiles[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"App de la huerta\",\n  \"descripcion\": \"App para organizar los turnos de riego\",\n  \"perfiles\": [\n    {\n      \"descripcionPerfil\": \"Desarrollo Android\",\n      \"habilidadesRequeridas\": [\n        \"{{habilidadCodigo}}\"\n      ],\n      \"habilidadesOpcionales\": [\n        \"react\"\n      ],\n      \"compromiso\": {\n        \"cantidadHoras\": 6,\n        \"tipo\": \"SEMANALES\"\n      },\n      \"modalidad\": {\n        \"gratuita\": true,\n        \"incentivoEconomico\": false,\n        \"contratacionEventual\": false\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos/{{colectivoId}}/proyectos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos",
+                "{{colectivoId}}",
+                "proyectos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear proyecto con habilidad por título (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"X\",\n  \"descripcion\": \"Y\",\n  \"perfiles\": [\n    {\n      \"descripcionPerfil\": \"Desarrollo Android\",\n      \"habilidadesRequeridas\": [\n        \"React\"\n      ],\n      \"habilidadesOpcionales\": [\n        \"react\"\n      ],\n      \"compromiso\": {\n        \"cantidadHoras\": 6,\n        \"tipo\": \"SEMANALES\"\n      },\n      \"modalidad\": {\n        \"gratuita\": true,\n        \"incentivoEconomico\": false,\n        \"contratacionEventual\": false\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos/{{colectivoId}}/proyectos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos",
+                "{{colectivoId}}",
+                "proyectos"
+              ]
+            },
+            "description": "Las habilidades se referencian por código (react), no por título (React)."
+          }
+        },
+        {
+          "name": "Crear proyecto en colectivo inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"X\",\n  \"descripcion\": \"Y\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos/{{idInexistente}}/proyectos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos",
+                "{{idInexistente}}",
+                "proyectos"
+              ]
+            }
+          }
+        },
+        {
           "name": "Listar proyectos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -907,85 +999,117 @@
                 "proyectos"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Obtener proyecto",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"tiene su perfil\", () => { const b = pm.response.json(); pm.expect(b.perfiles.length === 1).to.be.true; });"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Listar colaboradoras de un proyecto",
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-3/colaboradoras",
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "proyectos",
-                "proyecto-3",
-                "colaboradoras"
+                "{{proyectoId}}"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Obtener proyecto inexistente (404)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Listar colaboradoras - Error proyecto inexistente",
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-99/colaboradoras",
+              "raw": "{{baseUrl}}/api/proyectos/{{idInexistente}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "proyectos",
-                "proyecto-99",
-                "colaboradoras"
+                "{{idInexistente}}"
               ]
             }
-          },
-          "response": [],
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Perfiles (CRUD)",
+      "description": "",
+      "item": [
+        {
+          "name": "Listar perfiles",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "perfiles"
+              ]
+            }
+          }
         },
         {
-          "name": "Anotar colaboradora - OK",
+          "name": "Crear perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"perfilNuevoId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -996,7 +1120,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"colaboradoraId\": \"colaboradora-3\"\n}",
+              "raw": "{\n  \"descripcionPerfil\": \"Backend\",\n  \"habilidadesRequeridas\": [\n    \"nodejs\"\n  ],\n  \"habilidadesOpcionales\": [\n    \"bases-de-datos\"\n  ],\n  \"compromiso\": {\n    \"cantidadHoras\": 6,\n    \"tipo\": \"SEMANALES\"\n  },\n  \"modalidad\": {\n    \"gratuita\": true,\n    \"incentivoEconomico\": false,\n    \"contratacionEventual\": false\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1004,35 +1128,66 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-3/colaboraciones",
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "proyectos",
-                "proyecto-3",
-                "colaboraciones"
+                "{{proyectoId}}",
+                "perfiles"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Obtener perfil",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles/{{perfilNuevoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "perfiles",
+                "{{perfilNuevoId}}"
+              ]
+            }
+          }
         },
         {
-          "name": "Anotar colaboradora - Error ya anotada",
+          "name": "Actualizar perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"cambió solo el compromiso\", () => { const b = pm.response.json(); pm.expect(b.compromiso.cantidadHoras === 10 && b.descripcionPerfil === \"Backend\").to.be.true; });"
+                ]
+              }
+            }
+          ],
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               {
                 "key": "Content-Type",
@@ -1041,7 +1196,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"colaboradoraId\": \"colaboradora-1\"\n}",
+              "raw": "{\n  \"compromiso\": {\n    \"cantidadHoras\": 10,\n    \"tipo\": \"MENSUALES\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1049,238 +1204,41 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-1/colaboraciones",
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles/{{perfilNuevoId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "proyectos",
-                "proyecto-1",
-                "colaboraciones"
+                "{{proyectoId}}",
+                "perfiles",
+                "{{perfilNuevoId}}"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Actualizar perfil sin datos (400)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Anotar colaboradora - Error sin habilidades",
+          ],
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"colaboradoraId\": \"colaboradora-4\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-1/colaboraciones",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "proyectos",
-                "proyecto-1",
-                "colaboraciones"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Anotar colaboradora - Error proyecto finalizado",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"colaboradoraId\": \"colaboradora-4\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-4/colaboraciones",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "proyectos",
-                "proyecto-4",
-                "colaboraciones"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Anotar colaboradora - Error colaboradora inexistente",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"colaboradoraId\": \"colaboradora-99\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-1/colaboraciones",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "proyectos",
-                "proyecto-1",
-                "colaboraciones"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Anotar colaboradora - Error proyecto inexistente",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-99/colaboraciones",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "proyectos",
-                "proyecto-99",
-                "colaboraciones"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"colaboradoraId\": \"colaboradora-1\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Anotar colaboradora - Error sin colaboradoraId",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/proyectos/proyecto-1/colaboraciones",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "proyectos",
-                "proyecto-1",
-                "colaboraciones"
-              ]
-            },
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -1289,29 +1247,473 @@
                   "language": "json"
                 }
               }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles/{{perfilNuevoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "perfiles",
+                "{{perfilNuevoId}}"
+              ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Crear perfil sin habilidades requeridas (400)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcionPerfil\": \"Desarrollo Android\",\n  \"habilidadesRequeridas\": [],\n  \"habilidadesOpcionales\": [\n    \"react\"\n  ],\n  \"compromiso\": {\n    \"cantidadHoras\": 6,\n    \"tipo\": \"SEMANALES\"\n  },\n  \"modalidad\": {\n    \"gratuita\": true,\n    \"incentivoEconomico\": false,\n    \"contratacionEventual\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "perfiles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles/{{perfilNuevoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "perfiles",
+                "{{perfilNuevoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener perfil eliminado (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles/{{perfilNuevoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "perfiles",
+                "{{perfilNuevoId}}"
+              ]
+            }
+          }
         }
       ]
     },
     {
-      "name": "Colaboraciones",
+      "name": "6. Búsquedas",
+      "description": "",
       "item": [
         {
+          "name": "Colaboradoras potenciales para un perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"incluye a Kim\", () => { const b = pm.response.json(); pm.expect(b.some((c) => c.id === pm.variables.get(\"colaboradoraId\"))).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/perfiles/{{perfilId}}/colaboradoras-potenciales",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "perfiles",
+                "{{perfilId}}",
+                "colaboradoras-potenciales"
+              ]
+            },
+            "description": "Colaboradoras con al menos una habilidad requerida del perfil, ordenadas por afinidad (requeridas + opcionales)."
+          }
+        },
+        {
+          "name": "Proyectos potenciales para una colaboradora",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"incluye el proyecto nuevo\", () => { const b = pm.response.json(); pm.expect(b.some((r) => r.proyecto.id === pm.variables.get(\"proyectoId\"))).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/proyectos-potenciales",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "proyectos-potenciales"
+              ]
+            },
+            "description": "Proyectos activos con algún perfil cuyas habilidades requeridas tiene la colaboradora, junto con esos perfiles."
+          }
+        },
+        {
+          "name": "Proyectos potenciales para Lu (seed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"encuentra la plataforma de cursos\", () => { const b = pm.response.json(); pm.expect(b.some((r) => r.proyecto.titulo === \"Plataforma de cursos\")).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{seedColaboradoraLu}}/proyectos-potenciales",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{seedColaboradoraLu}}",
+                "proyectos-potenciales"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Colaboraciones",
+      "description": "Anotarse requiere al menos una habilidad requerida del perfil. Si no se indica perfilId, se asigna el primero que corresponde.",
+      "item": [
+        {
+          "name": "Anotar colaboradora",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"quedó en el perfil\", () => { const b = pm.response.json(); pm.expect(b.perfilId === pm.variables.get(\"perfilId\")).to.be.true; });",
+                  "pm.collectionVariables.set(\"colaboracionId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/colaboraciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "colaboraciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Anotar de nuevo en el mismo perfil (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/colaboraciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "colaboraciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Anotar sin habilidades requeridas (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{seedColaboradoraLu}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/colaboraciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "colaboraciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Anotar de forma anónima eligiendo perfil",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// busca el id del perfil Frontend del proyecto semilla",
+                  "pm.sendRequest(`${pm.variables.get(\"baseUrl\")}/api/proyectos/${pm.variables.get(\"seedProyectoWebDonaciones\")}/perfiles`, (err, res) => {",
+                  "    const frontend = res.json().find((p) => p.descripcionPerfil === \"Frontend\");",
+                  "    pm.collectionVariables.set(\"perfilFrontendWebId\", frontend.id);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"figura como anónima\", () => { const b = pm.response.json(); pm.expect(b.colaboradoraId === \"Anonimo\").to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\",\n  \"perfilId\": \"{{perfilFrontendWebId}}\",\n  \"anonimidad\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{seedProyectoWebDonaciones}}/colaboraciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{seedProyectoWebDonaciones}}",
+                "colaboraciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar colaboradoras del proyecto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"está Kim, sin medios de contacto\", () => { const b = pm.response.json(); pm.expect(b.length === 1 && b[0].mediosContacto === undefined).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/colaboradoras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "colaboradoras"
+              ]
+            }
+          }
+        },
+        {
           "name": "Listar colaboraciones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -1325,80 +1727,620 @@
                 "colaboraciones"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Obtener colaboración",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Obtener colaboración por id",
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/colaboraciones/colaboracion-1",
+              "raw": "{{baseUrl}}/api/colaboraciones/{{colaboracionId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "colaboraciones",
-                "colaboracion-1"
+                "{{colaboracionId}}"
               ]
             }
-          },
-          "response": [],
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Notificaciones",
+      "description": "Solo se envían si la colaboradora acepta mensajería interna. Se replican por sus medios de contacto (ver la consola del backend).",
+      "item": [
+        {
+          "name": "Enviar notificación",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"se replicó por email\", () => { const b = pm.response.json(); pm.expect(b.mediosUsados.includes(\"EMAIL\")).to.be.true; });"
                 ]
               }
             }
-          ]
-        },
-        {
-          "name": "Obtener colaboración - Error no existe",
+          ],
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\",\n  \"colectivoId\": \"{{colectivoId}}\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"¡Gracias por sumarte a la huerta!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/colaboraciones/colaboracion-99",
+              "raw": "{{baseUrl}}/api/notificaciones",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "colaboraciones",
-                "colaboracion-99"
+                "notificaciones"
               ]
             }
-          },
-          "response": [],
+          }
+        },
+        {
+          "name": "Notificar a quien no acepta mensajería (409)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
-                  "pm.test(\"Responde JSON con error\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
                 ]
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{seedColaboradoraLu}}\",\n  \"colectivoId\": \"{{seedColectivoManosUnidas}}\",\n  \"proyectoId\": \"{{seedProyectoWebDonaciones}}\",\n  \"texto\": \"Hola\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Notificar con proyecto de otro colectivo (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{colaboradoraId}}\",\n  \"colectivoId\": \"{{seedColectivoAsamblea}}\",\n  \"proyectoId\": \"{{proyectoId}}\",\n  \"texto\": \"Hola\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar notificaciones de la colaboradora",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"tiene una\", () => { const b = pm.response.json(); pm.expect(b.length === 1).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/colaboradoras/{{colaboradoraId}}/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colaboradoras",
+                "{{colaboradoraId}}",
+                "notificaciones"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Logros",
+      "description": "",
+      "item": [
+        {
+          "name": "Crear logro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"logroId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcion\": \"Primer prototipo publicado\",\n  \"porcentajeCompletitud\": 30,\n  \"enlaceSistema\": \"https://huerta.example.com\",\n  \"enlaceFuentePublica\": \"https://github.com/coop/huerta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/logros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "logros"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar logros",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/logros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "logros"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener logro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/logros/{{logroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "logros",
+                "{{logroId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Actualizar logro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"quedó en 60%\", () => { const b = pm.response.json(); pm.expect(b.porcentajeCompletitud === 60).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"porcentajeCompletitud\": 60\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/logros/{{logroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "logros",
+                "{{logroId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Actualizar logro fuera de rango (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"porcentajeCompletitud\": 150\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/logros/{{logroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "logros",
+                "{{logroId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar logro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{proyectoId}}/logros/{{logroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{proyectoId}}",
+                "logros",
+                "{{logroId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Cierre de proyecto",
+      "description": "Un proyecto finalizado ya no admite colaboraciones.",
+      "item": [
+        {
+          "name": "Cerrar desde otro colectivo (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"FINALIZADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos/{{seedColectivoManosUnidas}}/proyectos/{{proyectoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos",
+                "{{seedColectivoManosUnidas}}",
+                "proyectos",
+                "{{proyectoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cerrar proyecto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"finalizado\", () => { const b = pm.response.json(); pm.expect(b.estado === \"FINALIZADO\").to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"FINALIZADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos/{{colectivoId}}/proyectos/{{proyectoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos",
+                "{{colectivoId}}",
+                "proyectos",
+                "{{proyectoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cerrar de nuevo (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"FINALIZADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/colectivos/{{colectivoId}}/proyectos/{{proyectoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "colectivos",
+                "{{colectivoId}}",
+                "proyectos",
+                "{{proyectoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Anotarse en un proyecto finalizado (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colaboradoraId\": \"{{seedColaboradoraAda}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/proyectos/{{seedProyectoEncuestaFinalizado}}/colaboraciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "proyectos",
+                "{{seedProyectoEncuestaFinalizado}}",
+                "colaboraciones"
+              ]
+            }
+          }
         }
       ]
     }

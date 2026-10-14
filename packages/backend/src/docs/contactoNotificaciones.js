@@ -1,12 +1,6 @@
-import { z } from "zod";
 import { medioContactoSchema, preferenciasSchema } from "../schemas/ColaboradoraSchema.js";
 import { crearNotificacionSchema } from "../schemas/NotificacionSchema.js";
-
-// El body se genera solo a partir del schema de Zod
-const cuerpo = (schema) => {
-    const { $schema, ...resto } = z.toJSONSchema(schema, { io: "input" });
-    return { required: true, content: { "application/json": { schema: resto } } };
-};
+import { cuerpo } from "./comun.js";
 
 const idColaboradora = {
     name: "id",

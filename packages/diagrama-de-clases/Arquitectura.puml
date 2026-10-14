@@ -1,0 +1,66 @@
+@startuml
+' Arquitectura en capas del backend
+title Código a Voluntad - Arquitectura del backend
+
+skinparam componentStyle rectangle
+
+actor "Cliente HTTP\n(frontend, Postman)" as cliente
+
+node "Servidor (Docker)" {
+    package "Express" {
+        [Routes] as routes
+        [Middleware validar\n(schemas Zod)] as validar
+        [Controllers] as controllers
+        [Middleware manejarErrores] as errores
+    }
+
+    package "Services" {
+        [ProyectoService\nPerfilesService\nLogroService] as svcProyectos
+        [ColaboradoraService\nColaboracionService\nNotificacionService] as svcPersonas
+        [ColectivoService\nHabilidadService] as svcCatalogo
+        [Enviadores\n(Email, WhatsApp, SMS)] as enviadores
+    }
+
+    package "Dominio" {
+        [Entidades y reglas\n(Proyecto, Perfil, Colaboradora, ...)] as dominio
+        [Errores de negocio\n(DomainError, NotFoundError, ConflictError)] as erroresDominio
+    }
+
+    [Models Mongoose] as models
+}
+
+database "MongoDB (Docker)" as mongo
+
+cliente --> routes : JSON
+routes --> validar
+validar --> controllers
+controllers --> svcProyectos
+controllers --> svcPersonas
+controllers --> svcCatalogo
+svcProyectos --> dominio
+svcPersonas --> dominio
+svcCatalogo --> dominio
+svcPersonas --> enviadores
+svcProyectos --> models
+svcPersonas --> models
+svcCatalogo --> models
+models --> mongo
+dominio ..> erroresDominio : lanza
+erroresDominio ..> errores : se traducen a 400 / 404 / 409
+
+note right of controllers
+  Solo reciben el request, delegan en el
+  service y responden. No tienen try/catch.
+end note
+
+note right of dominio
+  No conoce HTTP ni Mongo.
+  Valida y aplica las reglas del negocio.
+end note
+
+note bottom of models
+  Cada service convierte entre documento
+  de Mongo y objeto de dominio (aDominio).
+end note
+
+@enduml
