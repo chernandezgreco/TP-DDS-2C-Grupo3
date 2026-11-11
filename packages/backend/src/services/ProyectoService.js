@@ -12,6 +12,9 @@ import { ColaboradoraService } from "./ColaboradoraService.js";
 import { ColaboracionService } from "./ColaboracionService.js";
 import { HabilidadService } from "./HabilidadService.js";
 import { esIdValido } from "./ids.js";
+import { Postulacion } from "../domain/Postulacion/Postulacion.js";
+import { PostulacionService } from "./PostulacionService.js";
+import { DomainError } from "../domain/errores.js";
 
 // --- Conversión entre Mongo y dominio. Es el único lugar que conoce la forma del documento ---
 
@@ -19,6 +22,8 @@ export const crearPerfil = (id, datos) =>
     new Perfil(
         id,
         datos.descripcionPerfil,
+        datos.fechaLimite,
+        datos.cantidadLimite,
         datos.habilidadesRequeridas,
         datos.habilidadesOpcionales,
         new Compromiso(datos.compromiso.cantidadHoras, datos.compromiso.tipo),
@@ -40,7 +45,8 @@ const aDominio = (doc) =>
             logro.enlaceFuentePublica,
             logro.fechaCreacion,
         )),
-        doc.estado
+        doc.estaBuscando ?? true, 
+        doc.estado                 
     );
 
 export const aDocumento = (proyecto) => ({
@@ -48,9 +54,12 @@ export const aDocumento = (proyecto) => ({
     descripcion: proyecto.descripcion,
     colectivoId: proyecto.colectivoId,
     estado: proyecto.estado,
+    estaBuscando: proyecto.estaBuscando, 
     perfiles: proyecto.perfiles.map((perfil) => ({
         id: perfil.id,
         descripcionPerfil: perfil.descripcionPerfil,
+        fechaLimite : perfil.fechaLimite,
+        cantidadLimite : perfil.cantidadLimite,
         habilidadesRequeridas: perfil.habilidadesRequeridas,
         habilidadesOpcionales: perfil.habilidadesOpcionales,
         compromiso: { cantidadHoras: perfil.compromiso.cantidadHoras, tipo: perfil.compromiso.tipo },
@@ -91,17 +100,37 @@ export class ProyectoService {
         return proyecto;
     }
 
-    static async crearProyecto(data, colectivoId) {
-        const colectivo = await ColectivoService.obtenerPorId(colectivoId);
+   static async crearProyecto(data, colectivoId) {
+    const colectivo = await ColectivoService.obtenerPorId(colectivoId);
 
-        // el dominio valida antes de guardar
-        const perfiles = (data.perfiles ?? []).map((perfil) => crearPerfil(uuidv4(), perfil));
-        const borrador = new Proyecto(null, data.titulo, data.descripcion, colectivo.id, perfiles);
-        await HabilidadService.validarExistentes(perfiles.flatMap((perfil) => perfil.todasLasHabilidades()));
+    // Si data viene envuelto en un body o req, o asegurando que perfiles exista
+    const perfilesData = data.perfiles || data.body?.perfiles || [];
+    
+    const perfiles = perfilesData.map((perfil) => crearPerfil(uuidv4(), perfil));
+    const borrador = new Proyecto(null, data.titulo, data.descripcion, colectivo.id, perfiles);
+    
+    await HabilidadService.validarExistentes(perfiles.flatMap((perfil) => perfil.todasLasHabilidades()));
 
-        const doc = await ProyectoModel.create(aDocumento(borrador));
+    const doc = await ProyectoModel.create(aDocumento(borrador));
 
-        return aDominio(doc);
+    return aDominio(doc);
+}
+    static async cambiarEstadoBusqueda(proyectoId, nuevoEstado) {
+        const proyecto = await this.obtenerPorId(proyectoId);
+
+        proyecto.cambiarEstadoBusqueda(nuevoEstado);
+
+        const docActualizado = await ProyectoModel.findByIdAndUpdate(
+            proyectoId,
+            { estaBuscando: proyecto.estaBuscando },
+            { new: true }
+        );
+
+        if (!docActualizado) {
+            throw new NotFoundError("Proyecto no encontrado", { proyectoId });
+        }
+
+        return aDominio(docActualizado);
     }
 
     static async cerrarProyecto(colectivoId, proyectoId) {
@@ -113,6 +142,24 @@ export class ProyectoService {
 
         proyecto.cerrar();
         return await this.guardar(proyecto);
+    }
+
+static async anotarPostulacion(proyectoId, { colaboradoraId, perfilId, anonimidad }) {
+        const proyecto = await this.obtenerPorId(proyectoId);
+        
+        if (!proyecto.estaBuscando) {
+            throw new DomainError("El proyecto no se encuentra buscando colaboradores actualmente", { campo: "estaBuscando" });
+        }
+
+        const colaboradora = await ColaboradoraService.obtenerPorId(colaboradoraId);
+        
+        // Le pasamos la colaboradora para que perfilesPara / admiteA la evalúen
+        const perfil = proyecto.perfilParaAnotar(colaboradora, perfilId); 
+        
+        const postulacionesDelPerfil = await PostulacionService.listarDePerfil(perfil.id);
+        perfil.validarPuedeAnotar(postulacionesDelPerfil.length);
+
+        return await PostulacionService.crear(proyecto.id, perfil.id, colaboradora.id, anonimidad);
     }
 
     static async anotarColaboradora(proyectoId, { colaboradoraId, perfilId, anonimidad }) {

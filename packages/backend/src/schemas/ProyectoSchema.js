@@ -25,3 +25,12 @@ export const anotarColaboradoraSchema = z.object(
     },
     { error: "El id de la colaboradora es obligatorio" }
 );
+
+export const anotarPostulacionaSchema = z.object(
+    {
+        colaboradoraId: z.string({ error: "El id de la colaboradora es obligatorio" }),
+        perfilId: z.string({ error: "El id del perfil debe ser un texto" }).optional(),
+        anonimidad: z.boolean({ error: "anonimidad debe ser verdadero o falso" }).optional(),
+    },
+    { error: "El id de la colaboradora es obligatorio" }
+);

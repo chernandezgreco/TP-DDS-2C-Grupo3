@@ -9,7 +9,7 @@ import {
 } from "../errores.js";
 
 export class Proyecto {
-    constructor(id, titulo, descripcion, colectivoId, perfiles = [], logros = [], estado = EstadoProyecto.ACTIVO) {
+    constructor(id, titulo, descripcion, colectivoId, perfiles = [], logros = [], estaBuscando = true, estado = EstadoProyecto.ACTIVO) {
         if (!esTextoNoVacio(titulo)) {
             throw new DomainError("El título del proyecto es obligatorio", { campo: "titulo" });
         }
@@ -33,6 +33,29 @@ export class Proyecto {
         this.estado = estado;
         this.perfiles = [...perfiles];
         this.logros = logros;
+        this.estaBuscando = estaBuscando;
+    }
+    validarSePuedeAnotar() {
+        if (!this.estaBuscando) {
+            throw new DomainError("El proyecto no se encuentra buscando colaboradores actualmente", { campo: "estaBuscando" });
+        }
+        if (this.estado !== EstadoProyecto.ACTIVO) {
+            throw new DomainError("No se puede postular a un proyecto que no está activo", { campo: "estado" });
+        }
+    }
+
+    perfilParaAnotar(colaboradora, perfilId) {
+        this.validarSePuedeAnotar();
+
+        // Opcional: si usas perfilesPara para filtrar los perfiles aptos para esta colaboradora:
+        const perfilesDisponibles = this.perfilesPara(colaboradora);
+        const perfil = perfilesDisponibles.find(p => p.id === perfilId);
+
+        if (!perfil) {
+            throw new DomainError("El perfil no existe o la colaboradora no cumple con los requisitos para postularse", { perfilId });
+        }
+
+        return perfil;
     }
 
     perteneceA(colectivoId) {
@@ -165,5 +188,11 @@ export class Proyecto {
         );
 
         return logro;
+    }
+    cambiarEstadoBusqueda(nuevoEstado) {
+        if (typeof nuevoEstado !== "boolean") {
+            throw new DomainError("El estado de búsqueda debe ser un valor booleano", { campo: "estaBuscando" });
+        }
+        this.estaBuscando = nuevoEstado;
     }
 }

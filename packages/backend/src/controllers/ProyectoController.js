@@ -29,4 +29,23 @@ export class ProyectoController {
     static async buscarProyectosPotenciales(req, res) {
         res.json(await ProyectoService.buscarProyectosPotenciales(req.params.id));
     }
+
+    static async anotarPostulacion(req, res) {
+        res.json(await ProyectoService.anotarPostulacion(req.params.proyectoId, req.body));
+    }
+    static async cambiarBusqueda(req, res, next) {
+        try {
+            const { id } = req.params;
+            const { estaBuscando } = req.body;
+
+            const proyectoActualizado = await ProyectoService.cambiarEstadoBusqueda(id, estaBuscando);
+
+            return res.status(200).json({
+                mensaje: "Estado de búsqueda actualizado exitosamente",
+                proyecto: proyectoActualizado
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }

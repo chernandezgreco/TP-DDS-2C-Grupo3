@@ -51,4 +51,25 @@ export class ColaboracionService {
 
         return aDominio(doc);
     }
+
+    static async darDeBaja(colaboracionId) {
+        const colaboracion = await ColaboracionModel.findByIdAndDelete(colaboracionId);
+        if (!colaboracion) {
+            throw new NotFoundError("Colaboración no encontrada", { colaboracionId });
+        }
+        return { mensaje: "Colaboración dada de baja exitosamente" };
+    }
+
+    static async darDeBajaPorColaborador(proyectoId, colaboradoraId) {
+        const colaboracion = await ColaboracionModel.findOneAndDelete({ 
+            proyectoId, 
+            colaboradoraId 
+        });
+
+        if (!colaboracion) {
+            throw new NotFoundError("No se encontró una colaboración activa para este proyecto y colaborador", { proyectoId, colaboradoraId });
+        }
+
+        return { mensaje: "Te has dado de baja del proyecto exitosamente" };
+    }
 }

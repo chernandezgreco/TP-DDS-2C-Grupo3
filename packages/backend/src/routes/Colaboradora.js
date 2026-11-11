@@ -9,6 +9,7 @@ import {
     medioContactoSchema,
     preferenciasSchema,
 } from "../schemas/ColaboradoraSchema.js";
+import { ColaboracionController } from "../controllers/ColaboracionController.js";
 
 const router = Router();
 router.post("/", validar(crearColaboradoraSchema), ColaboradoraController.crear);
@@ -19,5 +20,6 @@ router.post("/:id/medios-contacto", validar(medioContactoSchema), ColaboradoraCo
 router.patch("/:id/preferencias", validar(preferenciasSchema), ColaboradoraController.actualizarPreferencias);
 router.get("/:id/notificaciones", NotificacionController.listarDeColaboradora);
 router.get("/:id/proyectos-potenciales", ProyectoController.buscarProyectosPotenciales);
-
+//3era
+router.delete("/:colaboradoraId/proyectos/:proyectoId/baja", ColaboracionController.darDeBajaPersonal);
 export default router;

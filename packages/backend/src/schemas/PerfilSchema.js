@@ -14,13 +14,26 @@ const modalidadSchema = z.object({
     contratacionEventual: z.boolean({ error: "El campo contratacionEventual debe ser un booleano" }),
 }, { error: "La modalidad es obligatoria y debe ser un objeto válido" });
 
-const habilidadesRequeridasSchema = z.array(z.string(), { error: "Las habilidades requeridas deben ser una lista de códigos" })
-    .min(1, { error: "El perfil debe tener al menos una habilidad requerida" });
+export const habilidadesRequeridasSchema = z.array(
+  z.string({ message: "La habilidad debe ser un texto" }),
+  { message: "Las habilidades requeridas son obligatorias" }
+).min(1, { message: "El perfil debe tener al menos una habilidad requerida" });
 
 const habilidadesOpcionalesSchema = z.array(z.string(), { error: "Las habilidades opcionales deben ser una lista de códigos" });
 
 export const crearPerfilSchema = z.object({
     descripcionPerfil: z.string({ error: "La descripción del perfil es obligatoria" }),
+    fechaLimite: z.string({ error: "La fecha del perfil es obligatoria" })
+  .transform((val) => {
+    const dia = val.slice(0, 2);
+    const mes = val.slice(2, 4);
+    const anio = val.slice(4, 8);
+    return new Date(`${anio}-${mes}-${dia}`);
+  }),
+    cantidadLimite :
+        z.number({ error: "La cantidad de horas debe ser un número" })
+        .int({ error: "La cantidad de horas debe ser un número entero positivo" })
+        .positive({ error: "La cantidad de horas debe ser un número entero positivo" }),
     habilidadesRequeridas: habilidadesRequeridasSchema,
     habilidadesOpcionales: habilidadesOpcionalesSchema.optional(),
     compromiso: compromisoSchema,

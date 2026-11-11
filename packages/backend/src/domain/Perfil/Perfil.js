@@ -4,7 +4,7 @@ import { esTextoNoVacio } from "../validaciones.js";
 import { DomainError } from "../errores.js";
 
 export class Perfil {
-    constructor(id, descripcionPerfil, habilidadesRequeridas, habilidadesOpcionales = [], compromiso, modalidad) {
+    constructor(id, descripcionPerfil, fechaLimite, cantidadLimite, habilidadesRequeridas, habilidadesOpcionales = [], compromiso, modalidad, postulaciones = []) {
         if (!esTextoNoVacio(descripcionPerfil)) {
             throw new DomainError("La descripción del perfil es obligatoria", { campo: "descripcionPerfil" });
         }
@@ -21,18 +21,44 @@ export class Perfil {
             throw new DomainError("La modalidad de colaboración del perfil no es válida", { campo: "modalidad" });
         }
 
-        this.id = id;
-        this.descripcionPerfil = descripcionPerfil.trim();
-        this.habilidadesRequeridas = [...habilidadesRequeridas];
-        this.habilidadesOpcionales = [...habilidadesOpcionales];
-        this.compromiso = compromiso;
-        this.modalidad = modalidad;
+    this.id = id;
+    this.descripcionPerfil = descripcionPerfil.trim();
+    this.fechaLimite = fechaLimite; 
+    this.cantidadLimite = cantidadLimite;
+    this.habilidadesRequeridas = [...habilidadesRequeridas];
+    this.habilidadesOpcionales = [...habilidadesOpcionales];
+    this.compromiso = compromiso;
+    this.modalidad = modalidad;
+    this.postulaciones = postulaciones ?? []; 
+  }
+
+estaAbierto(cantidadPostulacionesActuales = (this.postulaciones?.length ?? 0), fechaActual = new Date()) {
+        const superaCantidad = this.cantidadLimite !== null && cantidadPostulacionesActuales >= this.cantidadLimite;
+        const venceFecha = this.fechaLimite && fechaActual > new Date(this.fechaLimite);
+
+        return !superaCantidad && !venceFecha;
     }
 
-    // alcanza con que la colaboradora tenga al menos una de las habilidades requeridas
-    admiteA(colaboradora) {
-        return colaboradora.cumpleAlgunaHabilidad(this.habilidadesRequeridas);
+    validarPuedeAnotar(cantidadPostulacionesActuales = (this.postulaciones?.length ?? 0), fechaActual = new Date()) {
+        if (this.cantidadLimite !== null && cantidadPostulacionesActuales >= this.cantidadLimite) {
+            throw new DomainError("Se ha alcanzado el límite máximo de postulaciones para este perfil", { campo: "cantidadLimite" });
+        }
+        
+        if (this.fechaLimite && fechaActual > new Date(this.fechaLimite)) {
+            throw new DomainError("La fecha límite para postularse a este perfil ha expirado", { campo: "fechaLimite" });
+        }
     }
+    admiteA(colaboradora) {
+    // Si la colaboradora tiene sus habilidades como un array (ej: ["JavaScript", "NodeJS"])
+    const habilidadesColaboradora = colaboradora.habilidades ?? [];
+
+    // Verificamos si cumple con las habilidades requeridas del perfil
+    const cumpleRequeridas = this.habilidadesRequeridas.every(hReq => 
+        habilidadesColaboradora.includes(hReq)
+    );
+
+    return cumpleRequeridas;
+  }
 
     // cuantas habilidades del perfil (requeridas u opcionales) tiene la colaboradora
     afinidadCon(colaboradora) {

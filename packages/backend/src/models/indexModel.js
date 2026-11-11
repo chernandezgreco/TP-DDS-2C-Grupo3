@@ -4,6 +4,7 @@ import { TipoCompromiso } from "../domain/Compromiso/TipoCompromiso.js";
 import { EstadoProyecto } from "../domain/Proyecto/EstadoProyecto.js";
 import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
 import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
+import { EstadoPostulacion } from "../domain/Postulacion/EstadoPostulacion.js";
 
 // --- 1. HABILIDAD ---
 const habilidadSchema = new mongoose.Schema({
@@ -28,12 +29,15 @@ export const ColectivoModel = mongoose.model("Colectivo", colectivoSchema);
 const perfilSchema = new mongoose.Schema({
     id: { type: String, required: true },
     descripcionPerfil: { type: String, required: true },
+    fechaLimite: { type: Date, required: true },    
+    cantidadLimite: { type: Number, required: true },  
+  
+    habilidadesRequeridas: [{ type: String, required: true }],
+    habilidadesOpcionales: [{ type: String }],
     compromiso: {
         cantidadHoras: { type: Number, required: true },
         tipo: { type: String, enum: Object.values(TipoCompromiso), required: true }
     },
-    habilidadesRequeridas: [{ type: String, required: true }],
-    habilidadesOpcionales: [{ type: String }],
     modalidad: {
         gratuita: { type: Boolean, required: true },
         incentivoEconomico: { type: Boolean, required: true },
@@ -94,7 +98,7 @@ const colaboracionSchema = new mongoose.Schema({
     proyectoId: { type: String, required: true },
     perfilId: { type: String, required: true },
     colaboradoraId: { type: String, required: true },
-    estado: { type: String, enum: Object.values(EstadoColaboracion), default: EstadoColaboracion.PENDIENTE },
+    estado: { type: String, enum: Object.values(EstadoColaboracion), default: EstadoColaboracion.ACTIVA },
     fechaCreacion: { type: Date, default: Date.now }
 });
 export const ColaboracionModel = mongoose.model("Colaboracion", colaboracionSchema);
@@ -109,3 +113,13 @@ const notificacionSchema = new mongoose.Schema({
     fecha: { type: Date, default: Date.now }
 });
 export const NotificacionModel = mongoose.model("Notificacion", notificacionSchema);
+
+// --- 5. COLABORACIÓN ---
+const postulacionSchema = new mongoose.Schema({
+    proyectoId: { type: String, required: true },
+    perfilId: { type: String, required: true },
+    colaboradoraId: { type: String, required: true },
+    estado: { type: String, enum: Object.values(EstadoPostulacion), default: EstadoPostulacion.PENDIENTE },
+    fechaCreacion: { type: Date, default: Date.now }
+});
+export const PostulacionModel = mongoose.model("Postulacion", postulacionSchema);

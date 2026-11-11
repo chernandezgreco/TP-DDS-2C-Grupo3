@@ -2,7 +2,7 @@ import { EstadoColaboracion } from "./EstadoColaboracion.js";
 import { DomainError } from "../errores.js";
 
 export class Colaboracion {
-    constructor(id, proyectoId, perfilId, colaboradoraId, estado = EstadoColaboracion.PENDIENTE, fechaCreacion = new Date()) {
+    constructor(id, proyectoId, perfilId, colaboradoraId, estado = EstadoColaboracion.ACTIVA, fechaCreacion = new Date()) {
         if (!Object.values(EstadoColaboracion).includes(estado)) {
             throw new DomainError("El estado de la colaboración no es válido", {
                 estado,
