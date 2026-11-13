@@ -9,10 +9,16 @@ import {
   medioContactoSchema,
   preferenciasSchema,
   actualizarColaboradoraSchema,
+  contactosSchema,
 } from "../schemas/ColaboradoraSchema.js";
 import { ColaboracionController } from "../controllers/ColaboracionController.js";
 
 const router = Router();
+router.put(
+  "/:id/medios-contacto",
+  validar(contactosSchema),
+  ColaboradoraController.actualizarContactos,
+);
 router.post(
   "/",
   validar(crearColaboradoraSchema),

@@ -41,8 +41,8 @@ const perfilSchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
     descripcionPerfil: { type: String, required: true },
-    fechaLimite: { type: Date, required: true },
-    cantidadLimite: { type: Number, required: true },
+    fechaLimite: { type: Date, default: null },
+    cantidadLimite: { type: Number, min: 1, default: null },
 
     habilidadesRequeridas: [{ type: String, required: true }],
     habilidadesOpcionales: [{ type: String }],
@@ -146,6 +146,7 @@ export const ColaboradoraModel = mongoose.model(
 
 // --- 5. COLABORACIÓN ---
 const colaboracionSchema = new mongoose.Schema({
+  anonimidad: { type: Boolean, default: false },
   proyectoId: { type: String, required: true },
   perfilId: { type: String, required: true },
   colaboradoraId: { type: String, required: true },
@@ -176,6 +177,7 @@ export const NotificacionModel = mongoose.model(
 
 // --- 5. COLABORACIÓN ---
 const postulacionSchema = new mongoose.Schema({
+  anonimidad: { type: Boolean, default: false },
   proyectoId: { type: String, required: true },
   perfilId: { type: String, required: true },
   colaboradoraId: { type: String, required: true },

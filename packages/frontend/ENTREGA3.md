@@ -1,91 +1,91 @@
-# Frontend de entrega 3 — Código a Voluntad
+# Entrega 3 — Guía actual del frontend
 
-Trabajo realizado sobre `3era-entrega`, a partir de `origin/3era-entrega` disponible en este checkout. No se hizo push ni publicación. El cambio local previo de ProyectoService en develop está conservado en el stash `codex: preservar cambio local develop antes de entrega3`; no aplicarlo automáticamente a esta rama porque corresponde a una versión anterior del servicio.
+El frontend usa autenticación real mediante una cookie de sesión HttpOnly. Se eliminó el selector que permitía elegir cualquier identidad. Las rutas de modificación validan en el servidor que la sesión sea titular del perfil o del colectivo propietario del proyecto.
 
-## Para levantarlo
+## Iniciar
 
-Desde la raíz del repositorio:
+1. En la raíz: `npm install`.
+2. MongoDB: `docker compose up -d mongo`.
+3. Si no existe, copiar `packages/backend/.env.example` a `packages/backend/.env`. Usar SERVER_PORT=8000, MONGO_URI=mongodb://localhost:27017/codigo_a_voluntad y ALLOWED_ORIGINS=http://localhost:3000.
+4. `npm run dev:backend` y dejar esa terminal abierta.
+5. En otra terminal, `npm run start:frontend`.
+6. Abrir http://localhost:3000. Usar `localhost` para ambos servicios, sin mezclarlo con `127.0.0.1`, para mantener la cookie y el origen configurado.
 
-1. `npm install`
-2. `docker compose up -d mongo` (sólo Mongo; el servicio backend del compose usa el puerto 3000 y colisionaría con CRA).
-3. Copiar `packages/backend/.env.example` a `packages/backend/.env`, si todavía no existe. Usa Mongo local y puerto 8000.
-4. `npm run dev:backend`
-5. En otra terminal: `npm run start:frontend`
-6. Abrir http://localhost:3000. La API predeterminada es http://localhost:8000/api.
+Para otra API, configurar REACT_APP_API_URL en `packages/frontend/.env.local` y reiniciar CRA. Es una URL pública; no incluir claves ni contraseñas allí. El frontend envía las cookies mediante Axios withCredentials.
 
-Para otra API, copiar `.env.example` del frontend a `.env.local`, cambiar REACT*APP_API_URL y reiniciar CRA. No incluir credenciales en variables REACT_APP*: se publican en el bundle.
+No se ejecutaron seeds ni se borró la base de desarrollo. Las pruebas usan una base test\_<PID> separada y la eliminan al terminar.
 
-No ejecuté seeds: el script existente borra las colecciones. Sobre una base vacía podés registrar colectivos y colaboradoras desde la interfaz; las habilidades deben cargarse desde la API administrativa o mediante seeds sobre una base descartable.
+## Primer acceso
 
-## Flujos implementados con la API existente
+- Usar **Iniciar sesión / Registrarme → Crear cuenta**. Elegir colectivo o persona colaboradora.
+- Registrar correo de acceso, contraseña de al menos 10 caracteres y los datos del perfil. El registro inicia la sesión.
+- Los perfiles históricos o creados por seeds no tienen contraseña asociada. No se asignan a una cuenta por conocer su id. Para probar, crear cuentas nuevas; una migración de cuentas históricas necesitaría un procedimiento administrativo que verifique titularidad.
+- Si el catálogo está vacío, la administración puede cargar habilidades desde **Habilidades → Administrar catálogo**, usando ADMIN_API_KEY configurada en el backend. Las personas colaboradoras deben registrar al menos una habilidad existente.
+- El correo de acceso, los hashes de contraseña y las sesiones no se publican en los listados. Los contactos se comparten con colectivos sólo después de una colaboración aceptada.
 
-- Navegación por proyectos, colectivos, colaboradoras, espacio personal y mensajes mediante hash (sin depender de configuración de rutas del servidor).
-- Búsqueda textual por nombre, descripción y habilidades; filtro de búsquedas abiertas; búsqueda de proyectos compatibles vía backend.
-- Registro de colectivos y colaboradoras con habilidades, presentación y datos opcionales.
-- Selección explícita de entidad para probar los flujos en desarrollo. **No es un login ni demuestra autorización.**
-- Crear proyecto; detalle con perfiles, modalidad, compromiso, cupos y fecha; pausar/reabrir búsqueda y finalizar proyecto.
-- Alta, edición y eliminación de perfiles; búsqueda de candidatas compatibles y envío de notificación interna.
-- Postulación a un perfil con anonimidad opcional; revisión de pendientes y procesadas; aceptación y rechazo.
-- Listado de colaboraciones por proyecto y baja con advertencia de acción permanente desde ambos lados.
-- Alta, consulta, edición y eliminación de logros; porcentaje de avance; enlaces HTTP/HTTPS a código fuente y sistema.
-- Agregar habilidades y medios de contacto privados; activar/desactivar preferencia de mensajería; bandeja de notificaciones.
-- Estados de carga, errores de API, reintento, confirmaciones, formularios HTML con etiquetas y validaciones básicas.
+## Recorrido del colectivo
 
-La UI no muestra medios de contacto privados. La ruta de consulta autorizada de contactos todavía no existe; no se intenta sustituirla leyendo datos de otras entidades.
+1. Crear cuenta de colectivo.
+2. Explorar proyectos → Crear proyecto. Completar título, descripción, declaración de IA y aceptar explícitamente los términos vigentes.
+3. Abrir proyecto → Agregar perfil. Elegir habilidades, compromiso y modalidad. Cupo y fecha de búsqueda son opcionales.
+4. Buscar colaboradoras desde cada perfil. Enviar mensaje interno a quien acepte mensajería.
+5. Consultar postulaciones pendientes; aceptar o rechazar. El servidor verifica que la postulación corresponda al proyecto de ese colectivo. El cupo limita colaboraciones aceptadas, no postulaciones pendientes.
+6. Consultar contactos desde una colaboración aceptada. Un colectivo ajeno no tiene acceso aunque conozca el id.
+7. Publicar, editar y eliminar logros; consultar avances y enlaces a repositorio/sistema.
+8. Editar proyecto, pausar/reabrir búsqueda o finalizarlo. Los proyectos con historial se finalizan, no se eliminan; los perfiles con historial tampoco se eliminan.
+9. Mi espacio → Editar mis datos para modificar la organización.
 
-## Pendientes que impiden declarar la entrega completa
+## Recorrido de la colaboradora
 
-| Consigna                          | Estado / coordinación necesaria                                                                                                                                                                                                    |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Login y rutas privadas            | Falta autenticación backend, endpoints de registro/login/logout/sesión y autorización por entidad. Después reemplazar el selector de desarrollo e integrar credenciales. Ocultar botones en React no protege la API.               |
-| Edición de organización y persona | Implementado: edición general desde Mi espacio, con persistencia y validación en backend. Queda integrar permisos de sesión.                                                                                                       |
-| CRUD completo de proyectos        | Implementado: editar título/descripción y eliminar proyectos sin historial. Los que tienen historial deben finalizarse. Queda integrar permisos de sesión.                                                                         |
-| Consulta autorizada de contactos  | Falta endpoint que valide colaboración aceptada y pertenencia al colectivo en servidor.                                                                                                                                            |
-| Privacidad y anonimidad           | La API global de colaboradoras/colaboraciones no tiene autenticación. El servicio tiene un TODO sobre anonimidad que sustituye el id real por "Anonimo"; debe conservar identidad internamente para permitir bajas sin publicarla. |
-| Cupos y fechas opcionales         | El schema actual obliga ambos campos; el formulario respeta ese contrato. La consigna los considera opcionales: acordar y corregir backend antes de hacerlos opcionales en UI.                                                     |
-| Opcionales                        | No se afirman implementados. Coordinar los módulos que están haciendo los compañeros antes de conectar endpoints nuevos.                                                                                                           |
-| Integración y despliegue          | Probar contra Mongo real, autenticación final y servidor compartido; falta despliegue de la entrega.                                                                                                                               |
-| Test de controlador               | Pendiente del equipo backend según consigna.                                                                                                                                                                                       |
+1. Crear cuenta con habilidades y nombre público. Se admiten nombres de fantasía.
+2. Mi espacio → Editar mis datos para actualizar presentación, pronombres, GitHub/GitLab y habilidades.
+3. Agregar contactos privados, editarlos o quitarlos. Activar/desactivar mensajes de colectivos.
+4. Explorar proyectos; buscar por nombre o habilidad, filtrar búsquedas abiertas y usar Para mis habilidades.
+5. Abrir un proyecto y postularse al perfil compatible. Se exige al menos una habilidad requerida, búsqueda abierta y fecha/cupo vigentes.
+6. Elegir si la contribución será pública como anónima. Se conserva la identidad internamente para permitir seguimiento y baja; los visitantes no la reciben.
+7. Consultar el estado de las postulaciones y proyectos aceptados en Mi espacio; leer notificaciones en Mensajes.
+8. Dar de baja una colaboración. La interfaz advierte que es permanente. Después de la baja el colectivo pierde el acceso concedido por esa colaboración, salvo que exista otra colaboración aceptada entre ambos.
 
-Según el chat: Camila tomó frontend; Fran tomó eliminación de colectivos, denuncias, experiencia de habilidades y redes sociales; Nicolás tomó Gantt, tags, portabilidad y modo daltónico; Luca tomó eliminación personal, sanitización y cierre automático. El chat contiene imágenes y audios omitidos: no fue posible deducir su contenido.
+## Cobertura de pantallas obligatorias
 
-## Orden recomendado para terminar tu parte
+| Consigna                           | Implementación                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------ |
+| Registro y edición de organización | Registro con cuenta y Mi espacio                                                     |
+| Registro y edición de colaboradora | Registro con cuenta, edición de perfil, habilidades y contactos                      |
+| CRUD de proyectos                  | Crear, detalle, editar y eliminar sin historial; cierre para conservar historial     |
+| Búsquedas                          | Catálogo textual, proyectos compatibles y candidatas por perfil                      |
+| Detalle y avance                   | Atributos, perfiles, ocupantes, compromisos, modalidades, logros y enlaces           |
+| Contacto interno                   | Envío desde candidatas compatibles, sujeto a preferencia                             |
+| Mensajes                           | Bandeja de la colaboradora autenticada                                               |
+| Postulaciones                      | Envío, seguimiento personal, pendientes/procesadas y decisiones del colectivo        |
+| Desanotación                       | Baja permanente por colaboradora o colectivo con advertencia                         |
+| Contactos privados                 | Endpoint y vista autorizada para titular/colectivo con colaboración aceptada         |
+| Login y permisos                   | Registro/login/logout/sesión, cookie HttpOnly, hash scrypt, autorización por recurso |
 
-1. Mostrar al grupo los recorridos implementados y acordar los contratos faltantes de la tabla.
-2. Probar con dos colaboradoras y un colectivo: crear proyecto → agregar perfil → postularse → aceptar/rechazar → publicar logro → baja permanente. También probar habilidades insuficientes, fecha vencida y cupo lleno.
-3. Integrar login real y permisos antes de exponer datos reales o publicar.
-4. Conectar edición/cierre/eliminación/contactos y opcionales cuando estén las rutas.
-5. Repetir prueba de integración con Mongo, revisar móvil/teclado y desplegar con el grupo.
+Los cinco adicionales de este trabajo están explicados en [ADICIONALES.md](ADICIONALES.md). Los otros adicionales asignados a compañeros no se dan por implementados ni integrados: requieren sus módulos y contratos finales.
 
-## Arquitectura para explicar en la defensa
+## UI y accesibilidad
 
-`App.js` mantiene navegación, entidad seleccionada, catálogo y flujos. `forms.js` define campos reutilizables y traduce el formulario de perfil a los objetos compromiso/modalidad y fecha DDMMYYYY que espera la API actual. `api.js` centraliza Axios, URL configurable, timeout y errores. El estado remoto se vuelve a consultar después de una mutación; no hay persistencia ficticia en localStorage.
+Navegación por hash y enlaces directos de RSS; búsqueda, estados vacíos y errores con reintento. Formularios con etiquetas y controles nativos, validación de datos, prevención de envíos repetidos y vista previa de Markdown. Indicadores de carga y mensajes anunciables por lectores de pantalla. Modal con foco contenido, Escape y devolución de foco. Grillas de tres/dos/una columnas y navegación móvil horizontal. Se admiten errores por permisos y sesión vencida sin mostrar datos privados.
 
-Responsive: tres columnas en escritorio, dos en ancho intermedio y una en móvil; navegación horizontal en pantallas chicas. Accesibilidad: controles nativos, etiquetas, enlace para saltar al contenido, mensajes de estado y errores anunciables, foco visible y nombres accesibles. El modal contiene el foco y lo devuelve al control anterior al cerrarse. Falta una auditoría completa con lector de pantalla antes de afirmar conformidad WCAG.
+La inspección visual automatizada fue bloqueada por la herramienta de control de Windows al no poder verificar la URL del navegador. Falta la revisión manual en escritorio/celular y con teclado; no se afirma conformidad WCAG completa ni una validación visual perfecta.
 
-## Comprobaciones
+## Validación técnica
 
-`npm test --workspace=frontend -- --watchAll=false --runInBand`: pruebas de interacción de componentes con la frontera HTTP sustituida; no son pruebas E2E ni verifican persistencia Mongo. Cubren postulación desde exploración, filtro y fallo de conexión.
+```powershell
+npm run lint
+npm test --workspace=frontend -- --watchAll=false --runInBand
+npm run build --workspace=frontend
+$env:MONGO_URI_TEST='mongodb://127.0.0.1:27017'
+npm test --workspace=backend -- --runInBand
+```
 
-`npm run build --workspace=frontend`: genera el bundle para producción.
+La suite HTTP comprueba registro, sesión/logout, identidad, autorización entre colectivos, rechazo de orígenes ajenos, contactos antes/después de aceptación y baja, anonimidad y aceptaciones simultáneas con cupo. La serialización de decisiones funciona en el servidor único del TP; si se escala a varios procesos hace falta coordinación/atomicidad compartida.
 
-Correcciones puntuales backend: parámetro proyectoId en cambiarBusqueda; preservar fechaLimite y cantidadLimite al reconstruir Perfil durante edición.
+## Para desplegar
 
-Resultado de esta sesión: tres pruebas de frontend aprobadas y compilación de producción exitosa. La comprobación puntual de edición de Perfil conserva cupo, fecha y habilidades. No hubo prueba E2E contra MongoDB: el backend no estaba escuchando en 8000. El navegador de verificación no pudo acceder al localhost del entorno; queda pendiente inspección visual en el navegador local.
+Configurar el origen real del frontend en ALLOWED_ORIGINS, la URL pública en PUBLIC_APP_URL, MongoDB y ADMIN_API_KEY. En producción las cookies requieren HTTPS (Secure). Usar mismo sitio para frontend/API con SameSite=Lax; una arquitectura entre sitios distintos requiere revisar cookies y CSRF. No habilitar trust proxy indiscriminadamente.
 
-## Segundo avance: edición y persistencia
+El despliegue del equipo, la integración de los adicionales de compañeros y la prueba manual final siguen fuera del resultado verificado localmente.
 
-- Mi espacio → Editar mis datos para colectivos y colaboradoras.
-- Detalle de proyecto → Editar proyecto y Eliminar proyecto.
-- PATCH /api/colectivos/:id y PATCH /api/colaboradoras/:id: actualizaciones parciales con campos permitidos y validación de dominio; conservan contactos y preferencias.
-- PUT /api/colectivos/:colectivoId/proyectos/:proyectoId: título y descripción; valida que el proyecto pertenezca al colectivo indicado en la ruta. Esto no sustituye autenticación de sesión.
-- DELETE en la misma ruta: sólo proyectos sin postulaciones, colaboraciones o logros. Conservación de historial como decisión de implementación.
-- Corrección: estaBuscando ahora se guarda en el schema de MongoDB.
-- Swagger incluye las operaciones nuevas.
-- Test HTTP de controlador y persistencia: test/services/EdicionHttp.test.js usa una base test\_<PID> separada mediante el helper existente; no usar la base de desarrollo como base de pruebas manuales destructivas.
-
-Las rutas nuevas, igual que las existentes, aún requieren autenticación y autorización antes de un despliegue compartido.
-
-## Adicionales sin asignar
-
-Se implementaron Términos y Condiciones, límite de tasa, Markdown, declaración de huella hídrica / IA y feeds RSS. Consultar [ADICIONALES.md](ADICIONALES.md) para configuración, contratos, pruebas y administración. Al crear o editar proyectos ahora se exige aceptar la versión vigente de condiciones.
+Resultado de la revisión: lint sin errores, 11 pruebas de frontend aprobadas y suite completa de backend con 154 pruebas aprobadas. Mongoose actualizado a 8.24.9. Las pruebas usan datos temporales; no se borraron ni sembraron datos de desarrollo.

@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React from "react";
 export default function HuellaIA({ values, onChange }) {
   const uses = values.usosIA || [];
@@ -103,3 +104,17 @@ export default function HuellaIA({ values, onChange }) {
     </fieldset>
   );
 }
+
+HuellaIA.propTypes = {
+  values: PropTypes.shape({
+    requiereIA: PropTypes.bool,
+    usosIA: PropTypes.arrayOf(
+      PropTypes.shape({
+        descripcion: PropTypes.string,
+        justificacion: PropTypes.string,
+        grado: PropTypes.string,
+      }),
+    ),
+  }).isRequired,
+  onChange: PropTypes.func.isRequired,
+};

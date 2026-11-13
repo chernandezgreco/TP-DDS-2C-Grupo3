@@ -57,7 +57,12 @@ export class ProyectoController {
   }
 
   static async listarColaboradoras(req, res) {
-    res.json(await ProyectoService.listarColaboradoras(req.params.proyectoId));
+    res.json(
+      await ProyectoService.listarColaboradoras(
+        req.params.proyectoId,
+        req.actor,
+      ),
+    );
   }
 
   static async buscarProyectosPotenciales(req, res) {

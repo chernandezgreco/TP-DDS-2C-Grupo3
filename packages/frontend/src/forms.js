@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import Markdown from "./Markdown";
 import HuellaIA from "./HuellaIA";
 import React, { useState } from "react";
@@ -50,11 +51,11 @@ export const profileFields = (skills) => [
     options: ["TOTALES", "SEMANALES", "MENSUALES"],
     required: true,
   }),
-  field("cantidadLimite", "Cupo de colaboraciones", "number", {
+  field("cantidadLimite", "Cupo de colaboraciones (opcional)", "number", {
     min: 1,
-    required: true,
+    required: false,
   }),
-  field("fechaLimite", "Fecha límite de búsqueda", "date", { required: true }),
+  field("fechaLimite", "Fecha límite de búsqueda (opcional)", "date"),
   field("gratuita", "Colaboración gratuita", "checkbox"),
   field("incentivoEconomico", "Ofrece incentivo económico", "checkbox"),
   field("contratacionEventual", "Posibilidad de contratación", "checkbox"),
@@ -77,6 +78,7 @@ export function ResourceForm({
   onCancel,
   terms,
   project = false,
+  submitLabel = "Guardar",
 }) {
   const [values, setValues] = useState(() => ({
     ...initial,
@@ -104,7 +106,7 @@ export function ResourceForm({
     setError("");
     let result = { ...values };
     for (const f of fields) {
-      if (typeof result[f.name] === "string")
+      if (typeof result[f.name] === "string" && f.type !== "password")
         result[f.name] = result[f.name].trim();
       if (
         f.required &&
@@ -127,8 +129,11 @@ export function ResourceForm({
         },
         habilidadesOpcionales: values.habilidadesOpcionales || [],
       };
-      if (values.fechaLimite)
-        result.fechaLimite = values.fechaLimite.split("-").reverse().join("");
+      result.fechaLimite = values.fechaLimite || null;
+      result.cantidadLimite =
+        values.cantidadLimite === "" || values.cantidadLimite == null
+          ? null
+          : values.cantidadLimite;
       for (const key of [
         "cantidadHoras",
         "tipo",
@@ -165,91 +170,142 @@ export function ResourceForm({
           {error}
         </p>
       )}
-      {fields.map((f) => (
-        <label className={f.type === "checkbox" ? "check" : ""} key={f.name}>
-          {f.type !== "checkbox" && f.label}
-          {["select", "multi"].includes(f.type) ? (
-            <select
-              required={f.required}
-              multiple={f.type === "multi"}
-              value={values[f.name] || (f.type === "multi" ? [] : "")}
-              onChange={(e) => update(f, e)}
-            >
-              {f.type === "select" && <option value="">Seleccionar…</option>}
-              {f.options.map((o) => (
-                <option
-                  key={Array.isArray(o) ? o[0] : o}
-                  value={Array.isArray(o) ? o[0] : o}
-                >
-                  {Array.isArray(o) ? o[1] : o.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          ) : f.type === "textarea" ? (
-            <>
-              <textarea
+      <fieldset disabled={busy} className="form-fields">
+        {fields.map((f) => (
+          <label className={f.type === "checkbox" ? "check" : ""} key={f.name}>
+            {f.type !== "checkbox" && f.label}
+            {["select", "multi"].includes(f.type) ? (
+              <select
+                aria-label={f.label}
                 required={f.required}
-                value={values[f.name] || ""}
+                multiple={f.type === "multi"}
+                value={values[f.name] || (f.type === "multi" ? [] : "")}
+                onChange={(e) => update(f, e)}
+              >
+                {f.type === "select" && <option value="">Seleccionar…</option>}
+                {f.options.map((o) => (
+                  <option
+                    key={Array.isArray(o) ? o[0] : o}
+                    value={Array.isArray(o) ? o[0] : o}
+                  >
+                    {Array.isArray(o) ? o[1] : o.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+            ) : f.type === "textarea" ? (
+              <>
+                <textarea
+                  aria-label={f.label}
+                  required={f.required}
+                  value={values[f.name] || ""}
+                  onChange={(e) => update(f, e)}
+                />
+                <span className="markdown-help">
+                  Admite Markdown: **negrita**, listas y enlaces.
+                </span>
+              </>
+            ) : (
+              <input
+                aria-label={f.type === "checkbox" ? undefined : f.label}
+                type={
+                  f.name === "valor" && values.tipo === "EMAIL"
+                    ? "email"
+                    : f.type
+                }
+                required={f.required}
+                min={f.min}
+                max={f.max}
+                minLength={f.minLength}
+                maxLength={f.maxLength}
+                autoComplete={
+                  f.type === "password"
+                    ? "off"
+                    : f.type === "email"
+                      ? "email"
+                      : undefined
+                }
+                checked={f.type === "checkbox" ? !!values[f.name] : undefined}
+                value={
+                  f.type === "checkbox" ? undefined : (values[f.name] ?? "")
+                }
                 onChange={(e) => update(f, e)}
               />
-              <span className="markdown-help">
-                Admite Markdown: **negrita**, listas y enlaces.
-              </span>
-            </>
-          ) : (
-            <input
-              type={f.type}
-              required={f.required}
-              min={f.min}
-              max={f.max}
-              checked={f.type === "checkbox" ? !!values[f.name] : undefined}
-              value={f.type === "checkbox" ? undefined : (values[f.name] ?? "")}
-              onChange={(e) => update(f, e)}
-            />
-          )}
-          {f.type === "checkbox" && f.label}
-          {f.type === "multi" && (
-            <small>Podés seleccionar varias con Ctrl o Cmd.</small>
-          )}
-        </label>
-      ))}
-      {fields
-        .filter((f) => f.type === "textarea" && values[f.name])
-        .map((f) => (
-          <details key={"preview-" + f.name}>
-            <summary>Vista previa de {f.label.toLowerCase()}</summary>
-            <Markdown>{values[f.name]}</Markdown>
-          </details>
-        ))}
-      {project && (
-        <>
-          <HuellaIA values={values} onChange={setValues} />
-          <details>
-            <summary>Leer términos y condiciones vigentes</summary>
-            <p>Versión: {terms.version}</p>
-            <Markdown>{terms.contenido}</Markdown>
-          </details>
-          <label className="check">
-            <input
-              type="checkbox"
-              required
-              checked={!!values.aceptaTerminos}
-              onChange={(e) =>
-                setValues((v) => ({ ...v, aceptaTerminos: e.target.checked }))
-              }
-            />
-            Leí y acepto los términos y condiciones vigentes para este proyecto
+            )}
+            {f.type === "checkbox" && f.label}
+            {f.type === "multi" && (
+              <small>Podés seleccionar varias con Ctrl o Cmd.</small>
+            )}
           </label>
-        </>
-      )}
+        ))}
+        {fields
+          .filter((f) => f.type === "textarea" && values[f.name])
+          .map((f) => (
+            <details key={"preview-" + f.name}>
+              <summary>Vista previa de {f.label.toLowerCase()}</summary>
+              <Markdown>{values[f.name]}</Markdown>
+            </details>
+          ))}
+        {project && (
+          <>
+            <HuellaIA values={values} onChange={setValues} />
+            <details>
+              <summary>Leer términos y condiciones vigentes</summary>
+              <p>Versión: {terms.version}</p>
+              <Markdown>{terms.contenido}</Markdown>
+            </details>
+            <label className="check">
+              <input
+                type="checkbox"
+                required
+                checked={!!values.aceptaTerminos}
+                onChange={(e) =>
+                  setValues((v) => ({ ...v, aceptaTerminos: e.target.checked }))
+                }
+              />
+              Leí y acepto los términos y condiciones vigentes para este
+              proyecto
+            </label>
+          </>
+        )}
+      </fieldset>
       <div className="toolbar">
         <button disabled={busy} type="submit">
-          {busy ? "Guardando…" : "Guardar"}
+          {busy ? "Procesando…" : submitLabel}
         </button>
-        <button type="button" className="secondary" onClick={onCancel}>
+        <button
+          type="button"
+          disabled={busy}
+          className="secondary"
+          onClick={onCancel}
+        >
           Cancelar
         </button>
       </div>
     </form>
   );
 }
+
+ResourceForm.propTypes = {
+  fields: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      type: PropTypes.string,
+      required: PropTypes.bool,
+      options: PropTypes.array,
+      min: PropTypes.number,
+      max: PropTypes.number,
+      minLength: PropTypes.number,
+    }),
+  ).isRequired,
+  initial: PropTypes.object,
+  busy: PropTypes.bool,
+  onSubmit: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  terms: PropTypes.shape({
+    version: PropTypes.string,
+    contenido: PropTypes.string,
+  }),
+  project: PropTypes.bool,
+  submitLabel: PropTypes.string,
+};

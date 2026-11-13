@@ -100,6 +100,27 @@ export class ColaboradoraService {
     return colaboradora.mediosContacto;
   }
 
+  static async actualizarContactos(idColaboradora, datos) {
+    const colaboradora = await this.obtenerPorId(idColaboradora);
+    colaboradora.mediosContacto = [];
+    for (const medio of datos.mediosContacto)
+      colaboradora.agregarMedioContacto(
+        new MedioContacto(medio.tipo, medio.valor),
+      );
+    await ColaboradoraModel.findByIdAndUpdate(
+      idColaboradora,
+      {
+        $set: {
+          mediosContacto: colaboradora.mediosContacto.map((m) => ({
+            tipo: m.tipo,
+            valor: m.valor,
+          })),
+        },
+      },
+      { runValidators: true },
+    );
+    return colaboradora.mediosContacto;
+  }
   static async actualizarPreferencias(idColaboradora, data) {
     const colaboradora = await this.obtenerPorId(idColaboradora);
 

@@ -17,7 +17,6 @@ import { ColaboradoraService } from "./ColaboradoraService.js";
 import { ColaboracionService } from "./ColaboracionService.js";
 import { HabilidadService } from "./HabilidadService.js";
 import { esIdValido } from "./ids.js";
-import { Postulacion } from "../domain/Postulacion/Postulacion.js";
 import { PostulacionService } from "./PostulacionService.js";
 import { DomainError } from "../domain/errores.js";
 
@@ -69,8 +68,20 @@ const aDominio = (doc) =>
           justificacion: u.justificacion,
           grado: u.grado,
         })) || [],
-      aceptacionTerminos: doc.aceptacionTerminos,
-      moderacionTerminos: doc.moderacionTerminos,
+      aceptacionTerminos: doc.aceptacionTerminos?.version
+        ? {
+            version: doc.aceptacionTerminos.version,
+            fecha: doc.aceptacionTerminos.fecha,
+          }
+        : undefined,
+      moderacionTerminos: doc.moderacionTerminos
+        ? {
+            suspendido: doc.moderacionTerminos.suspendido,
+            motivo: doc.moderacionTerminos.motivo,
+            version: doc.moderacionTerminos.version,
+            fecha: doc.moderacionTerminos.fecha,
+          }
+        : undefined,
     },
   );
 
@@ -304,10 +315,11 @@ export class ProyectoService {
     // Le pasamos la colaboradora para que perfilesPara / admiteA la evalúen
     const perfil = proyecto.perfilParaAnotar(colaboradora, perfilId);
 
-    const postulacionesDelPerfil = await PostulacionService.listarDePerfil(
-      perfil.id,
-    );
-    perfil.validarPuedeAnotar(postulacionesDelPerfil.length);
+    const ocupadas = await ColaboracionModel.countDocuments({
+      proyectoId: proyecto.id,
+      perfilId: perfil.id,
+    });
+    perfil.validarPuedeAnotar(ocupadas);
 
     return await PostulacionService.crear(
       proyecto.id,
@@ -334,15 +346,20 @@ export class ProyectoService {
     );
   }
 
-  static async listarColaboradoras(proyectoId) {
+  static async listarColaboradoras(proyectoId, actor) {
     const proyecto = await this.obtenerPorId(proyectoId);
 
     const colaboraciones = await ColaboracionService.listarDeProyecto(
       proyecto.id,
     );
-    const idsColaboradoras = colaboraciones.map(
-      (colaboracion) => colaboracion.colaboradoraId,
-    );
+    const idsColaboradoras = colaboraciones
+      .filter(
+        (c) =>
+          !c.anonimidad ||
+          (actor?.type === "colectivos" && actor.id === proyecto.colectivoId) ||
+          actor?.id === c.colaboradoraId,
+      )
+      .map((c) => c.colaboradoraId);
 
     return await ColaboradoraService.listarPorIds(idsColaboradoras);
   }

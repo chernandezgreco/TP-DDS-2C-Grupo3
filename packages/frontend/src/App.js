@@ -1,3 +1,6 @@
+import CatalogoHabilidades from "./CatalogoHabilidades";
+import AuthPanel from "./AuthPanel";
+import PublicProfile from "./PublicProfile";
 import Markdown from "./Markdown";
 import Terminos from "./Terminos";
 import React, { useEffect, useState } from "react";
@@ -30,6 +33,11 @@ const initial = {
   colaboraciones: [],
 };
 export default function App() {
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [publicProfile, setPublicProfile] = useState(null);
+  const [ownPosts, setOwnPosts] = useState([]);
+  const [ownContacts, setOwnContacts] = useState(null);
   const [route, setRoute] = useState(window.location.hash);
   const [data, setData] = useState(initial),
     [page, setPage] = useState(
@@ -50,10 +58,18 @@ export default function App() {
   async function refresh() {
     setLoading(true);
     try {
-      const entries = await Promise.all(
-        Object.keys(initial).map(async (k) => [k, await api.get("/" + k)]),
+      const keys = Object.keys(initial);
+      const results = await Promise.allSettled(
+        keys.map((k) => api.get("/" + k)),
       );
-      setData(Object.fromEntries(entries));
+      const updates = {};
+      const failures = [];
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") updates[keys[index]] = result.value;
+        else failures.push(result.reason.message);
+      });
+      setData((old) => ({ ...old, ...updates }));
+      if (failures.length) setError([...new Set(failures)].join(" "));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -61,18 +77,45 @@ export default function App() {
     }
   }
   useEffect(() => {
-    refresh();
+    async function initialize() {
+      try {
+        const session = await api.get("/auth/sesion");
+        setActor(session.actor || null);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setSessionLoading(false);
+      }
+      await refresh();
+    }
+    initialize();
+    const expired = () => {
+      setActor(null);
+      setData(initial);
+      setSelected(null);
+      setForm(null);
+      setExtras({});
+      setOwnPosts([]);
+      setOwnContacts(null);
+      setNotice("Tu sesión venció. Iniciá sesión nuevamente.");
+      refresh();
+    };
+    window.addEventListener("sesion-expirada", expired);
     const change = () => {
       if (window.location.hash === "#main") return;
       setRoute(window.location.hash);
       setPage(window.location.hash.slice(1).split("/")[0] || "proyectos");
       setSelected(null);
+      setPublicProfile(null);
       setExtras({});
       setQuery("");
       setMatches(null);
     };
     window.addEventListener("hashchange", change);
-    return () => window.removeEventListener("hashchange", change);
+    return () => {
+      window.removeEventListener("hashchange", change);
+      window.removeEventListener("sesion-expirada", expired);
+    };
   }, []);
   useEffect(() => {
     if (!form) return;
@@ -81,13 +124,18 @@ export default function App() {
     const controls = () =>
       Array.from(
         dialog.querySelectorAll(
-          "button:not(:disabled), input, select, textarea, a[href]",
+          "button, input, select, textarea, a[href], summary",
         ),
-      );
+      ).filter((el) => !el.matches(":disabled") && el.tabIndex !== -1);
     controls()[0]?.focus();
     const trap = (event) => {
       if (event.key !== "Tab") return;
       const items = controls();
+      if (!items.length) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
       const first = items[0],
         last = items[items.length - 1];
       if (event.shiftKey && document.activeElement === first) {
@@ -186,6 +234,66 @@ export default function App() {
         data.colectivos.find((c) => idOf(c) === resourceId)?.nombre || "",
       );
   }, [data.proyectos, data.colectivos, page, route]);
+  useEffect(() => {
+    let active = true;
+    if (actor?.type !== "colaboradoras") {
+      setOwnPosts([]);
+      setOwnContacts(null);
+      return;
+    }
+    setAccountLoading(true);
+    Promise.all([
+      api.get("/mi/postulaciones"),
+      page === "espacio"
+        ? api.get(`/colaboradoras/${actor.id}/contactos`)
+        : Promise.resolve(null),
+    ])
+      .then(([posts, contacts]) => {
+        if (active) {
+          setOwnPosts(posts);
+          setOwnContacts(contacts);
+        }
+      })
+      .catch((e) => {
+        if (active) setError(e.message);
+      })
+      .finally(() => {
+        if (active) setAccountLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [actor, page, data.proyectos, data.colaboraciones]);
+  useEffect(() => {
+    if (page !== "mensajes" || actor?.type !== "colaboradoras") return;
+    let active = true;
+    api
+      .get(`/colaboradoras/${actor.id}/notificaciones`)
+      .then((messages) => {
+        if (active) setExtras((old) => ({ ...old, mensajes: messages }));
+      })
+      .catch((e) => {
+        if (active) setError(e.message);
+      });
+    return () => {
+      active = false;
+    };
+  }, [page, actor]);
+  useEffect(() => {
+    if (!selected) return;
+    let active = true;
+    api
+      .get(`/proyectos/${idOf(selected)}/logros`)
+      .then((logros) => {
+        if (active) setExtras((old) => ({ ...old, logros }));
+      })
+      .catch((e) => {
+        if (active) setError(e.message);
+      });
+    return () => {
+      active = false;
+    };
+  }, [selected]);
   const person = data.colaboradoras.find((x) => idOf(x) === actor?.id);
   const list = (
     page === "espacio"
@@ -254,15 +362,47 @@ export default function App() {
       <div className="workspace">
         <header>
           <span>Una comunidad. Muchas posibilidades.</span>
-          <button
-            className="secondary"
-            onClick={() => setForm({ name: "Elegir perfil de trabajo" })}
-          >
-            {actor
-              ? title(data[actor.type].find((x) => idOf(x) === actor.id))
-              : "Elegir perfil"}{" "}
-            ▾
-          </button>
+          <div className="toolbar">
+            {sessionLoading ? (
+              <span role="status">Comprobando sesión…</span>
+            ) : actor ? (
+              <>
+                <button
+                  className="secondary"
+                  onClick={() => {
+                    window.location.hash = "espacio";
+                  }}
+                >
+                  {title(data[actor.type].find((x) => idOf(x) === actor.id))}
+                </button>
+                <button
+                  className="text-button"
+                  disabled={busy}
+                  onClick={() =>
+                    run(async () => {
+                      await api.post("/auth/logout");
+                      setActor(null);
+                      setExtras({});
+                      setOwnPosts([]);
+                      setOwnContacts(null);
+                      window.location.hash = "proyectos";
+                    }, "Sesión cerrada.")
+                  }
+                >
+                  Cerrar sesión
+                </button>
+              </>
+            ) : (
+              <button
+                className="secondary"
+                onClick={() =>
+                  setForm({ name: "Acceder a Código a Voluntad", auth: true })
+                }
+              >
+                Iniciar sesión / Registrarme
+              </button>
+            )}
+          </div>
         </header>
         <main id="main">
           <div className="breadcrumb">
@@ -289,20 +429,47 @@ export default function App() {
               </button>
             </div>
           )}
-          {page === "terminos" ? (
+          {!Object.keys(sections).includes(page) ? (
+            <section className="empty">
+              <h1>Página no encontrada</h1>
+              <a href="#proyectos">Volver a explorar proyectos</a>
+            </section>
+          ) : page === "terminos" ? (
             <Terminos />
           ) : page === "habilidades" ? (
-            <section>
-              <h1>Habilidades de la comunidad</h1>
-              <div className="grid">
-                {data.habilidades.map((h) => (
-                  <article className="card padded" key={h.codigo}>
-                    <h2>{h.titulo}</h2>
-                    <Markdown>{h.descripcion}</Markdown>
-                  </article>
-                ))}
-              </div>
+            <CatalogoHabilidades skills={data.habilidades} onSaved={refresh} />
+          ) : ["espacio", "mensajes"].includes(page) && !actor ? (
+            <section className="empty">
+              <h1>{sections[page]}</h1>
+              <p>
+                Iniciá sesión para ver tus proyectos, postulaciones y mensajes.
+              </p>
+              <button
+                onClick={() =>
+                  setForm({ name: "Acceder a Código a Voluntad", auth: true })
+                }
+              >
+                Iniciar sesión
+              </button>
             </section>
+          ) : publicProfile ? (
+            <PublicProfile
+              profile={publicProfile}
+              type={page}
+              skillName={skill}
+              onClose={() => setPublicProfile(null)}
+              onContacts={(profile) =>
+                actor
+                  ? load(
+                      "contactos",
+                      `/colaboradoras/${idOf(profile)}/contactos`,
+                    )
+                  : setForm({
+                      name: "Iniciar sesión para consultar contactos",
+                      auth: true,
+                    })
+              }
+            />
           ) : selected ? (
             <>
               <button
@@ -432,6 +599,11 @@ export default function App() {
                 Perfiles que hacen falta{" "}
                 <span className="count">{selected.perfiles?.length || 0}</span>
               </h2>
+              {!selected.perfiles?.length && (
+                <p className="empty">
+                  Este proyecto todavía no tiene perfiles publicados.
+                </p>
+              )}
               <div className="grid">
                 {(selected.perfiles || []).map((p) => (
                   <article className="card padded" key={idOf(p)}>
@@ -467,6 +639,24 @@ export default function App() {
                         : ""}
                     </p>
                     <p>
+                      <b>Ocupantes:</b>{" "}
+                      {data.colaboraciones
+                        .filter(
+                          (c) => c.proyectoId === pid && c.perfilId === idOf(p),
+                        )
+                        .map((c) =>
+                          c.colaboradoraId === "Anonimo"
+                            ? "Contribución anónima"
+                            : title(
+                                data.colaboradoras.find(
+                                  (x) => idOf(x) === c.colaboradoraId,
+                                ),
+                              ),
+                        )
+                        .join(", ") ||
+                        "Todavía no hay colaboraciones aceptadas"}
+                    </p>
+                    <p>
                       Cupo: {p.cantidadLimite || "Sin límite"}
                       {p.fechaLimite
                         ? " · Hasta " +
@@ -478,7 +668,22 @@ export default function App() {
                         disabled={
                           busy ||
                           !selected.estaBuscando ||
-                          selected.estado !== "ACTIVO"
+                          selected.estado !== "ACTIVO" ||
+                          (p.fechaLimite &&
+                            new Date(p.fechaLimite) < new Date()) ||
+                          !p.habilidadesRequeridas.some((h) =>
+                            person?.habilidades.includes(h),
+                          ) ||
+                          ownPosts.some(
+                            (post) =>
+                              post.proyectoId === pid &&
+                              post.perfilId === idOf(p),
+                          ) ||
+                          (p.cantidadLimite != null &&
+                            data.colaboraciones.filter(
+                              (c) =>
+                                c.proyectoId === pid && c.perfilId === idOf(p),
+                            ).length >= p.cantidadLimite)
                         }
                         onClick={() =>
                           run(
@@ -492,8 +697,26 @@ export default function App() {
                           )
                         }
                       >
-                        Postularme ↗
+                        {ownPosts.some(
+                          (post) =>
+                            post.proyectoId === pid &&
+                            post.perfilId === idOf(p),
+                        )
+                          ? "Ya te postulaste"
+                          : "Postularme ↗"}
                       </button>
+                    )}
+                    {actor?.type === "colaboradoras" &&
+                      !p.habilidadesRequeridas.some((h) =>
+                        person?.habilidades.includes(h),
+                      ) && (
+                        <p className="hint">
+                          Necesitás registrar al menos una de las habilidades
+                          requeridas para este perfil.
+                        </p>
+                      )}
+                    {p.fechaLimite && new Date(p.fechaLimite) < new Date() && (
+                      <p className="hint">La fecha de postulación ya venció.</p>
                     )}
                     {isOwner && (
                       <div className="toolbar">
@@ -513,12 +736,7 @@ export default function App() {
                           onClick={() =>
                             edit(
                               "Editar perfil",
-                              profileFields(data.habilidades).filter(
-                                (f) =>
-                                  !["fechaLimite", "cantidadLimite"].includes(
-                                    f.name,
-                                  ),
-                              ),
+                              profileFields(data.habilidades),
                               `/proyectos/${pid}/perfiles/${idOf(p)}`,
                               "put",
                               p,
@@ -749,6 +967,9 @@ export default function App() {
               )}
               <section className="panel">
                 <h2>Colaboraciones actuales</h2>
+                {!data.colaboraciones.some((c) => c.proyectoId === pid) && (
+                  <p>Aún no hay colaboraciones aceptadas.</p>
+                )}
                 {data.colaboraciones
                   .filter((c) => c.proyectoId === pid)
                   .map((c) => (
@@ -768,6 +989,19 @@ export default function App() {
                             ?.descripcionPerfil
                         }
                       </p>
+                      {isOwner && c.colaboradoraId !== "Anonimo" && (
+                        <button
+                          className="secondary"
+                          onClick={() =>
+                            load(
+                              "contactos",
+                              `/colaboradoras/${c.colaboradoraId}/contactos`,
+                            )
+                          }
+                        >
+                          Consultar contactos
+                        </button>
+                      )}
                       {(isOwner || actor?.id === c.colaboradoraId) && (
                         <button
                           className="danger"
@@ -822,16 +1056,12 @@ export default function App() {
                 {["colectivos", "colaboradoras"].includes(page) && (
                   <button
                     onClick={() =>
-                      edit(
-                        "Registrar " +
-                          (page === "colectivos"
-                            ? "colectivo"
-                            : "colaboradora"),
-                        page === "colectivos"
-                          ? collectiveFields
-                          : personFields(data.habilidades),
-                        "/" + page,
-                      )
+                      setForm({
+                        name: "Crear cuenta",
+                        auth: true,
+                        initialMode: "registro",
+                        initialType: page,
+                      })
                     }
                   >
                     + Registrarme
@@ -867,8 +1097,9 @@ export default function App() {
                   <h2>Tu bandeja de entrada</h2>
                   {actor?.type !== "colaboradoras" ? (
                     <p>
-                      Elegí un perfil de colaboradora para consultar sus
-                      mensajes.
+                      Las cuentas de colectivos envían mensajes desde la
+                      búsqueda de colaboradoras de cada perfil. La bandeja de
+                      recepción corresponde a las cuentas colaboradoras.
                     </p>
                   ) : (
                     <>
@@ -906,9 +1137,138 @@ export default function App() {
                   {page === "espacio" && (
                     <section className="panel">
                       <h2>Mi perfil y mis proyectos</h2>
+                      {accountLoading && (
+                        <p role="status">Actualizando tus datos…</p>
+                      )}
+                      <p>Correo de acceso: {actor?.email}</p>
+                      {actor?.type === "colaboradoras" && (
+                        <>
+                          <h3>Mis datos de contacto privados</h3>
+                          {ownContacts === null ? (
+                            <p>Cargando contactos…</p>
+                          ) : ownContacts.length ? (
+                            ownContacts.map((c) => (
+                              <div className="list-row" key={c.tipo + c.valor}>
+                                <p>
+                                  {c.tipo}: {c.valor}
+                                </p>
+                                <div className="toolbar">
+                                  <button
+                                    className="secondary"
+                                    disabled={busy}
+                                    onClick={() =>
+                                      setForm({
+                                        name: "Editar contacto",
+                                        path: `/colaboradoras/${actor.id}/medios-contacto`,
+                                        method: "put",
+                                        initial: c,
+                                        fields: [
+                                          {
+                                            name: "tipo",
+                                            label: "Tipo",
+                                            type: "select",
+                                            required: true,
+                                            options: [
+                                              "EMAIL",
+                                              "WHATSAPP",
+                                              "SMS",
+                                            ],
+                                          },
+                                          {
+                                            name: "valor",
+                                            label: "Contacto",
+                                            type: "text",
+                                            required: true,
+                                          },
+                                        ],
+                                        transform: (values) => ({
+                                          mediosContacto: ownContacts.map(
+                                            (m) =>
+                                              m.tipo === c.tipo &&
+                                              m.valor === c.valor
+                                                ? values
+                                                : m,
+                                          ),
+                                        }),
+                                      })
+                                    }
+                                  >
+                                    Editar contacto
+                                  </button>
+                                  <button
+                                    className="danger"
+                                    disabled={busy}
+                                    onClick={() => {
+                                      if (
+                                        window.confirm(
+                                          "¿Quitar este medio de contacto?",
+                                        )
+                                      )
+                                        run(() =>
+                                          api.put(
+                                            `/colaboradoras/${actor.id}/medios-contacto`,
+                                            {
+                                              mediosContacto:
+                                                ownContacts.filter(
+                                                  (m) =>
+                                                    m.tipo !== c.tipo ||
+                                                    m.valor !== c.valor,
+                                                ),
+                                            },
+                                          ),
+                                        );
+                                    }}
+                                  >
+                                    Quitar contacto
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p>Todavía no agregaste contactos.</p>
+                          )}
+                          <h3>Mis postulaciones</h3>
+                          {!ownPosts.length ? (
+                            <p>Todavía no realizaste postulaciones.</p>
+                          ) : (
+                            ownPosts.map((p) => (
+                              <div className="list-row" key={idOf(p)}>
+                                <b>
+                                  {data.proyectos.find(
+                                    (x) => idOf(x) === p.proyectoId,
+                                  )?.titulo || "Proyecto no disponible"}
+                                </b>
+                                <p>
+                                  {p.estado}{" "}
+                                  {p.anonimidad
+                                    ? "· Contribución pública anónima"
+                                    : ""}
+                                </p>
+                                {data.proyectos.some(
+                                  (x) => idOf(x) === p.proyectoId,
+                                ) && (
+                                  <button
+                                    className="text-button"
+                                    onClick={() => {
+                                      setSelected(
+                                        data.proyectos.find(
+                                          (x) => idOf(x) === p.proyectoId,
+                                        ),
+                                      );
+                                      setExtras({});
+                                    }}
+                                  >
+                                    Ver proyecto ↗
+                                  </button>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </>
+                      )}
                       <p>
-                        Seleccioná un perfil para gestionar sus recursos. El
-                        backend aún debe incorporar autenticación y permisos.
+                        Administrá tus datos y seguí tus colaboraciones desde tu
+                        cuenta.
                       </p>
                       {actor && (
                         <button
@@ -1123,6 +1483,17 @@ export default function App() {
                                   x.pronombres ||
                                   "Código a Voluntad"}
                             </small>
+                            {!x.titulo && (
+                              <button
+                                className="text-button"
+                                onClick={() => {
+                                  setPublicProfile(x);
+                                  setExtras({});
+                                }}
+                              >
+                                Ver perfil ↗
+                              </button>
+                            )}
                             {x.titulo && (
                               <button
                                 className="text-button"
@@ -1142,6 +1513,20 @@ export default function App() {
                 </>
               )}
             </>
+          )}
+          {extras.contactos && (
+            <section className="panel">
+              <h2>Contactos autorizados</h2>
+              {extras.contactos.length ? (
+                extras.contactos.map((c) => (
+                  <p key={c.tipo + c.valor}>
+                    {c.tipo}: {c.valor}
+                  </p>
+                ))
+              ) : (
+                <p>Esta persona no registró medios de contacto.</p>
+              )}
+            </section>
           )}
           <footer className="page-footer">
             Código a Voluntad<span>Software libre, impacto compartido.</span>
@@ -1172,6 +1557,7 @@ export default function App() {
           <section
             className="modal"
             role="dialog"
+            tabIndex={-1}
             aria-modal="true"
             aria-label={form.name}
             onKeyDown={(e) => {
@@ -1187,7 +1573,21 @@ export default function App() {
               ×
             </button>
             <h2>{form.name}</h2>
-            {form.path ? (
+            {form.auth ? (
+              <AuthPanel
+                skills={data.habilidades}
+                initialMode={form.initialMode}
+                initialType={form.initialType}
+                onCancel={() => setForm(null)}
+                onSuccess={async (result) => {
+                  setActor(result.actor);
+                  setForm(null);
+                  setExtras({});
+                  await refresh();
+                  setNotice("Sesión iniciada.");
+                }}
+              />
+            ) : form.path ? (
               <>
                 <p role="alert" className={error ? "error" : ""}>
                   {error}
@@ -1198,54 +1598,17 @@ export default function App() {
                   onCancel={() => setForm(null)}
                   onSubmit={async (values) => {
                     const ok = await run(async () => {
-                      await api[form.method](form.path, values);
+                      await api[form.method](
+                        form.path,
+                        form.transform ? form.transform(values) : values,
+                      );
                       if (pid) await updateSelected();
                     });
                     if (ok) setForm(null);
                   }}
                 />
               </>
-            ) : (
-              <>
-                <p>
-                  Entorno de desarrollo: esta selección permite probar los
-                  flujos y no inicia una sesión autenticada.
-                </p>
-                {["colaboradoras", "colectivos"].map((type) => (
-                  <label key={type}>
-                    {type === "colectivos" ? "Colectivo" : "Colaboradora"}
-                    <select
-                      autoFocus={type === "colaboradoras"}
-                      value={actor?.type === type ? actor.id : ""}
-                      onChange={(e) => {
-                        setActor(
-                          e.target.value ? { type, id: e.target.value } : null,
-                        );
-                        setMatches(null);
-                        setExtras({});
-                        setForm(null);
-                      }}
-                    >
-                      <option value="">Seleccionar…</option>
-                      {data[type].map((x) => (
-                        <option key={idOf(x)} value={idOf(x)}>
-                          {title(x)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ))}
-                <button
-                  className="secondary"
-                  onClick={() => {
-                    setActor(null);
-                    setForm(null);
-                  }}
-                >
-                  Continuar como visitante
-                </button>
-              </>
-            )}
+            ) : null}
           </section>
         </div>
       )}

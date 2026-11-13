@@ -56,3 +56,7 @@ export const actualizarColaboradoraSchema = crearColaboradoraSchema
   .refine((datos) => Object.keys(datos).length > 0, {
     message: "Debe informar un cambio",
   });
+
+export const contactosSchema = z
+  .object({ mediosContacto: z.array(medioContactoSchema).max(20) })
+  .strict();

@@ -1,4 +1,4 @@
-import { cuerpo, parametro, error, respuesta } from "./comun.js";
+import { cuerpo, error, respuesta } from "./comun.js";
 import { z } from "zod";
 const condicion = z.object({
   titulo: z.string().min(1),

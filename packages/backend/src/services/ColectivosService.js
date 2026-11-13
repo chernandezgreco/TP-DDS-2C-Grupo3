@@ -79,9 +79,4 @@ export class ColectivoService {
       );
     return aDominio(doc);
   }
-
-  static async listarPorProyecto(proyectoId) {
-    const documentos = await PostulacionModel.find({ proyectoId });
-    return documentos.map((doc) => aDominioPostulacion(doc));
-  }
 }

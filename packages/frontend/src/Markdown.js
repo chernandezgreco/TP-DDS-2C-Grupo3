@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React from "react";
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
@@ -16,3 +17,5 @@ export default function Markdown({ children = "", className = "" }) {
     />
   );
 }
+
+Markdown.propTypes = { children: PropTypes.node, className: PropTypes.string };

@@ -14,7 +14,7 @@ Con MongoDB, backend y frontend encendidos, recargar la aplicación:
 
 ## Administración de condiciones
 
-Esta función usa una credencial de servidor independiente del selector de perfiles del frontend. No sustituye el login general que sigue pendiente.
+Esta función usa una credencial de servidor independiente del selector de perfiles del frontend. El login general usa una sesión de cuenta; esta credencial está reservada a la administración.
 
 1. Generar una clave con `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 2. Agregarla como `ADMIN_API_KEY=...` en `packages/backend/.env` (archivo ignorado por Git). No ponerla en variables `REACT_APP_`.
@@ -52,7 +52,7 @@ Los tests HTTP ejercitan aceptación/versionado, credencial administrativa, susp
 
 ## Alcance y coordinación
 
-El login general y la autorización de propietario siguen pendientes. Este avance protege la administración de condiciones con una credencial propia, pero no afirma proteger las rutas existentes mediante sesiones. Los módulos de eliminación, denuncias, experiencia, redes, Gantt, tags, portabilidad, modo daltónico, sanitización general y cierre automático quedan a cargo de los responsables indicados por el grupo.
+El login general y la autorización de propietario ya están integrados. La administración de condiciones conserva su credencial propia, separada de las sesiones de cuentas. Los módulos de eliminación, denuncias, experiencia, redes, Gantt, tags, portabilidad, modo daltónico, sanitización general y cierre automático quedan a cargo de los responsables indicados por el grupo.
 
 La seguridad de Markdown se limita al renderizador: HTML deshabilitado y salida filtrada, sin imágenes remotas. No sustituye la sanitización general de entradas del backend que hará otro integrante.
 

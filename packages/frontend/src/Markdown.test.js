@@ -1,3 +1,4 @@
+import React from "react";
 import { render, screen } from "@testing-library/react";
 import Markdown from "./Markdown";
 test("renderiza títulos, énfasis, listas, código y enlaces Markdown", () => {
@@ -20,7 +21,7 @@ test("no ejecuta HTML ni permite enlaces activos o imágenes de rastreo", () => 
   const { container } = render(
     <Markdown>
       {
-        "<script>alert(1)</script>\n\n<img src=x onerror=alert(1)>\n\n[ataque](javascript:alert(1))\n\n![rastreo](https://example.com/pixel)"
+        '<script>alert(1)</script>\n\n<img src="https://example.com/x" alt="prueba" onerror="alert(1)">\n\n[ataque](javascript:alert(1))\n\n![rastreo](https://example.com/pixel)'
       }
     </Markdown>,
   );

@@ -758,3 +758,77 @@ summary {
   font-weight: 600;
   margin: 16px 0;
 }
+.form-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.hint {
+  font-size: 13px;
+  color: #62756b;
+  line-height: 1.6;
+}
+.toolbar button {
+  white-space: normal;
+}
+.modal-backdrop {
+  overflow-y: auto;
+}
+.modal:focus {
+  outline: none;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #427dce;
+  outline-offset: 3px;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+fieldset:disabled {
+  opacity: 0.7;
+}
+aside {
+  overflow-y: auto;
+}
+.aside-note {
+  margin-top: 30px;
+}
+header .toolbar {
+  justify-content: flex-end;
+}
+.badge {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 760px) {
+  header {
+    min-height: 76px;
+    height: auto;
+    padding: 12px 18px;
+    gap: 10px;
+  }
+  header .toolbar {
+    gap: 6px;
+  }
+  header .toolbar button {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  aside {
+    overflow: visible;
+  }
+  nav a {
+    min-height: 44px;
+  }
+  nav {
+    padding-bottom: 5px;
+  }
+  .page-footer {
+    gap: 14px;
+  }
+}

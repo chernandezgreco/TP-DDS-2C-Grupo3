@@ -10,6 +10,7 @@
     "axios": "^1.21.1",
     "dompurify": "^3.4.17",
     "markdown-it": "^15.0.3",
+    "prop-types": "^15.8.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-scripts": "5.0.1",

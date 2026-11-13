@@ -1,3 +1,4 @@
+import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "./App";
 import { api } from "./api";
@@ -29,12 +30,16 @@ const project = {
     },
   ],
 };
+let sessionActor=null;
 beforeEach(() => {
+  sessionActor=null;
   window.location.hash = "";
   jest.clearAllMocks();
   api.get.mockImplementation(
     async (path) =>
       ({
+        "/auth/sesion":{actor:sessionActor},
+        "/mi/postulaciones":[],
         "/terminos/actual": { version: "1.0", contenido: "Código abierto" },
         "/proyectos": [project],
         "/proyectos/p1": project,
@@ -48,13 +53,10 @@ beforeEach(() => {
   );
   api.post.mockResolvedValue({});
 });
-test("permite explorar, elegir colaboradora y enviar una postulación al perfil", async () => {
+test("permite explorar y postularse desde una sesión de colaboradora", async () => {
+  sessionActor={type:"colaboradoras",id:"c1",email:"cami@example.com"};
   render(<App />);
   await screen.findByText("Biblioteca comunitaria");
-  fireEvent.click(screen.getByRole("button", { name: /Elegir perfil/ }));
-  fireEvent.change(screen.getByLabelText("Colaboradora"), {
-    target: { value: "c1" },
-  });
   fireEvent.click(screen.getByRole("button", { name: /Ver proyecto/ }));
   expect(screen.getByText("Frontend React")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: /Postularme/ }));
@@ -92,12 +94,9 @@ test("filtra proyectos sin modificar el catálogo recibido", async () => {
 
 test("edita un proyecto enviando sólo sus campos editables", async () => {
   api.put.mockResolvedValue({});
+  sessionActor={type:"colectivos",id:"o1",email:"org@example.com"};
   render(<App />);
   await screen.findByText("Biblioteca comunitaria");
-  fireEvent.click(screen.getByRole("button", { name: /Elegir perfil/ }));
-  fireEvent.change(screen.getByLabelText("Colectivo"), {
-    target: { value: "o1" },
-  });
   fireEvent.click(screen.getByRole("button", { name: /Ver proyecto/ }));
   fireEvent.click(screen.getByRole("button", { name: "Editar proyecto" }));
   fireEvent.change(await screen.findByLabelText("Título"), {
@@ -120,4 +119,11 @@ test("edita un proyecto enviando sólo sus campos editables", async () => {
   await waitFor(() =>
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
   );
+});
+
+test('un visitante debe iniciar sesión y no puede elegir la identidad de otra persona',async()=>{
+ render(<App/>);await screen.findByText('Biblioteca comunitaria');
+ expect(screen.queryByText('Elegir perfil')).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'Iniciar sesión / Registrarme'}));
+ expect(screen.getByRole('dialog')).toBeInTheDocument();expect(screen.getByLabelText('Correo de acceso')).toBeInTheDocument();
 });

@@ -1,3 +1,4 @@
+import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ResourceForm, projectFields } from "./forms";
 const terms = { version: "v1", contenido: "## Condiciones\nCódigo abierto." };

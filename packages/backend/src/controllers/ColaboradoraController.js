@@ -1,6 +1,12 @@
 import { ColaboradoraService } from "../services/ColaboradoraService.js";
 
 export class ColaboradoraController {
+  static async actualizarContactos(req, res) {
+    res.json(
+      await ColaboradoraService.actualizarContactos(req.params.id, req.body),
+    );
+  }
+
   static async actualizar(req, res) {
     res.json(await ColaboradoraService.actualizar(req.params.id, req.body));
   }

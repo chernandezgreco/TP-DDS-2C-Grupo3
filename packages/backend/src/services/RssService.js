@@ -13,7 +13,12 @@ export const escaparXml = (value) =>
           "'": "&apos;",
         })[c],
     )
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+    .split("")
+    .filter((c) => {
+      const code = c.charCodeAt(0);
+      return code >= 32 || [9, 10, 13].includes(code);
+    })
+    .join("");
 function baseApp() {
   const url = new URL(process.env.PUBLIC_APP_URL || "http://localhost:3000");
   if (!["http:", "https:"].includes(url.protocol))

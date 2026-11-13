@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
 import Markdown from "./Markdown";
@@ -247,3 +248,5 @@ function AdministracionTerminos({ onPublish }) {
     </div>
   );
 }
+
+AdministracionTerminos.propTypes = { onPublish: PropTypes.func.isRequired };

@@ -1,3 +1,4 @@
+import { pathsAuth } from "./auth.js";
 import {
   pathsAdicionales,
   propiedadesAdicionalesProyecto,
@@ -75,3 +76,34 @@ for (const item of Object.values(especificacion.paths))
         },
       };
   }
+
+especificacion.components.securitySchemes.SessionCookie = {
+  type: "apiKey",
+  in: "cookie",
+  name: "cav_session",
+};
+for (const [path, item] of Object.entries(pathsAuth))
+  especificacion.paths[path] = { ...especificacion.paths[path], ...item };
+for (const [path, item] of Object.entries(especificacion.paths)) {
+  if (path.startsWith("/api/admin/") || path.startsWith("/api/auth/")) continue;
+  for (const method of ["post", "put", "patch", "delete"])
+    if (item[method]) {
+      item[method].security =
+        path === "/api/habilidades"
+          ? [{ AdminApiKey: [] }]
+          : [{ SessionCookie: [] }];
+      item[method].responses[401] = {
+        description: "Se requiere sesión válida",
+      };
+      item[method].responses[403] = {
+        description: "La cuenta no tiene permiso para esta operación",
+      };
+    }
+}
+for (const path of ["/api/colectivos", "/api/colaboradoras"]) {
+  if (especificacion.paths[path]?.post) {
+    especificacion.paths[path].post.deprecated = true;
+    especificacion.paths[path].post.description =
+      "El alta con credenciales se realiza mediante POST /api/auth/registro.";
+  }
+}
