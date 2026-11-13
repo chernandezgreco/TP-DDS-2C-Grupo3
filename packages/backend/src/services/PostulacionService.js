@@ -1,3 +1,4 @@
+import { TerminosService } from "./TerminosService.js";
 import { PostulacionModel } from "../models/indexModel.js";
 import { Postulacion } from "../domain/Postulacion/Postulacion.js";
 import { ConflictError, NotFoundError } from "../domain/errores.js";
@@ -29,13 +30,13 @@ export class PostulacionService {
         return docs.map(aDominio);
     }
 
-   
+
     static async listarDePerfil(perfilId) {
         const docs = await PostulacionModel.find({ perfilId });
 
         return docs.map(aDominio);
     }
-   
+
 
     static async crear(proyectoId, perfilId, colaboradoraId, anonimidad = false) {
         const existente = await PostulacionModel.findOne({ proyectoId, perfilId, colaboradoraId });
@@ -70,6 +71,7 @@ export class PostulacionService {
         let colaboracionCreada = null;
 
         if (nuevoEstado === "ACEPTADA") {
+            await TerminosService.validarProyectoDisponible(postulacion.proyectoId);
             postulacion.aceptar();
             colaboracionCreada = await ColaboracionService.crear(
                 postulacion.proyectoId,
@@ -91,19 +93,19 @@ export class PostulacionService {
         };
     }
     static async listarPorProyecto(proyectoId) {
-       
+
         const documentos = await PostulacionModel.find({ proyectoId });
-        
-        
-        return documentos.map(doc => aDominio(doc)); 
+
+
+        return documentos.map(doc => aDominio(doc));
     }
 
     static async listarPorProyectoYEstado(proyectoId, estados) {
         const filtroEstado = Array.isArray(estados) ? { $in: estados } : estados;
 
-        const documentos = await PostulacionModel.find({ 
-            proyectoId, 
-            estado: filtroEstado 
+        const documentos = await PostulacionModel.find({
+            proyectoId,
+            estado: filtroEstado
         });
 
         return documentos.map(doc => aDominio(doc));

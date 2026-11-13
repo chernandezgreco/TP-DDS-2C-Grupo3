@@ -15,7 +15,20 @@ const habilidadSchema = new mongoose.Schema({
 export const HabilidadModel = mongoose.model("Habilidad", habilidadSchema);
 
 // --- 2. COLECTIVO ---
+const moderacionTerminos = new mongoose.Schema(
+  {
+    suspendido: { type: Boolean, default: false },
+    motivo: String,
+    version: String,
+    fecha: Date,
+  },
+  { _id: false },
+);
 const colectivoSchema = new mongoose.Schema({
+  moderacionTerminos: {
+    type: moderacionTerminos,
+    default: () => ({ suspendido: false }),
+  },
   nombre: { type: String, required: true },
   descripcion: { type: String, required: true },
   tipo: { type: String, enum: Object.values(TipoColectivo), required: true },
@@ -68,6 +81,29 @@ const logroSchema = new mongoose.Schema(
 );
 
 const proyectoSchema = new mongoose.Schema({
+  requiereIA: { type: Boolean, default: null },
+  usosIA: {
+    type: [
+      new mongoose.Schema(
+        {
+          descripcion: { type: String, required: true },
+          justificacion: { type: String, required: true },
+          grado: {
+            type: String,
+            enum: ["BAJO", "MEDIO", "ALTO"],
+            required: true,
+          },
+        },
+        { _id: false },
+      ),
+    ],
+    default: [],
+  },
+  aceptacionTerminos: { version: String, fecha: Date },
+  moderacionTerminos: {
+    type: moderacionTerminos,
+    default: () => ({ suspendido: false }),
+  },
   estaBuscando: { type: Boolean, default: true },
   titulo: { type: String, required: true },
   descripcion: { type: String, required: true },

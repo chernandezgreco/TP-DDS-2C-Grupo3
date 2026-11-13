@@ -684,3 +684,77 @@ progress {
     padding: 18px;
   }
 }
+.markdown {
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+.markdown p {
+  margin: 0 0 0.7em;
+}
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+.markdown pre {
+  background: #f0f3ef;
+  padding: 12px;
+  border-radius: 6px;
+  overflow: auto;
+}
+.markdown code {
+  font-family: monospace;
+}
+.markdown blockquote {
+  border-left: 3px solid #86a28b;
+  padding-left: 16px;
+  margin-left: 0;
+  color: #607366;
+}
+.markdown a {
+  text-decoration: underline;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  font-size: 1.2em;
+  margin: 12px 0;
+}
+.markdown-help {
+  display: block;
+  font-size: 11px;
+  color: #647b6a;
+  margin-top: 5px;
+}
+fieldset {
+  border: 1px solid #d4dfd7;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+fieldset legend {
+  padding: 0 8px;
+  font-weight: 600;
+}
+.ia-fields p {
+  font-size: 12px;
+  color: #657867;
+}
+details {
+  margin: 18px 0;
+}
+summary {
+  cursor: pointer;
+  padding: 10px 0;
+  color: #266548;
+  font-weight: 600;
+}
+.page-footer {
+  flex-wrap: wrap;
+}
+.admin-terms {
+  margin-top: 20px;
+}
+.profile-description {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 16px 0;
+}

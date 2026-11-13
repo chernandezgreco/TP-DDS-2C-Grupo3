@@ -1,4 +1,6 @@
 import "dotenv/config";
+import adicionalesRoutes from "./src/routes/Adicionales.js";
+import { crearLimitePublico } from "./src/middlewares/limitePublico.js";
 import express from "express";
 import cors from "cors";
 
@@ -15,8 +17,6 @@ import swaggerUi from "swagger-ui-express";
 import { especificacion } from "./src/docs/swagger.js";
 import { manejarErrores } from "./src/middlewares/manejarErrores.js";
 
-
-
 const app = express();
 app.use(express.json());
 app.use(
@@ -24,7 +24,7 @@ app.use(
     origin: process.env.ALLOWED_ORIGINS
       ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
       : true,
-  })
+  }),
 );
 
 // Endpoint de Health Check (Requerimiento de la 1ra entrega)
@@ -32,6 +32,8 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK", timestamp: new Date() });
 });
 
+app.use("/api", crearLimitePublico());
+app.use("/api", adicionalesRoutes);
 app.use("/api/proyectos/:proyectoId/logros", logrosRoutes);
 app.use("/api/proyectos/:proyectoId/perfiles", perfilesRoutes);
 app.use("/api/proyectos", proyectosRoutes);

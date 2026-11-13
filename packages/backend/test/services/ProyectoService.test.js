@@ -32,7 +32,7 @@ describe("ProyectoService", () => {
     });
 
     const crearProyecto = (perfiles = [datosPerfil(), datosPerfil({ descripcionPerfil: "Backend", habilidadesRequeridas: ["nodejs"], habilidadesOpcionales: [] })]) =>
-        ProyectoService.crearProyecto({ titulo: "Plazas", descripcion: "App de plazas", perfiles }, colectivoId);
+        ProyectoService.crearProyecto({ titulo: "Plazas", descripcion: "App de plazas", perfiles, versionTerminosAceptada:"1.0" }, colectivoId);
 
     describe("crear", () => {
         test("crea el proyecto con sus perfiles y lo guarda", async () => {
@@ -47,7 +47,7 @@ describe("ProyectoService", () => {
         });
 
         test("falla si el colectivo no existe", async () => {
-            await expect(ProyectoService.crearProyecto({ titulo: "t", descripcion: "d" }, idInexistente())).rejects.toThrow(NotFoundError);
+            await expect(ProyectoService.crearProyecto({ titulo: "t", descripcion: "d", versionTerminosAceptada:"1.0" }, idInexistente())).rejects.toThrow(NotFoundError);
         });
 
         test("falla si un perfil usa una habilidad que no existe", async () => {

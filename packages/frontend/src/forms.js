@@ -1,3 +1,5 @@
+import Markdown from "./Markdown";
+import HuellaIA from "./HuellaIA";
 import React, { useState } from "react";
 const field = (name, label, type = "text", extra = {}) => ({
   name,
@@ -73,6 +75,8 @@ export function ResourceForm({
   busy,
   onSubmit,
   onCancel,
+  terms,
+  project = false,
 }) {
   const [values, setValues] = useState(() => ({
     ...initial,
@@ -134,6 +138,24 @@ export function ResourceForm({
       ])
         delete result[key];
     }
+    if (project) {
+      if (!values.aceptaTerminos) {
+        setError("Debés aceptar los términos vigentes.");
+        return;
+      }
+      if (values.requiereIA == null) {
+        setError("Indicá si el proyecto requiere IA generativa.");
+        return;
+      }
+      if (values.requiereIA && !(values.usosIA || []).length) {
+        setError("Agregá al menos un uso de IA con su justificación.");
+        return;
+      }
+      result.versionTerminosAceptada = terms.version;
+      result.requiereIA = values.requiereIA;
+      result.usosIA = values.requiereIA ? values.usosIA || [] : [];
+      delete result.aceptaTerminos;
+    }
     await onSubmit(result);
   }
   return (
@@ -164,11 +186,16 @@ export function ResourceForm({
               ))}
             </select>
           ) : f.type === "textarea" ? (
-            <textarea
-              required={f.required}
-              value={values[f.name] || ""}
-              onChange={(e) => update(f, e)}
-            />
+            <>
+              <textarea
+                required={f.required}
+                value={values[f.name] || ""}
+                onChange={(e) => update(f, e)}
+              />
+              <span className="markdown-help">
+                Admite Markdown: **negrita**, listas y enlaces.
+              </span>
+            </>
           ) : (
             <input
               type={f.type}
@@ -186,6 +213,35 @@ export function ResourceForm({
           )}
         </label>
       ))}
+      {fields
+        .filter((f) => f.type === "textarea" && values[f.name])
+        .map((f) => (
+          <details key={"preview-" + f.name}>
+            <summary>Vista previa de {f.label.toLowerCase()}</summary>
+            <Markdown>{values[f.name]}</Markdown>
+          </details>
+        ))}
+      {project && (
+        <>
+          <HuellaIA values={values} onChange={setValues} />
+          <details>
+            <summary>Leer términos y condiciones vigentes</summary>
+            <p>Versión: {terms.version}</p>
+            <Markdown>{terms.contenido}</Markdown>
+          </details>
+          <label className="check">
+            <input
+              type="checkbox"
+              required
+              checked={!!values.aceptaTerminos}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, aceptaTerminos: e.target.checked }))
+              }
+            />
+            Leí y acepto los términos y condiciones vigentes para este proyecto
+          </label>
+        </>
+      )}
       <div className="toolbar">
         <button disabled={busy} type="submit">
           {busy ? "Guardando…" : "Guardar"}

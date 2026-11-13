@@ -60,7 +60,9 @@ export class ColectivoService {
   }
 
   static async listar() {
-    const colectivosDocs = await ColectivoModel.find();
+    const colectivosDocs = await ColectivoModel.find({
+      "moderacionTerminos.suspendido": { $ne: true },
+    });
 
     return colectivosDocs.map(aDominio);
   }
@@ -71,6 +73,10 @@ export class ColectivoService {
       throw new NotFoundError("Colectivo no encontrado", { colectivoId: id });
     }
 
+    if (doc.moderacionTerminos?.suspendido)
+      throw new NotFoundError(
+        "Colectivo suspendido por incumplimiento de términos.",
+      );
     return aDominio(doc);
   }
 

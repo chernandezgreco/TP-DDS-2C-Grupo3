@@ -35,6 +35,7 @@ beforeEach(() => {
   api.get.mockImplementation(
     async (path) =>
       ({
+        "/terminos/actual": { version: "1.0", contenido: "Código abierto" },
         "/proyectos": [project],
         "/proyectos/p1": project,
         "/colectivos": [{ id: "o1", nombre: "Biblioteca Sur" }],
@@ -99,14 +100,21 @@ test("edita un proyecto enviando sólo sus campos editables", async () => {
   });
   fireEvent.click(screen.getByRole("button", { name: /Ver proyecto/ }));
   fireEvent.click(screen.getByRole("button", { name: "Editar proyecto" }));
-  fireEvent.change(screen.getByLabelText("Título"), {
+  fireEvent.change(await screen.findByLabelText("Título"), {
     target: { value: "Biblioteca renovada" },
   });
+  fireEvent.change(screen.getByLabelText(/¿El proyecto requiere/), {
+    target: { value: "false" },
+  });
+  fireEvent.click(screen.getByLabelText(/Leí y acepto/));
   fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
   await waitFor(() =>
     expect(api.put).toHaveBeenCalledWith("/colectivos/o1/proyectos/p1", {
       titulo: "Biblioteca renovada",
       descripcion: "Una biblioteca abierta",
+      requiereIA: false,
+      usosIA: [],
+      versionTerminosAceptada: "1.0",
     }),
   );
   await waitFor(() =>

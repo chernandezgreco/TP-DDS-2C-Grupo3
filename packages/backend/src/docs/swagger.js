@@ -1,3 +1,7 @@
+import {
+  pathsAdicionales,
+  propiedadesAdicionalesProyecto,
+} from "./adicionales.js";
 import { pathsEdicion } from "./edicion.js";
 import { pathsCatalogo, schemasCatalogo } from "./catalogo.js";
 import { pathsProyectos, schemasProyectos } from "./proyectos.js";
@@ -39,3 +43,35 @@ export const especificacion = {
 for (const [path, operations] of Object.entries(pathsEdicion)) {
   especificacion.paths[path] = { ...especificacion.paths[path], ...operations };
 }
+
+Object.assign(especificacion.paths, pathsAdicionales);
+especificacion.components.securitySchemes = {
+  AdminApiKey: {
+    type: "http",
+    scheme: "bearer",
+    description:
+      "Credencial administrativa de servidor; nunca incluir en el bundle ni en URLs.",
+  },
+};
+Object.assign(
+  especificacion.components.schemas.Proyecto.properties,
+  propiedadesAdicionalesProyecto,
+);
+for (const item of Object.values(especificacion.paths))
+  for (const method of ["get", "post", "put", "patch", "delete"]) {
+    if (item[method]?.responses)
+      item[method].responses[429] = {
+        description: "Se excedió la cuota de solicitudes por IP",
+        headers: {
+          "Retry-After": {
+            schema: { type: "integer" },
+            description: "Segundos hasta el reinicio de cuota",
+          },
+        },
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/Error" },
+          },
+        },
+      };
+  }

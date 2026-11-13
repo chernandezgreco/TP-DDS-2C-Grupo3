@@ -1,3 +1,5 @@
+import Markdown from "./Markdown";
+import Terminos from "./Terminos";
 import React, { useEffect, useState } from "react";
 import { api, idOf } from "./api";
 import {
@@ -15,6 +17,8 @@ const sections = {
   colaboradoras: "Colaboradoras",
   espacio: "Mi espacio",
   mensajes: "Mensajes",
+  terminos: "Términos y condiciones",
+  habilidades: "Habilidades",
 };
 const title = (x) =>
   x?.titulo || x?.nombre || x?.nombreFantasia || "Sin nombre";
@@ -26,8 +30,11 @@ const initial = {
   colaboraciones: [],
 };
 export default function App() {
+  const [route, setRoute] = useState(window.location.hash);
   const [data, setData] = useState(initial),
-    [page, setPage] = useState(window.location.hash.slice(1) || "proyectos"),
+    [page, setPage] = useState(
+      window.location.hash.slice(1).split("/")[0] || "proyectos",
+    ),
     [selected, setSelected] = useState(null),
     [actor, setActor] = useState(null);
   const [query, setQuery] = useState(""),
@@ -57,7 +64,8 @@ export default function App() {
     refresh();
     const change = () => {
       if (window.location.hash === "#main") return;
-      setPage(window.location.hash.slice(1) || "proyectos");
+      setRoute(window.location.hash);
+      setPage(window.location.hash.slice(1).split("/")[0] || "proyectos");
       setSelected(null);
       setExtras({});
       setQuery("");
@@ -124,7 +132,7 @@ export default function App() {
       setBusy(false);
     }
   }
-  function edit(name, fields, path, method = "post", values = {}) {
+  async function edit(name, fields, path, method = "post", values = {}) {
     const initialValues =
       method === "patch" || fields === projectFields
         ? Object.fromEntries(
@@ -133,7 +141,30 @@ export default function App() {
               .map((f) => [f.name, values[f.name]]),
           )
         : values;
-    setForm({ name, fields, path, method, initial: initialValues });
+    if (fields === projectFields) {
+      setBusy(true);
+      setError("");
+      try {
+        const terms = await api.get("/terminos/actual");
+        setForm({
+          name,
+          fields,
+          path,
+          method,
+          project: true,
+          terms,
+          initial: {
+            ...initialValues,
+            requiereIA: values.requiereIA ?? null,
+            usosIA: values.usosIA || [],
+          },
+        });
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setBusy(false);
+      }
+    } else setForm({ name, fields, path, method, initial: initialValues });
   }
   const pid = idOf(selected),
     isOwner =
@@ -145,6 +176,16 @@ export default function App() {
     setSelected(await api.get("/proyectos/" + pid));
     setExtras({});
   }
+  useEffect(() => {
+    const resourceId = window.location.hash.slice(1).split("/")[1];
+    if (!resourceId) return;
+    if (page === "proyectos")
+      setSelected(data.proyectos.find((p) => idOf(p) === resourceId) || null);
+    if (page === "colectivos")
+      setQuery(
+        data.colectivos.find((c) => idOf(c) === resourceId)?.nombre || "",
+      );
+  }, [data.proyectos, data.colectivos, page, route]);
   const person = data.colaboradoras.find((x) => idOf(x) === actor?.id);
   const list = (
     page === "espacio"
@@ -192,7 +233,9 @@ export default function App() {
               key={k}
               aria-current={page === k ? "page" : undefined}
             >
-              <span aria-hidden="true">{["▦", "◎", "♧", "⌂", "✉"][i]}</span>
+              <span aria-hidden="true">
+                {["▦", "◎", "♧", "⌂", "✉", "§", "✳"][i]}
+              </span>
               {v}
             </a>
           ))}
@@ -246,7 +289,21 @@ export default function App() {
               </button>
             </div>
           )}
-          {selected ? (
+          {page === "terminos" ? (
+            <Terminos />
+          ) : page === "habilidades" ? (
+            <section>
+              <h1>Habilidades de la comunidad</h1>
+              <div className="grid">
+                {data.habilidades.map((h) => (
+                  <article className="card padded" key={h.codigo}>
+                    <h2>{h.titulo}</h2>
+                    <Markdown>{h.descripcion}</Markdown>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : selected ? (
             <>
               <button
                 className="text-button"
@@ -266,7 +323,31 @@ export default function App() {
                 }{" "}
                 · <span className="badge">{selected.estado}</span>
               </p>
-              <p className="description">{selected.descripcion}</p>
+              <Markdown className="description">
+                {selected.descripcion}
+              </Markdown>
+              <section className="panel">
+                <h2>Huella hídrica / IA</h2>
+                <p>
+                  {selected.requiereIA === false
+                    ? "Este proyecto declara no requerir IA generativa."
+                    : selected.requiereIA === true
+                      ? "Este proyecto declara requerir IA generativa."
+                      : "Este proyecto todavía no declaró su uso de IA."}
+                </p>
+                <small>
+                  Declaración del colectivo, sin medición ni monitoreo del
+                  consumo de agua o energía.
+                </small>
+                {(selected.usosIA || []).map((u, i) => (
+                  <div className="list-row" key={i}>
+                    <b>
+                      {u.descripcion} · Uso {u.grado.toLowerCase()}
+                    </b>
+                    <p>{u.justificacion}</p>
+                  </div>
+                ))}
+              </section>
               {isOwner && (
                 <div className="toolbar">
                   <button
@@ -359,7 +440,9 @@ export default function App() {
                         ? "Búsqueda abierta"
                         : "Búsqueda cerrada"}
                     </span>
-                    <h3>{p.descripcionPerfil}</h3>
+                    <Markdown className="profile-description">
+                      {p.descripcionPerfil}
+                    </Markdown>
                     <p>
                       {p.compromiso?.cantidadHoras} horas{" "}
                       {p.compromiso?.tipo?.toLowerCase()}
@@ -483,7 +566,7 @@ export default function App() {
                   {extras.candidatas.map((c) => (
                     <div className="list-row" key={idOf(c)}>
                       <b>{title(c)}</b>
-                      <p>{c.presentacion}</p>
+                      <Markdown>{c.presentacion}</Markdown>
                       <button
                         onClick={() =>
                           edit(
@@ -542,7 +625,7 @@ export default function App() {
                 )}
                 {extras.logros?.map((l) => (
                   <div className="list-row" key={idOf(l)}>
-                    <h3>{l.descripcion}</h3>
+                    <Markdown>{l.descripcion}</Markdown>
                     <progress
                       aria-label="Porcentaje completado"
                       max="100"
@@ -1010,11 +1093,14 @@ export default function App() {
                               : x.tipo?.replaceAll("_", " ") || "Colaboradora"}
                           </span>
                           <h2>{title(x)}</h2>
-                          <p className="card-copy">
+                          {x.requiereIA === false && (
+                            <span className="badge">Sin IA generativa</span>
+                          )}
+                          <Markdown className="card-copy">
                             {x.descripcion ||
                               x.presentacion ||
                               "Con ganas de aportar a la comunidad."}
-                          </p>
+                          </Markdown>
                           <div className="tags">
                             {[
                               ...new Set(
@@ -1059,6 +1145,25 @@ export default function App() {
           )}
           <footer className="page-footer">
             Código a Voluntad<span>Software libre, impacto compartido.</span>
+            <a href="#terminos">Términos</a>
+            <a
+              href={
+                (api.defaults?.baseURL ||
+                  process.env.REACT_APP_API_URL ||
+                  "http://localhost:8000/api") + "/rss/proyectos.xml"
+              }
+            >
+              RSS de proyectos
+            </a>
+            <a
+              href={
+                (api.defaults?.baseURL ||
+                  process.env.REACT_APP_API_URL ||
+                  "http://localhost:8000/api") + "/rss/colectivos.xml"
+              }
+            >
+              RSS de colectivos
+            </a>
           </footer>
         </main>
       </div>

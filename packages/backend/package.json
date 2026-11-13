@@ -17,6 +17,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.4",
     "mongoose": "^8.9.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^14.0.2",

@@ -85,3 +85,7 @@ Resultado de esta sesión: tres pruebas de frontend aprobadas y compilación de 
 - Test HTTP de controlador y persistencia: test/services/EdicionHttp.test.js usa una base test\_<PID> separada mediante el helper existente; no usar la base de desarrollo como base de pruebas manuales destructivas.
 
 Las rutas nuevas, igual que las existentes, aún requieren autenticación y autorización antes de un despliegue compartido.
+
+## Adicionales sin asignar
+
+Se implementaron Términos y Condiciones, límite de tasa, Markdown, declaración de huella hídrica / IA y feeds RSS. Consultar [ADICIONALES.md](ADICIONALES.md) para configuración, contratos, pruebas y administración. Al crear o editar proyectos ahora se exige aceptar la versión vigente de condiciones.

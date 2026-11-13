@@ -106,18 +106,28 @@ test("edita proyecto, rechaza otro colectivo y persiste pausa de búsqueda", asy
   const c = await colectivo(),
     otro = await colectivo();
   const p = await ProyectoService.crearProyecto(
-    { titulo: "Inicial", descripcion: "Descripción" },
+    {
+      versionTerminosAceptada: "1.0",
+      titulo: "Inicial",
+      descripcion: "Descripción",
+    },
     c.id,
   );
   const path = `/colectivos/${c.id}/proyectos/${p.id}`;
-  expect((await request(path, "PUT", { titulo: "Actualizado" })).status).toBe(
-    200,
-  );
+  expect(
+    (
+      await request(path, "PUT", {
+        titulo: "Actualizado",
+        versionTerminosAceptada: "1.0",
+      })
+    ).status,
+  ).toBe(200);
   expect((await ProyectoService.obtenerPorId(p.id)).titulo).toBe("Actualizado");
   expect(
     (
       await request(`/colectivos/${otro.id}/proyectos/${p.id}`, "PUT", {
         titulo: "Ajeno",
+        versionTerminosAceptada: "1.0",
       })
     ).status,
   ).toBe(404);
@@ -133,7 +143,11 @@ test("edita proyecto, rechaza otro colectivo y persiste pausa de búsqueda", asy
 test("elimina proyectos sin historial y preserva los que tienen postulaciones", async () => {
   const c = await colectivo();
   const p = await ProyectoService.crearProyecto(
-    { titulo: "Inicial", descripcion: "Descripción" },
+    {
+      versionTerminosAceptada: "1.0",
+      titulo: "Inicial",
+      descripcion: "Descripción",
+    },
     c.id,
   );
   const path = `/colectivos/${c.id}/proyectos/${p.id}`;
@@ -145,7 +159,11 @@ test("elimina proyectos sin historial y preserva los que tienen postulaciones", 
   expect((await request(path, "DELETE")).status).toBe(400);
   expect(await ProyectoModel.exists({ _id: p.id })).toBeTruthy();
   const vacio = await ProyectoService.crearProyecto(
-    { titulo: "Borrable", descripcion: "Sin historial" },
+    {
+      versionTerminosAceptada: "1.0",
+      titulo: "Borrable",
+      descripcion: "Sin historial",
+    },
     c.id,
   );
   expect(

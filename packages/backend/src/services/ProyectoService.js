@@ -1,3 +1,4 @@
+import { TerminosService } from "./TerminosService.js";
 import { v4 as uuidv4 } from "uuid";
 import {
   ProyectoModel,
@@ -39,28 +40,45 @@ export const crearPerfil = (id, datos) =>
   );
 
 const aDominio = (doc) =>
-  new Proyecto(
-    doc._id.toString(),
-    doc.titulo,
-    doc.descripcion,
-    doc.colectivoId,
-    doc.perfiles.map((perfil) => crearPerfil(perfil.id, perfil)),
-    doc.logros.map(
-      (logro) =>
-        new Logro(
-          logro.id,
-          logro.descripcion,
-          logro.porcentajeCompletitud,
-          logro.enlaceSistema,
-          logro.enlaceFuentePublica,
-          logro.fechaCreacion,
-        ),
+  Object.assign(
+    new Proyecto(
+      doc._id.toString(),
+      doc.titulo,
+      doc.descripcion,
+      doc.colectivoId,
+      doc.perfiles.map((perfil) => crearPerfil(perfil.id, perfil)),
+      doc.logros.map(
+        (logro) =>
+          new Logro(
+            logro.id,
+            logro.descripcion,
+            logro.porcentajeCompletitud,
+            logro.enlaceSistema,
+            logro.enlaceFuentePublica,
+            logro.fechaCreacion,
+          ),
+      ),
+      doc.estaBuscando ?? true,
+      doc.estado,
     ),
-    doc.estaBuscando ?? true,
-    doc.estado,
+    {
+      requiereIA: doc.requiereIA ?? null,
+      usosIA:
+        doc.usosIA?.map((u) => ({
+          descripcion: u.descripcion,
+          justificacion: u.justificacion,
+          grado: u.grado,
+        })) || [],
+      aceptacionTerminos: doc.aceptacionTerminos,
+      moderacionTerminos: doc.moderacionTerminos,
+    },
   );
 
 export const aDocumento = (proyecto) => ({
+  requiereIA: proyecto.requiereIA ?? null,
+  usosIA: proyecto.usosIA || [],
+  aceptacionTerminos: proyecto.aceptacionTerminos,
+  moderacionTerminos: proyecto.moderacionTerminos,
   titulo: proyecto.titulo,
   descripcion: proyecto.descripcion,
   colectivoId: proyecto.colectivoId,
@@ -93,11 +111,37 @@ export const aDocumento = (proyecto) => ({
   })),
 });
 
+export function validarHuellaIA(datos) {
+  const usos = datos.usosIA || [];
+  if (datos.requiereIA === true && !usos.length)
+    throw new DomainError(
+      "Indicá al menos un uso de IA con su justificación y grado estimado.",
+    );
+  if (datos.requiereIA !== true && usos.length)
+    throw new DomainError(
+      "Los usos sólo pueden cargarse en proyectos que requieren IA.",
+    );
+}
+export const ordenarPorHuellaIA = (proyectos) =>
+  [...proyectos].sort(
+    (a, b) =>
+      (a.requiereIA === false ? 0 : a.requiereIA === true ? 1 : 2) -
+      (b.requiereIA === false ? 0 : b.requiereIA === true ? 1 : 2),
+  );
 export class ProyectoService {
   static async actualizar(colectivoId, proyectoId, datos) {
     const actual = await this.obtenerPorId(proyectoId);
     if (!actual.perteneceA(colectivoId))
       throw new NotFoundError("El proyecto no pertenece a este colectivo");
+    const aceptacionTerminos = await TerminosService.validarAceptacion(
+      datos.versionTerminosAceptada,
+    );
+    const adicionales = {
+      requiereIA:
+        datos.requiereIA === undefined ? actual.requiereIA : datos.requiereIA,
+      usosIA: datos.usosIA ?? actual.usosIA,
+    };
+    validarHuellaIA(adicionales);
     const validado = new Proyecto(
       actual.id,
       datos.titulo ?? actual.titulo,
@@ -111,7 +155,12 @@ export class ProyectoService {
     const doc = await ProyectoModel.findOneAndUpdate(
       { _id: proyectoId, colectivoId },
       {
-        $set: { titulo: validado.titulo, descripcion: validado.descripcion },
+        $set: {
+          titulo: validado.titulo,
+          descripcion: validado.descripcion,
+          ...adicionales,
+          aceptacionTerminos,
+        },
       },
       { new: true, runValidators: true },
     );
@@ -141,9 +190,11 @@ export class ProyectoService {
   }
 
   static async listar() {
-    const docs = await ProyectoModel.find();
+    const docs = await ProyectoModel.find(
+      await TerminosService.filtroProyectosPublicos(),
+    );
 
-    return docs.map(aDominio);
+    return ordenarPorHuellaIA(docs.map(aDominio));
   }
 
   static async obtenerPorId(id) {
@@ -152,6 +203,13 @@ export class ProyectoService {
       throw new NotFoundError("Proyecto no encontrado", { proyectoId: id });
     }
 
+    if (
+      doc.moderacionTerminos?.suspendido ||
+      (await TerminosService.colectivosSuspendidos()).includes(doc.colectivoId)
+    )
+      throw new DomainError(
+        "Proyecto suspendido por incumplimiento de términos.",
+      );
     return aDominio(doc);
   }
 
@@ -163,6 +221,10 @@ export class ProyectoService {
   }
 
   static async crearProyecto(data, colectivoId) {
+    const aceptacionTerminos = await TerminosService.validarAceptacion(
+      data.versionTerminosAceptada,
+    );
+    validarHuellaIA(data);
     const colectivo = await ColectivoService.obtenerPorId(colectivoId);
 
     // Si data viene envuelto en un body o req, o asegurando que perfiles exista
@@ -183,6 +245,11 @@ export class ProyectoService {
       perfiles.flatMap((perfil) => perfil.todasLasHabilidades()),
     );
 
+    Object.assign(borrador, {
+      requiereIA: data.requiereIA ?? null,
+      usosIA: data.usosIA || [],
+      aceptacionTerminos,
+    });
     const doc = await ProyectoModel.create(aDocumento(borrador));
 
     return aDominio(doc);
@@ -285,12 +352,12 @@ export class ProyectoService {
     const colaboradora = await ColaboradoraService.obtenerPorId(colaboradoraId);
 
     const docs = await ProyectoModel.find({
+      ...(await TerminosService.filtroProyectosPublicos()),
       estado: EstadoProyecto.ACTIVO,
       "perfiles.habilidadesRequeridas": { $in: colaboradora.habilidades },
     });
 
-    return docs
-      .map(aDominio)
+    return ordenarPorHuellaIA(docs.map(aDominio))
       .map((proyecto) => ({
         proyecto,
         perfilesCompatibles: proyecto.perfilesPara(colaboradora),
