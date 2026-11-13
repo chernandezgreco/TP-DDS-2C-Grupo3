@@ -2,7 +2,13 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import App from "./App";
 import { api } from "./api";
 jest.mock("./api", () => ({
-  api: { get: jest.fn(), post: jest.fn(), patch: jest.fn(), delete: jest.fn() },
+  api: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
   idOf: (x) => x?.id || x?._id,
 }));
 const project = {
@@ -30,6 +36,7 @@ beforeEach(() => {
     async (path) =>
       ({
         "/proyectos": [project],
+        "/proyectos/p1": project,
         "/colectivos": [{ id: "o1", nombre: "Biblioteca Sur" }],
         "/colaboradoras": [
           { id: "c1", nombreFantasia: "Cami", habilidades: ["react"] },
@@ -80,4 +87,29 @@ test("filtra proyectos sin modificar el catálogo recibido", async () => {
   );
   expect(screen.queryByText("Biblioteca comunitaria")).not.toBeInTheDocument();
   expect(screen.getByText("Todavía no hay resultados")).toBeInTheDocument();
+});
+
+test("edita un proyecto enviando sólo sus campos editables", async () => {
+  api.put.mockResolvedValue({});
+  render(<App />);
+  await screen.findByText("Biblioteca comunitaria");
+  fireEvent.click(screen.getByRole("button", { name: /Elegir perfil/ }));
+  fireEvent.change(screen.getByLabelText("Colectivo"), {
+    target: { value: "o1" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: /Ver proyecto/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Editar proyecto" }));
+  fireEvent.change(screen.getByLabelText("Título"), {
+    target: { value: "Biblioteca renovada" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
+  await waitFor(() =>
+    expect(api.put).toHaveBeenCalledWith("/colectivos/o1/proyectos/p1", {
+      titulo: "Biblioteca renovada",
+      descripcion: "Una biblioteca abierta",
+    }),
+  );
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+  );
 });

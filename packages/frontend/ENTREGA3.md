@@ -38,8 +38,8 @@ La UI no muestra medios de contacto privados. La ruta de consulta autorizada de 
 | Consigna                          | Estado / coordinación necesaria                                                                                                                                                                                                    |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Login y rutas privadas            | Falta autenticación backend, endpoints de registro/login/logout/sesión y autorización por entidad. Después reemplazar el selector de desarrollo e integrar credenciales. Ocultar botones en React no protege la API.               |
-| Edición de organización y persona | Faltan endpoints generales de actualización; hoy sólo están disponibles altas y cambios de habilidades/contactos/preferencias.                                                                                                     |
-| CRUD completo de proyectos        | Faltan actualización de título/descripción y eliminación. Cierre no equivale a eliminación.                                                                                                                                        |
+| Edición de organización y persona | Implementado: edición general desde Mi espacio, con persistencia y validación en backend. Queda integrar permisos de sesión.                                                                                                       |
+| CRUD completo de proyectos        | Implementado: editar título/descripción y eliminar proyectos sin historial. Los que tienen historial deben finalizarse. Queda integrar permisos de sesión.                                                                         |
 | Consulta autorizada de contactos  | Falta endpoint que valide colaboración aceptada y pertenencia al colectivo en servidor.                                                                                                                                            |
 | Privacidad y anonimidad           | La API global de colaboradoras/colaboraciones no tiene autenticación. El servicio tiene un TODO sobre anonimidad que sustituye el id real por "Anonimo"; debe conservar identidad internamente para permitir bajas sin publicarla. |
 | Cupos y fechas opcionales         | El schema actual obliga ambos campos; el formulario respeta ese contrato. La consigna los considera opcionales: acordar y corregir backend antes de hacerlos opcionales en UI.                                                     |
@@ -72,3 +72,16 @@ Responsive: tres columnas en escritorio, dos en ancho intermedio y una en móvil
 Correcciones puntuales backend: parámetro proyectoId en cambiarBusqueda; preservar fechaLimite y cantidadLimite al reconstruir Perfil durante edición.
 
 Resultado de esta sesión: tres pruebas de frontend aprobadas y compilación de producción exitosa. La comprobación puntual de edición de Perfil conserva cupo, fecha y habilidades. No hubo prueba E2E contra MongoDB: el backend no estaba escuchando en 8000. El navegador de verificación no pudo acceder al localhost del entorno; queda pendiente inspección visual en el navegador local.
+
+## Segundo avance: edición y persistencia
+
+- Mi espacio → Editar mis datos para colectivos y colaboradoras.
+- Detalle de proyecto → Editar proyecto y Eliminar proyecto.
+- PATCH /api/colectivos/:id y PATCH /api/colaboradoras/:id: actualizaciones parciales con campos permitidos y validación de dominio; conservan contactos y preferencias.
+- PUT /api/colectivos/:colectivoId/proyectos/:proyectoId: título y descripción; valida que el proyecto pertenezca al colectivo indicado en la ruta. Esto no sustituye autenticación de sesión.
+- DELETE en la misma ruta: sólo proyectos sin postulaciones, colaboraciones o logros. Conservación de historial como decisión de implementación.
+- Corrección: estaBuscando ahora se guarda en el schema de MongoDB.
+- Swagger incluye las operaciones nuevas.
+- Test HTTP de controlador y persistencia: test/services/EdicionHttp.test.js usa una base test\_<PID> separada mediante el helper existente; no usar la base de desarrollo como base de pruebas manuales destructivas.
+
+Las rutas nuevas, igual que las existentes, aún requieren autenticación y autorización antes de un despliegue compartido.

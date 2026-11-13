@@ -125,7 +125,15 @@ export default function App() {
     }
   }
   function edit(name, fields, path, method = "post", values = {}) {
-    setForm({ name, fields, path, method, initial: values });
+    const initialValues =
+      method === "patch" || fields === projectFields
+        ? Object.fromEntries(
+            fields
+              .filter((f) => values[f.name] !== undefined)
+              .map((f) => [f.name, values[f.name]]),
+          )
+        : values;
+    setForm({ name, fields, path, method, initial: initialValues });
   }
   const pid = idOf(selected),
     isOwner =
@@ -261,6 +269,38 @@ export default function App() {
               <p className="description">{selected.descripcion}</p>
               {isOwner && (
                 <div className="toolbar">
+                  <button
+                    className="secondary"
+                    onClick={() =>
+                      edit(
+                        "Editar proyecto",
+                        projectFields,
+                        base,
+                        "put",
+                        selected,
+                      )
+                    }
+                  >
+                    Editar proyecto
+                  </button>
+                  <button
+                    className="danger"
+                    disabled={busy}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "¿Eliminar este proyecto permanentemente? Si tiene postulaciones, colaboraciones o logros, deberás finalizarlo para conservar su historial.",
+                        )
+                      )
+                        run(async () => {
+                          await api.delete(base);
+                          setSelected(null);
+                          setExtras({});
+                        }, "Proyecto eliminado.");
+                    }}
+                  >
+                    Eliminar proyecto
+                  </button>
                   <button
                     onClick={() =>
                       edit(
@@ -787,6 +827,28 @@ export default function App() {
                         Seleccioná un perfil para gestionar sus recursos. El
                         backend aún debe incorporar autenticación y permisos.
                       </p>
+                      {actor && (
+                        <button
+                          className="secondary"
+                          onClick={() =>
+                            edit(
+                              actor.type === "colectivos"
+                                ? "Editar colectivo"
+                                : "Editar mi perfil",
+                              actor.type === "colectivos"
+                                ? collectiveFields
+                                : personFields(data.habilidades),
+                              `/${actor.type}/${actor.id}`,
+                              "patch",
+                              data[actor.type].find(
+                                (x) => idOf(x) === actor.id,
+                              ),
+                            )
+                          }
+                        >
+                          Editar mis datos
+                        </button>
+                      )}
                       {person && (
                         <div className="toolbar">
                           <button
