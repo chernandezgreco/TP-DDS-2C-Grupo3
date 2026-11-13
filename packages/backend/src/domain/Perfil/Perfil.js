@@ -83,6 +83,8 @@ estaAbierto(cantidadPostulacionesActuales = (this.postulaciones?.length ?? 0), f
         const actualizado = new Perfil(
             this.id,
             datos.descripcionPerfil ?? this.descripcionPerfil,
+            this.fechaLimite,
+            this.cantidadLimite,
             datos.habilidadesRequeridas ?? this.habilidadesRequeridas,
             datos.habilidadesOpcionales ?? this.habilidadesOpcionales,
             compromiso,

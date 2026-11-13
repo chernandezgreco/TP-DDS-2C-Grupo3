@@ -35,10 +35,10 @@ export class ProyectoController {
     }
     static async cambiarBusqueda(req, res, next) {
         try {
-            const { id } = req.params;
+            const { proyectoId } = req.params;
             const { estaBuscando } = req.body;
 
-            const proyectoActualizado = await ProyectoService.cambiarEstadoBusqueda(id, estaBuscando);
+            const proyectoActualizado = await ProyectoService.cambiarEstadoBusqueda(proyectoId, estaBuscando);
 
             return res.status(200).json({
                 mensaje: "Estado de búsqueda actualizado exitosamente",
