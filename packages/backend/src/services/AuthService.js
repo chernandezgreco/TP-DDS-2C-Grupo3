@@ -54,6 +54,18 @@ export class AuthService {
       !timingSafeEqual(actual, Buffer.from(cuenta.passwordHash, "hex"))
     )
       return null;
+    const model =
+      cuenta.tipo === "colectivos" ? ColectivoModel : ColaboradoraModel;
+
+    const perfil = await model.findById(cuenta.perfilId);
+
+    if (
+      !perfil ||
+      perfil.cuentaEliminadaAt ||
+      perfil.moderacionTerminos?.suspendido
+    ) {
+      return null;
+    }
     return cuenta;
   }
   static async crearSesion(cuenta) {
@@ -77,7 +89,13 @@ export class AuthService {
     const model =
       cuenta.tipo === "colectivos" ? ColectivoModel : ColaboradoraModel;
     const perfil = await model.findById(cuenta.perfilId);
-    if (!perfil || perfil.moderacionTerminos?.suspendido) return null;
+    if (
+      !perfil ||
+      perfil.cuentaEliminadaAt ||
+      perfil.moderacionTerminos?.suspendido
+    ) {
+      return null;
+    }
     return cuenta;
   }
   static async cerrar(token) {

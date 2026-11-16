@@ -1,6 +1,21 @@
 import { ColaboradoraService } from "../services/ColaboradoraService.js";
+import { cookieOpciones } from "../services/AuthService.js";
 
 export class ColaboradoraController {
+  static async eliminarCuenta(req, res) {
+    await ColaboradoraService.eliminarCuenta(
+      req.params.id,
+      req.cuenta._id,
+    );
+
+    res
+      .clearCookie("cav_session", {
+        ...cookieOpciones(),
+        maxAge: undefined,
+      })
+      .status(204)
+      .end();
+  }
   static async actualizarContactos(req, res) {
     res.json(
       await ColaboradoraService.actualizarContactos(req.params.id, req.body),

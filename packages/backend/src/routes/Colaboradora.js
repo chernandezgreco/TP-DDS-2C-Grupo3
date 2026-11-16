@@ -15,6 +15,10 @@ import {
 import { ColaboracionController } from "../controllers/ColaboracionController.js";
 
 const router = Router();
+router.delete(
+  "/:id/cuenta",
+  ColaboradoraController.eliminarCuenta,
+);
 router.put(
   "/:id/medios-contacto",
   validar(contactosSchema),

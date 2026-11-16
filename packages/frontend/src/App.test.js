@@ -127,3 +127,95 @@ test('un visitante debe iniciar sesión y no puede elegir la identidad de otra p
  fireEvent.click(screen.getByRole('button',{name:'Iniciar sesión / Registrarme'}));
  expect(screen.getByRole('dialog')).toBeInTheDocument();expect(screen.getByLabelText('Correo de acceso')).toBeInTheDocument();
 });
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
+test("cancelar la eliminación no envía ninguna solicitud", async () => {
+  sessionActor = {
+    type: "colaboradoras",
+    id: "c1",
+    email: "cami@example.com",
+  };
+  window.location.hash = "#espacio";
+
+  const confirmar = jest.spyOn(window, "confirm").mockReturnValue(false);
+
+  render(<App />);
+
+  const boton = await screen.findByRole("button", {
+    name: "Eliminar mi cuenta",
+  });
+
+  fireEvent.click(boton);
+
+  expect(confirmar).toHaveBeenCalledTimes(1);
+  expect(api.delete).not.toHaveBeenCalled();
+  expect(boton).toBeInTheDocument();
+});
+
+test("confirmar la eliminación borra la cuenta y cierra la sesión local", async () => {
+  sessionActor = {
+    type: "colaboradoras",
+    id: "c1",
+    email: "cami@example.com",
+  };
+  window.location.hash = "#espacio";
+
+  jest.spyOn(window, "confirm").mockReturnValue(true);
+  api.delete.mockResolvedValueOnce(undefined);
+
+  render(<App />);
+
+  fireEvent.click(
+    await screen.findByRole("button", {
+      name: "Eliminar mi cuenta",
+    }),
+  );
+
+  await waitFor(() => {
+    expect(api.delete).toHaveBeenCalledWith("/colaboradoras/c1/cuenta");
+  });
+
+  expect(
+    await screen.findByText(/Cuenta eliminada\. Tus participaciones/),
+  ).toBeInTheDocument();
+
+  expect(
+    screen.queryByRole("button", { name: "Eliminar mi cuenta" }),
+  ).not.toBeInTheDocument();
+
+  expect(
+    screen.getByRole("button", { name: "Iniciar sesión / Registrarme" }),
+  ).toBeInTheDocument();
+});
+
+test("si la eliminación falla muestra el error y conserva la sesión", async () => {
+  sessionActor = {
+    type: "colaboradoras",
+    id: "c1",
+    email: "cami@example.com",
+  };
+  window.location.hash = "#espacio";
+
+  jest.spyOn(window, "confirm").mockReturnValue(true);
+  api.delete.mockRejectedValueOnce(
+    new Error("No se pudo eliminar la cuenta"),
+  );
+
+  render(<App />);
+
+  fireEvent.click(
+    await screen.findByRole("button", {
+      name: "Eliminar mi cuenta",
+    }),
+  );
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "No se pudo eliminar la cuenta",
+  );
+
+  expect(
+    screen.getByRole("button", { name: "Eliminar mi cuenta" }),
+  ).toBeInTheDocument();
+});

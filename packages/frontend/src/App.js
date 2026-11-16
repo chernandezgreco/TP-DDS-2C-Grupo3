@@ -1402,6 +1402,40 @@ export default function App() {
                           Eliminar cuenta del colectivo
                         </button>
                       )}
+                      {actor?.type === "colaboradoras" && (
+                        <button
+                          className="danger"
+                          disabled={busy}
+                          onClick={() => {
+                            if (
+                              !window.confirm(
+                                "¿Eliminar tu cuenta permanentemente? Se borrarán tus datos personales, contactos y credenciales. Tus participaciones conservarán el historial como Persona eliminada y tus postulaciones pendientes serán rechazadas. Esta acción no se puede deshacer.",
+                              )
+                            ) {
+                              return;
+                            }
+
+                            run(async () => {
+                              await api.delete(
+                                `/colaboradoras/${actor.id}/cuenta`,
+                              );
+
+                              setActor(null);
+                              setExtras({});
+                              setOwnPosts([]);
+                              setOwnContacts(null);
+                              setPublicProfile(null);
+                              setMatches(null);
+                              setSelected(null);
+                              setForm(null);
+                              setData(initial);
+                              window.location.hash = "proyectos";
+                            }, "Cuenta eliminada. Tus participaciones conservan el historial sin tus datos personales.");
+                          }}
+                        >
+                          Eliminar mi cuenta
+                        </button>
+                      )}
                       {person && (
                         <div className="toolbar">
                           <button

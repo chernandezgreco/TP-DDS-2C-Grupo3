@@ -121,8 +121,14 @@ export const ProyectoModel = mongoose.model("Proyecto", proyectoSchema);
 
 // --- 4. COLABORADORA ---
 const colaboradoraSchema = new mongoose.Schema({
+  cuentaEliminadaAt: { type: Date, default: null },
   nombreFantasia: { type: String, required: true },
-  github: { type: String, required: true },
+  github: {
+    type: String,
+    required: function () {
+      return !this.cuentaEliminadaAt;
+    },
+  },
   nombreApellido: { type: String },
   linkedinFoto: { type: String, default: "" },
   habilidades: [{ type: String }],
