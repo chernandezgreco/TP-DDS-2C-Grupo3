@@ -31,6 +31,15 @@ export class ColaboradoraController {
       );
   }
 
+  static async actualizarExperienciaHabilidades(req, res) {
+    res.json(
+      await ColaboradoraService.actualizarExperienciaHabilidades(
+        req.params.id,
+        req.body.experienciaHabilidades,
+      ),
+    );
+  }
+
   static async agregarMedioContacto(req, res) {
     res
       .status(201)

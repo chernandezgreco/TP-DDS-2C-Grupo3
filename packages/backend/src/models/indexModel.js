@@ -33,6 +33,7 @@ const colectivoSchema = new mongoose.Schema({
   descripcion: { type: String, required: true },
   tipo: { type: String, enum: Object.values(TipoColectivo), required: true },
   ubicacion: { type: String },
+  cuentaEliminadaAt: { type: Date, default: null },
 });
 export const ColectivoModel = mongoose.model("Colectivo", colectivoSchema);
 
@@ -123,7 +124,21 @@ const colaboradoraSchema = new mongoose.Schema({
   nombreFantasia: { type: String, required: true },
   github: { type: String, required: true },
   nombreApellido: { type: String },
+  linkedinFoto: { type: String, default: "" },
   habilidades: [{ type: String }],
+  experienciaHabilidades: {
+    type: [
+      new mongoose.Schema(
+        {
+          codigo: { type: String, required: true },
+          nivel: { type: String, enum: ["INICIAL", "INTERMEDIO", "AVANZADO"], required: true },
+          anios: { type: Number, min: 0, max: 60, required: true },
+        },
+        { _id: false },
+      ),
+    ],
+    default: [],
+  },
   pronombres: { type: String },
   presentacion: { type: String },
   aceptaMensajeria: { type: Boolean, default: false },
@@ -191,4 +206,55 @@ const postulacionSchema = new mongoose.Schema({
 export const PostulacionModel = mongoose.model(
   "Postulacion",
   postulacionSchema,
+);
+
+const denunciaSchema = new mongoose.Schema({
+  cuentaDenuncianteId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Cuenta",
+    required: true,
+  },
+  denuncianteTipo: {
+    type: String,
+    enum: ["colectivos", "colaboradoras"],
+    required: true,
+  },
+  denunciantePerfilId: {
+    type: String,
+    required: true,
+  },
+  tipoEntidadDenunciada: {
+    type: String,
+    enum: ["colectivo", "proyecto"],
+    required: true,
+  },
+  entidadDenunciadaId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
+  motivo: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100,
+  },
+  descripcion: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 1000,
+  },
+  estado: {
+    type: String,
+    enum: ["pendiente", "en_revision", "resuelta", "desestimada"],
+    default: "pendiente",
+  },
+  fechaCreacion: {
+    type: Date,
+    default: Date.now,
+  },
+});
+export const DenunciaModel = mongoose.model(
+  "Denuncia",
+  denunciaSchema,
 );

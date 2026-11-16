@@ -14,3 +14,7 @@ export class NotFoundError extends DomainError {}
 
 // El pedido choca con el estado actual (ya existe, ya está anotada)
 export class ConflictError extends DomainError {}
+
+export class ForbiddenError extends DomainError {}
+
+export class UnavailableError extends DomainError {}

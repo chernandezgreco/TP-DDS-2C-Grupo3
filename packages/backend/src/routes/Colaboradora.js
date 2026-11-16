@@ -10,6 +10,7 @@ import {
   preferenciasSchema,
   actualizarColaboradoraSchema,
   contactosSchema,
+  experienciaHabilidadesSchema,
 } from "../schemas/ColaboradoraSchema.js";
 import { ColaboracionController } from "../controllers/ColaboracionController.js";
 
@@ -36,6 +37,11 @@ router.post(
   validar(agregarHabilidadSchema),
   ColaboradoraController.agregarHabilidad,
 );
+router.put(
+  "/:id/experiencia-habilidades",
+  validar(experienciaHabilidadesSchema),
+  ColaboradoraController.actualizarExperienciaHabilidades,
+);
 router.post(
   "/:id/medios-contacto",
   validar(medioContactoSchema),
@@ -56,4 +62,13 @@ router.delete(
   "/:colaboradoraId/proyectos/:proyectoId/baja",
   ColaboracionController.darDeBajaPersonal,
 );
+//denuncias
+
+
+
+
+
+
+
+
 export default router;

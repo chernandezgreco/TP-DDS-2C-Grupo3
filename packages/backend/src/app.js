@@ -15,6 +15,8 @@ import colaboracionesRoutes from "./routes/Colaboracion.js";
 import logrosRoutes from "./routes/Logros.js";
 import notificacionesRoutes from "./routes/Notificaciones.js";
 import perfilesRoutes from "./routes/Perfiles.js";
+import denunciasRoutes from "./routes/Denuncias.js";
+import linkedinRoutes from "./routes/LinkedIn.js";
 import swaggerUi from "swagger-ui-express";
 import { especificacion } from "./docs/swagger.js";
 import { manejarErrores } from "./middlewares/manejarErrores.js";
@@ -31,7 +33,7 @@ export function crearApp() {
     }),
   );
 
-  // Endpoint de Health Check (Requerimiento de la 1ra entrega)
+
   app.get("/health", (req, res) => {
     res.status(200).json({ status: "OK", timestamp: new Date() });
   });
@@ -41,6 +43,8 @@ export function crearApp() {
   app.use("/api", authRoutes);
   app.use("/api", autorizar);
   app.use("/api", adicionalesRoutes);
+  app.use("/api", denunciasRoutes);
+  app.use("/api", linkedinRoutes);
   app.use("/api/proyectos/:proyectoId/logros", logrosRoutes);
   app.use("/api/proyectos/:proyectoId/perfiles", perfilesRoutes);
   app.use("/api/proyectos", proyectosRoutes);
@@ -57,7 +61,7 @@ export function crearApp() {
     res.json({ mensaje: "Bienvenido al backend de Código a Voluntad" });
   });
 
-  // Tiene que ir después de todas las rutas: traduce los errores a status HTTP
+  
   app.use(manejarErrores);
 
   return app;

@@ -2,7 +2,7 @@ import { esTextoNoVacio } from "../validaciones.js";
 import { ConflictError, DomainError } from "../errores.js";
 
 export class Colaboradora {
-    constructor(id, nombreFantasia, github, nombreApellido, habilidades, pronombres, presentacion, mediosContacto = [], aceptaMensajeria = false) {
+    constructor(id, nombreFantasia, github, nombreApellido, habilidades, pronombres, presentacion, mediosContacto = [], aceptaMensajeria = false, experienciaHabilidades = [], linkedinFoto = "") {
         if (!esTextoNoVacio(nombreFantasia)) {
             throw new DomainError("El nombre de fantasía es obligatorio", { campo: "nombreFantasia" });
         }
@@ -22,6 +22,8 @@ export class Colaboradora {
         this.presentacion = presentacion;
         this.mediosContacto = [...mediosContacto];
         this.aceptaMensajeria = aceptaMensajeria;
+        this.experienciaHabilidades = [...experienciaHabilidades];
+        this.linkedinFoto = linkedinFoto;
     }
 
     agregarHabilidad(codigoHabilidad) {

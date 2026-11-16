@@ -11,6 +11,18 @@ export const crearColaboradoraSchema = z.object(
       }),
       { error: "La colaboradora debe tener al menos una habilidad" },
     ),
+    experienciaHabilidades: z
+      .array(
+        z
+          .object({
+            codigo: z.string().trim().min(1),
+            nivel: z.enum(["INICIAL", "INTERMEDIO", "AVANZADO"]),
+            anios: z.number().min(0).max(60),
+          })
+          .strict(),
+      )
+      .max(100)
+      .optional(),
     nombreApellido: z
       .string({ error: "El nombre y apellido debe ser un texto" })
       .optional(),
@@ -59,4 +71,20 @@ export const actualizarColaboradoraSchema = crearColaboradoraSchema
 
 export const contactosSchema = z
   .object({ mediosContacto: z.array(medioContactoSchema).max(20) })
+  .strict();
+
+export const experienciaHabilidadesSchema = z
+  .object({
+    experienciaHabilidades: z
+      .array(
+        z
+          .object({
+            codigo: z.string().trim().min(1),
+            nivel: z.enum(["INICIAL", "INTERMEDIO", "AVANZADO"]),
+            anios: z.number().min(0).max(60),
+          })
+          .strict(),
+      )
+      .max(100),
+  })
   .strict();

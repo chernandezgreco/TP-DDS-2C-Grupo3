@@ -1,7 +1,7 @@
 import { ColaboradoraModel } from "../models/indexModel.js";
 import { Colaboradora } from "../domain/Colaboradora/Colaboradora.js";
 import { MedioContacto } from "../domain/Colaboradora/MedioContacto.js";
-import { NotFoundError } from "../domain/errores.js";
+import { DomainError, NotFoundError } from "../domain/errores.js";
 import { HabilidadService } from "./HabilidadService.js";
 import { esIdValido } from "./ids.js";
 
@@ -19,6 +19,8 @@ const aDominio = (doc) =>
       (medio) => new MedioContacto(medio.tipo, medio.valor),
     ),
     doc.aceptaMensajeria,
+    doc.experienciaHabilidades || [],
+    doc.linkedinFoto || "",
   );
 
 export class ColaboradoraService {
@@ -32,6 +34,9 @@ export class ColaboradoraService {
       data.habilidades,
       data.pronombres,
       data.presentacion,
+      [],
+      false,
+      data.experienciaHabilidades || [],
     );
     await HabilidadService.validarExistentes(borrador.habilidades);
 
@@ -40,6 +45,7 @@ export class ColaboradoraService {
       github: borrador.github,
       nombreApellido: borrador.nombreApellido,
       habilidades: borrador.habilidades,
+      experienciaHabilidades: borrador.experienciaHabilidades,
       pronombres: borrador.pronombres,
       presentacion: borrador.presentacion,
     });
@@ -60,6 +66,8 @@ export class ColaboradoraService {
       valores.presentacion,
       actual.mediosContacto,
       actual.aceptaMensajeria,
+      valores.experienciaHabilidades || actual.experienciaHabilidades,
+      actual.linkedinFoto,
     );
     await HabilidadService.validarExistentes(validada.habilidades);
     const doc = await ColaboradoraModel.findByIdAndUpdate(
@@ -70,6 +78,7 @@ export class ColaboradoraService {
           github: validada.github,
           nombreApellido: validada.nombreApellido,
           habilidades: validada.habilidades,
+          experienciaHabilidades: validada.experienciaHabilidades,
           pronombres: validada.pronombres,
           presentacion: validada.presentacion,
         },
@@ -142,6 +151,26 @@ export class ColaboradoraService {
     });
 
     return colaboradora;
+  }
+
+  static async actualizarExperienciaHabilidades(idColaboradora, experienciaHabilidades) {
+    const colaboradora = await this.obtenerPorId(idColaboradora);
+    const codigos = experienciaHabilidades.map((item) => item.codigo);
+    if (new Set(codigos).size !== codigos.length)
+      throw new DomainError("No repitas una habilidad en la experiencia.");
+    const ajenas = codigos.filter((codigo) => !colaboradora.habilidades.includes(codigo));
+    if (ajenas.length)
+      throw new DomainError("La experiencia sólo puede corresponder a habilidades de tu perfil.", {
+        habilidades: ajenas,
+      });
+    await HabilidadService.validarExistentes(codigos);
+    const doc = await ColaboradoraModel.findByIdAndUpdate(
+      idColaboradora,
+      { $set: { experienciaHabilidades } },
+      { new: true, runValidators: true },
+    );
+    if (!doc) throw new NotFoundError("Colaboradora no encontrada");
+    return aDominio(doc);
   }
 
   static async obtenerPorId(id) {

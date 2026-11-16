@@ -1,4 +1,5 @@
 import { ColectivoService } from "../services/ColectivosService.js";
+import { cookieOpciones } from "../services/AuthService.js";
 
 export class ColectivoController {
   static async actualizar(req, res) {
@@ -11,5 +12,17 @@ export class ColectivoController {
 
   static async listar(req, res) {
     res.json(await ColectivoService.listar());
+  }
+
+  static async eliminarCuenta(req, res, next) {
+    try {
+      await ColectivoService.eliminarCuenta(req.params.id, req.cuenta._id);
+      res
+        .clearCookie("cav_session", { ...cookieOpciones(), maxAge: undefined })
+        .status(204)
+        .end();
+    } catch (error) {
+      next(error);
+    }
   }
 }
