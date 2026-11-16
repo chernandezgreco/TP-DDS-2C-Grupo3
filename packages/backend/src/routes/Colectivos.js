@@ -15,6 +15,7 @@ import { ColaboracionController } from "../controllers/ColaboracionController.js
 import { PostulacionController } from "../controllers/PostulacionController.js";
 
 const router = Router();
+router.delete("/:id/cuenta", ColectivoController.eliminarCuenta);
 router.post("/", validar(crearColectivoSchema), ColectivoController.crear);
 router.get("/", ColectivoController.listar);
 router.patch(

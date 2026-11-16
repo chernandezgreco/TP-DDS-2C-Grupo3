@@ -1,6 +1,21 @@
 import { ColaboradoraService } from "../services/ColaboradoraService.js";
+import { cookieOpciones } from "../services/AuthService.js";
 
 export class ColaboradoraController {
+  static async eliminarCuenta(req, res) {
+    await ColaboradoraService.eliminarCuenta(
+      req.params.id,
+      req.cuenta._id,
+    );
+
+    res
+      .clearCookie("cav_session", {
+        ...cookieOpciones(),
+        maxAge: undefined,
+      })
+      .status(204)
+      .end();
+  }
   static async actualizarContactos(req, res) {
     res.json(
       await ColaboradoraService.actualizarContactos(req.params.id, req.body),
@@ -29,6 +44,15 @@ export class ColaboradoraController {
       .json(
         await ColaboradoraService.agregarHabilidad(req.params.id, req.body),
       );
+  }
+
+  static async actualizarExperienciaHabilidades(req, res) {
+    res.json(
+      await ColaboradoraService.actualizarExperienciaHabilidades(
+        req.params.id,
+        req.body.experienciaHabilidades,
+      ),
+    );
   }
 
   static async agregarMedioContacto(req, res) {

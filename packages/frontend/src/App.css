@@ -805,6 +805,30 @@ header .toolbar {
 .badge {
   overflow-wrap: anywhere;
 }
+.skill-experience-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(150px, 1fr) minmax(160px, 1fr);
+  align-items: end;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border, #ddd);
+}
+.skill-experience-row label {
+  display: grid;
+  gap: 6px;
+}
+.skill-experience-tag {
+  display: block;
+  margin-top: 4px;
+  color: inherit;
+  opacity: 0.8;
+}
+.linkedin-avatar {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 50%;
+}
 @media (max-width: 760px) {
   header {
     min-height: 76px;
@@ -830,5 +854,8 @@ header .toolbar {
   }
   .page-footer {
     gap: 14px;
+  }
+  .skill-experience-row {
+    grid-template-columns: 1fr;
   }
 }

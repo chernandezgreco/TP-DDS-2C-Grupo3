@@ -1,24 +1,65 @@
 import { z } from "zod";
 import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
+import { sanitizarTexto } from "../utils/sanitizar.js";
+import { esCuentaCodigoValida } from "../utils/enlaces.js";
 
 export const crearColaboradoraSchema = z.object(
   {
-    nombreFantasia: z.string({ error: "El nombre de fantasía es obligatorio" }),
-    github: z.string({ error: "La cuenta de GitHub o GitLab es obligatoria" }),
+      nombreFantasia: z
+      .string({ error: "El nombre de fantasía es obligatorio" })
+      .transform(sanitizarTexto)
+      .pipe(
+        z.string().trim().min(1, {
+          error: "El nombre de fantasía es obligatorio",
+        }),
+      ),
+       github: z
+      .string({
+        error: "La cuenta de GitHub o GitLab es obligatoria",
+      })
+      .transform(sanitizarTexto)
+      .pipe(
+        z.string().trim().min(1, {
+          error: "La cuenta de GitHub o GitLab es obligatoria",
+        }),
+      )
+      .refine(esCuentaCodigoValida, {
+        message: "Ingresá un usuario o un enlace HTTP/HTTPS válido",
+      }),
     habilidades: z.array(
       z.string({
         error: "La Colaboradora no cumple con las habilidades dadas de alta",
       }),
       { error: "La colaboradora debe tener al menos una habilidad" },
     ),
-    nombreApellido: z
-      .string({ error: "El nombre y apellido debe ser un texto" })
+    experienciaHabilidades: z
+      .array(
+        z
+          .object({
+            codigo: z.string().trim().min(1),
+            nivel: z.enum(["INICIAL", "INTERMEDIO", "AVANZADO"]),
+            anios: z.number().min(0).max(60),
+          })
+          .strict(),
+      )
+      .max(100)
       .optional(),
+      nombreApellido: z
+      .string({ error: "El nombre y apellido debe ser un texto" })
+      .transform(sanitizarTexto)
+      .pipe(z.string().trim())
+      .optional(),
+
     pronombres: z
       .string({ error: "Los pronombres deben ser un texto" })
+      .transform(sanitizarTexto)
+      .pipe(z.string().trim())
       .optional(),
+
     presentacion: z
       .string({ error: "La presentación debe ser un texto" })
+      .transform(sanitizarTexto)
+      .pipe(z.string().trim())
       .optional(),
   },
   { error: "Los datos de la colaboradora son obligatorios" },
@@ -59,4 +100,20 @@ export const actualizarColaboradoraSchema = crearColaboradoraSchema
 
 export const contactosSchema = z
   .object({ mediosContacto: z.array(medioContactoSchema).max(20) })
+  .strict();
+
+export const experienciaHabilidadesSchema = z
+  .object({
+    experienciaHabilidades: z
+      .array(
+        z
+          .object({
+            codigo: z.string().trim().min(1),
+            nivel: z.enum(["INICIAL", "INTERMEDIO", "AVANZADO"]),
+            anios: z.number().min(0).max(60),
+          })
+          .strict(),
+      )
+      .max(100),
+  })
   .strict();

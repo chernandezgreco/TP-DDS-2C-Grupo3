@@ -1,4 +1,13 @@
-import { ColectivoModel } from "../models/indexModel.js";
+import {
+  ColectivoModel,
+  PostulacionModel,
+  ProyectoModel,
+} from "../models/indexModel.js";
+import { CuentaModel, SesionModel } from "../models/AuthModel.js";
+import {
+  LinkedInConnectionModel,
+  LinkedInOAuthStateModel,
+} from "../models/LinkedInModel.js";
 import { Colectivo } from "../domain/Colectivo/Colectivo.js";
 import { NotFoundError } from "../domain/errores.js";
 import { esIdValido } from "./ids.js";
@@ -65,6 +74,38 @@ export class ColectivoService {
     });
 
     return colectivosDocs.map(aDominio);
+  }
+
+  static async eliminarCuenta(id, cuentaId) {
+    const colectivo = await ColectivoModel.findById(id);
+    if (!colectivo) throw new NotFoundError("Colectivo no encontrado", { colectivoId: id });
+    const cuenta = await CuentaModel.findOne({
+      _id: cuentaId,
+      tipo: "colectivos",
+      perfilId: id,
+    });
+    if (!cuenta) throw new NotFoundError("La cuenta del colectivo ya no existe.");
+
+    const proyectos = await ProyectoModel.find({ colectivoId: id }).select("_id").lean();
+    const proyectoIds = proyectos.map((proyecto) => String(proyecto._id));
+
+    colectivo.ubicacion = undefined;
+    colectivo.cuentaEliminadaAt = new Date();
+    await colectivo.save();
+
+    await Promise.all([
+      ProyectoModel.updateMany({ colectivoId: id }, { $set: { estaBuscando: false } }),
+      PostulacionModel.updateMany(
+        { proyectoId: { $in: proyectoIds }, estado: "PENDIENTE" },
+        { $set: { estado: "RECHAZADA" } },
+      ),
+      LinkedInConnectionModel.deleteOne({ cuentaId: cuenta._id }),
+      LinkedInOAuthStateModel.deleteMany({ cuentaId: cuenta._id }),
+    ]);
+
+    await CuentaModel.deleteOne({ _id: cuenta._id });
+    await SesionModel.deleteMany({ cuentaId: cuenta._id });
+    return { proyectosConservados: proyectos.length };
   }
 
   static async obtenerPorId(id) {

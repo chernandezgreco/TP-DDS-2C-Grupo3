@@ -37,6 +37,17 @@ export async function autorizar(req, res, next) {
         .status(403)
         .json({ error: "No tenés permiso para realizar esta acción." });
     const parts = path.split("/").filter(Boolean);
+    if (parts[0] === "denuncias") {
+      if (req.method !== "POST") return deny();
+      if (!req.actor)
+        return res.status(401).json({ error: "IniciÃ¡ sesiÃ³n para denunciar." });
+      return next();
+    }
+    if (parts[0] === "integraciones") {
+      if (!req.actor)
+        return res.status(401).json({ error: "Iniciá sesión para usar esta integración." });
+      return next();
+    }
     if (parts[0] === "colectivos") {
       if (parts[1] === "colaboraciones") {
         const c = await ColaboracionModel.findById(parts[2]);

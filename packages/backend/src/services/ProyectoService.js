@@ -11,7 +11,7 @@ import { Perfil } from "../domain/Perfil/Perfil.js";
 import { Compromiso } from "../domain/Compromiso/Compromiso.js";
 import { ModalidadColaboracion } from "../domain/ModalidadColaboracion/ModalidadColaboracion.js";
 import { Logro } from "../domain/Logro/Logro.js";
-import { NotFoundError } from "../domain/errores.js";
+import { NotFoundError, ConflictError } from "../domain/errores.js";
 import { ColectivoService } from "./ColectivosService.js";
 import { ColaboradoraService } from "./ColaboradoraService.js";
 import { ColaboracionService } from "./ColaboracionService.js";
@@ -19,6 +19,7 @@ import { HabilidadService } from "./HabilidadService.js";
 import { esIdValido } from "./ids.js";
 import { PostulacionService } from "./PostulacionService.js";
 import { DomainError } from "../domain/errores.js";
+import { serializar } from "./serializar.js";
 
 // --- Conversión entre Mongo y dominio. Es el único lugar que conoce la forma del documento ---
 
@@ -59,6 +60,7 @@ const aDominio = (doc) =>
       ),
       doc.estaBuscando ?? true,
       doc.estado,
+      doc.fechaCierre ?? null,
     ),
     {
       requiereIA: doc.requiereIA ?? null,
@@ -95,6 +97,7 @@ export const aDocumento = (proyecto) => ({
   colectivoId: proyecto.colectivoId,
   estado: proyecto.estado,
   estaBuscando: proyecto.estaBuscando,
+  fechaCierre: proyecto.fechaCierre,
   perfiles: proyecto.perfiles.map((perfil) => ({
     id: perfil.id,
     descripcionPerfil: perfil.descripcionPerfil,
@@ -141,42 +144,72 @@ export const ordenarPorHuellaIA = (proyectos) =>
   );
 export class ProyectoService {
   static async actualizar(colectivoId, proyectoId, datos) {
-    const actual = await this.obtenerPorId(proyectoId);
-    if (!actual.perteneceA(colectivoId))
-      throw new NotFoundError("El proyecto no pertenece a este colectivo");
-    const aceptacionTerminos = await TerminosService.validarAceptacion(
-      datos.versionTerminosAceptada,
-    );
-    const adicionales = {
-      requiereIA:
-        datos.requiereIA === undefined ? actual.requiereIA : datos.requiereIA,
-      usosIA: datos.usosIA ?? actual.usosIA,
-    };
-    validarHuellaIA(adicionales);
-    const validado = new Proyecto(
-      actual.id,
-      datos.titulo ?? actual.titulo,
-      datos.descripcion ?? actual.descripcion,
-      actual.colectivoId,
-      actual.perfiles,
-      actual.logros,
-      actual.estaBuscando,
-      actual.estado,
-    );
-    const doc = await ProyectoModel.findOneAndUpdate(
-      { _id: proyectoId, colectivoId },
-      {
-        $set: {
-          titulo: validado.titulo,
-          descripcion: validado.descripcion,
-          ...adicionales,
-          aceptacionTerminos,
+    return serializar(`proyecto:${proyectoId}`, async () => {
+      const actual = await this.obtenerPorId(proyectoId);
+
+      if (!actual.perteneceA(colectivoId)) {
+        throw new NotFoundError(
+          "El proyecto no pertenece a este colectivo",
+        );
+      }
+
+      if (
+        datos.fechaCierre !== undefined &&
+        (!actual.estaActivo() || actual.debeCerrarse())
+      ) {
+        throw new ConflictError(
+          "No se puede reprogramar un proyecto finalizado o vencido",
+        );
+      }
+
+      const aceptacionTerminos = await TerminosService.validarAceptacion(
+        datos.versionTerminosAceptada,
+      );
+
+      const adicionales = {
+        requiereIA:
+          datos.requiereIA === undefined
+            ? actual.requiereIA
+            : datos.requiereIA,
+        usosIA: datos.usosIA ?? actual.usosIA,
+      };
+
+      validarHuellaIA(adicionales);
+
+      const validado = new Proyecto(
+        actual.id,
+        datos.titulo ?? actual.titulo,
+        datos.descripcion ?? actual.descripcion,
+        actual.colectivoId,
+        actual.perfiles,
+        actual.logros,
+        actual.estaBuscando,
+        actual.estado,
+        datos.fechaCierre === undefined
+          ? actual.fechaCierre
+          : datos.fechaCierre,
+      );
+
+      const doc = await ProyectoModel.findOneAndUpdate(
+        { _id: proyectoId, colectivoId },
+        {
+          $set: {
+            titulo: validado.titulo,
+            descripcion: validado.descripcion,
+            fechaCierre: validado.fechaCierre,
+            ...adicionales,
+            aceptacionTerminos,
+          },
         },
-      },
-      { new: true, runValidators: true },
-    );
-    if (!doc) throw new NotFoundError("Proyecto no encontrado");
-    return aDominio(doc);
+        { new: true, runValidators: true },
+      );
+
+      if (!doc) {
+        throw new NotFoundError("Proyecto no encontrado");
+      }
+
+      return aDominio(doc);
+    });
   }
 
   static async eliminar(colectivoId, proyectoId) {
@@ -225,9 +258,24 @@ export class ProyectoService {
   }
 
   static async guardar(proyecto) {
-    await ProyectoModel.updateOne({ _id: proyecto.id }, aDocumento(proyecto), {
-      runValidators: true,
-    });
+    const datos = aDocumento(proyecto);
+
+    delete datos.estado;
+    delete datos.estaBuscando;
+    delete datos.fechaCierre;
+
+    const resultado = await ProyectoModel.updateOne(
+      { _id: proyecto.id },
+      { $set: datos },
+      { runValidators: true },
+    );
+
+    if (resultado.matchedCount === 0) {
+      throw new NotFoundError("Proyecto no encontrado", {
+        proyectoId: proyecto.id,
+      });
+    }
+
     return proyecto;
   }
 
@@ -250,6 +298,10 @@ export class ProyectoService {
       data.descripcion,
       colectivo.id,
       perfiles,
+      [],
+      true,
+      EstadoProyecto.ACTIVO,
+      data.fechaCierre ?? null,
     );
 
     await HabilidadService.validarExistentes(
@@ -283,50 +335,145 @@ export class ProyectoService {
     return aDominio(docActualizado);
   }
 
-  static async cerrarProyecto(colectivoId, proyectoId) {
-    const proyecto = await this.obtenerPorId(proyectoId);
+  static async finalizar(proyecto) {
+    proyecto.cerrar();
 
-    if (!proyecto.perteneceA(colectivoId)) {
-      throw new NotFoundError("El proyecto no pertenece a este colectivo", {
-        proyectoId,
-        colectivoId,
-      });
+    await PostulacionModel.updateMany(
+      {
+        proyectoId: proyecto.id,
+        estado: "PENDIENTE",
+      },
+      {
+        $set: { estado: "RECHAZADA" },
+      },
+    );
+
+    const resultado = await ProyectoModel.updateOne(
+      {
+        _id: proyecto.id,
+        estado: EstadoProyecto.ACTIVO,
+      },
+      {
+        $set: {
+          estado: proyecto.estado,
+          estaBuscando: false,
+        },
+      },
+    );
+
+    if (resultado.matchedCount === 0) {
+      throw new ConflictError(
+        "El proyecto ya no está disponible para finalizar",
+        { proyectoId: proyecto.id },
+      );
     }
 
-    proyecto.cerrar();
-    return await this.guardar(proyecto);
+    return proyecto;
+  }
+
+  static async cerrarProyecto(colectivoId, proyectoId) {
+    return serializar(`proyecto:${proyectoId}`, async () => {
+      const proyecto = await this.obtenerPorId(proyectoId);
+
+      if (!proyecto.perteneceA(colectivoId)) {
+        throw new NotFoundError(
+          "El proyecto no pertenece a este colectivo",
+          { proyectoId, colectivoId },
+        );
+      }
+
+      return this.finalizar(proyecto);
+    });
+  }
+
+  static async cerrarVencidos(fechaActual = new Date()) {
+    if (
+      !(fechaActual instanceof Date) ||
+      !Number.isFinite(fechaActual.getTime())
+    ) {
+      throw new DomainError("La fecha de revisión no es válida");
+    }
+
+    const candidatos = await ProyectoModel.find({
+      estado: EstadoProyecto.ACTIVO,
+      fechaCierre: {
+        $ne: null,
+        $lte: fechaActual,
+      },
+    })
+      .select("_id")
+      .lean();
+
+    let cerrados = 0;
+    const errores = [];
+
+    for (const candidato of candidatos) {
+      const proyectoId = candidato._id.toString();
+
+      try {
+        const cerrado = await serializar(
+          `proyecto:${proyectoId}`,
+          async () => {
+            const documento =
+              await ProyectoModel.findById(proyectoId);
+
+            if (!documento) {
+              return false;
+            }
+
+            const proyecto = aDominio(documento);
+
+            if (!proyecto.debeCerrarse(fechaActual)) {
+              return false;
+            }
+
+            await this.finalizar(proyecto);
+            return true;
+          },
+        );
+
+        if (cerrado) {
+          cerrados++;
+        }
+      } catch (error) {
+        errores.push({ proyectoId, error });
+      }
+    }
+
+    return { cerrados, errores };
   }
 
   static async anotarPostulacion(
     proyectoId,
     { colaboradoraId, perfilId, anonimidad },
   ) {
-    const proyecto = await this.obtenerPorId(proyectoId);
+    return serializar(`proyecto:${proyectoId}`, async () => {
+      const proyecto = await this.obtenerPorId(proyectoId);
 
-    if (!proyecto.estaBuscando) {
-      throw new DomainError(
-        "El proyecto no se encuentra buscando colaboradores actualmente",
-        { campo: "estaBuscando" },
+      proyecto.validarSePuedeAnotar();
+
+      const colaboradora =
+        await ColaboradoraService.obtenerPorId(colaboradoraId);
+
+      const perfil = proyecto.perfilParaAnotar(
+        colaboradora,
+        perfilId,
       );
-    }
 
-    const colaboradora = await ColaboradoraService.obtenerPorId(colaboradoraId);
+      const ocupadas = await ColaboracionModel.countDocuments({
+        proyectoId: proyecto.id,
+        perfilId: perfil.id,
+      });
 
-    // Le pasamos la colaboradora para que perfilesPara / admiteA la evalúen
-    const perfil = proyecto.perfilParaAnotar(colaboradora, perfilId);
+      perfil.validarPuedeAnotar(ocupadas);
 
-    const ocupadas = await ColaboracionModel.countDocuments({
-      proyectoId: proyecto.id,
-      perfilId: perfil.id,
+      return PostulacionService.crear(
+        proyecto.id,
+        perfil.id,
+        colaboradora.id,
+        anonimidad,
+      );
     });
-    perfil.validarPuedeAnotar(ocupadas);
-
-    return await PostulacionService.crear(
-      proyecto.id,
-      perfil.id,
-      colaboradora.id,
-      anonimidad,
-    );
   }
 
   static async anotarColaboradora(

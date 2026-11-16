@@ -3,6 +3,10 @@ import AuthPanel from "./AuthPanel";
 import PublicProfile from "./PublicProfile";
 import Markdown from "./Markdown";
 import Terminos from "./Terminos";
+import DenunciaForm from "./DenunciaForm";
+import DenunciasAdmin from "./DenunciasAdmin";
+import ExperienciaHabilidades from "./ExperienciaHabilidades";
+import LinkedInIntegration from "./LinkedInIntegration";
 import React, { useEffect, useState } from "react";
 import { api, idOf } from "./api";
 import {
@@ -22,6 +26,7 @@ const sections = {
   mensajes: "Mensajes",
   terminos: "Términos y condiciones",
   habilidades: "Habilidades",
+  denuncias: "Administrar denuncias",
 };
 const title = (x) =>
   x?.titulo || x?.nombre || x?.nombreFantasia || "Sin nombre";
@@ -217,9 +222,29 @@ export default function App() {
   const pid = idOf(selected),
     isOwner =
       actor?.type === "colectivos" && selected?.colectivoId === actor.id;
+  const participaEnProyecto = (proyectoId) =>
+    actor?.type === "colaboradoras" &&
+    data.colaboraciones.some(
+      (c) => c.proyectoId === proyectoId && c.colaboradoraId === actor.id,
+    );
   const base = `/colectivos/${actor?.id}/proyectos/${pid}`;
   const skill = (c) =>
     data.habilidades.find((h) => h.codigo === c)?.titulo || c;
+  function iniciarDenuncia(tipo, recurso) {
+    if (!actor) {
+      setForm({ name: "Iniciá sesión para denunciar", auth: true });
+      return;
+    }
+    setError("");
+    setForm({
+      name: "Enviar denuncia",
+      denuncia: {
+        targetType: tipo,
+        targetId: idOf(recurso),
+        targetName: title(recurso),
+      },
+    });
+  }
   async function updateSelected() {
     setSelected(await api.get("/proyectos/" + pid));
     setExtras({});
@@ -335,7 +360,9 @@ export default function App() {
         </a>
         <p className="eyebrow">CONSTRUIR EN COMUNIDAD</p>
         <nav aria-label="Navegación principal">
-          {Object.entries(sections).map(([k, v], i) => (
+          {Object.entries(sections)
+            .filter(([k]) => k !== "denuncias" || actor)
+            .map(([k, v], i) => (
             <a
               href={"#" + k}
               key={k}
@@ -438,6 +465,20 @@ export default function App() {
             <Terminos />
           ) : page === "habilidades" ? (
             <CatalogoHabilidades skills={data.habilidades} onSaved={refresh} />
+          ) : page === "denuncias" && !actor ? (
+            <section className="empty">
+              <h1>Administrar denuncias</h1>
+              <p>Iniciá sesión para abrir la sección administrativa.</p>
+              <button
+                onClick={() =>
+                  setForm({ name: "Iniciar sesión", auth: true })
+                }
+              >
+                Iniciar sesión
+              </button>
+            </section>
+          ) : page === "denuncias" ? (
+            <DenunciasAdmin />
           ) : ["espacio", "mensajes"].includes(page) && !actor ? (
             <section className="empty">
               <h1>{sections[page]}</h1>
@@ -490,9 +531,26 @@ export default function App() {
                 }{" "}
                 · <span className="badge">{selected.estado}</span>
               </p>
+              {selected.fechaCierre && (
+                <p className="hint">
+                  Fecha de cierre programada:{" "}
+                  <time dateTime={selected.fechaCierre}>
+                    {new Date(selected.fechaCierre).toLocaleString("es-AR")}
+                  </time>
+                  {" "}(hora local)
+                </p>
+              )}
               <Markdown className="description">
                 {selected.descripcion}
               </Markdown>
+              {!isOwner && (
+                <button
+                  className="secondary"
+                  onClick={() => iniciarDenuncia("proyecto", selected)}
+                >
+                  Denunciar proyecto
+                </button>
+              )}
               <section className="panel">
                 <h2>Huella hídrica / IA</h2>
                 <p>
@@ -899,6 +957,24 @@ export default function App() {
                           </button>
                         </>
                       )}
+                      {(isOwner || participaEnProyecto(pid)) && (
+                        <button
+                          className="secondary"
+                          disabled={busy}
+                          onClick={() =>
+                            run(
+                              () =>
+                                api.post("/integraciones/linkedin/publicar-logro", {
+                                  proyectoId: pid,
+                                  logroId: idOf(l),
+                                }),
+                              "Logro compartido en LinkedIn.",
+                            )
+                          }
+                        >
+                          Compartir en LinkedIn
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1141,6 +1217,27 @@ export default function App() {
                         <p role="status">Actualizando tus datos…</p>
                       )}
                       <p>Correo de acceso: {actor?.email}</p>
+                      <LinkedInIntegration
+                        actorType={actor?.type}
+                        onImported={refresh}
+                      />
+                      {person && (
+                        <ExperienciaHabilidades
+                          person={person}
+                          skills={data.habilidades}
+                          busy={busy}
+                          onSave={(experienciaHabilidades) =>
+                            run(
+                              () =>
+                                api.put(
+                                  `/colaboradoras/${actor.id}/experiencia-habilidades`,
+                                  { experienciaHabilidades },
+                                ),
+                              "Experiencia por habilidad actualizada.",
+                            )
+                          }
+                        />
+                      )}
                       {actor?.type === "colaboradoras" && (
                         <>
                           <h3>Mis datos de contacto privados</h3>
@@ -1290,6 +1387,62 @@ export default function App() {
                           }
                         >
                           Editar mis datos
+                        </button>
+                      )}
+                      {actor?.type === "colectivos" && (
+                        <button
+                          className="danger"
+                          disabled={busy}
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                "¿Eliminar la cuenta del colectivo? No podrás volver a iniciar sesión. Se conservará el historial, se quitará la ubicación de contacto, se cerrarán las búsquedas y se rechazarán las postulaciones pendientes.",
+                              )
+                            )
+                              run(async () => {
+                                await api.delete(`/colectivos/${actor.id}/cuenta`);
+                                setActor(null);
+                                setOwnPosts([]);
+                                setOwnContacts(null);
+                                window.location.hash = "proyectos";
+                              }, "Cuenta eliminada. El historial del colectivo se conserva.");
+                          }}
+                        >
+                          Eliminar cuenta del colectivo
+                        </button>
+                      )}
+                      {actor?.type === "colaboradoras" && (
+                        <button
+                          className="danger"
+                          disabled={busy}
+                          onClick={() => {
+                            if (
+                              !window.confirm(
+                                "¿Eliminar tu cuenta permanentemente? Se borrarán tus datos personales, contactos y credenciales. Tus participaciones conservarán el historial como Persona eliminada y tus postulaciones pendientes serán rechazadas. Esta acción no se puede deshacer.",
+                              )
+                            ) {
+                              return;
+                            }
+
+                            run(async () => {
+                              await api.delete(
+                                `/colaboradoras/${actor.id}/cuenta`,
+                              );
+
+                              setActor(null);
+                              setExtras({});
+                              setOwnPosts([]);
+                              setOwnContacts(null);
+                              setPublicProfile(null);
+                              setMatches(null);
+                              setSelected(null);
+                              setForm(null);
+                              setData(initial);
+                              window.location.hash = "proyectos";
+                            }, "Cuenta eliminada. Tus participaciones conservan el historial sin tus datos personales.");
+                          }}
+                        >
+                          Eliminar mi cuenta
                         </button>
                       )}
                       {person && (
@@ -1506,6 +1659,23 @@ export default function App() {
                               </button>
                             )}
                           </footer>
+                          {page === "proyectos" &&
+                            x.colectivoId !== actor?.id && (
+                              <button
+                                className="text-button"
+                                onClick={() => iniciarDenuncia("proyecto", x)}
+                              >
+                                Denunciar proyecto
+                              </button>
+                            )}
+                          {page === "colectivos" && idOf(x) !== actor?.id && (
+                            <button
+                              className="text-button"
+                              onClick={() => iniciarDenuncia("colectivo", x)}
+                            >
+                              Denunciar colectivo
+                            </button>
+                          )}
                         </div>
                       </article>
                     ))}
@@ -1585,6 +1755,19 @@ export default function App() {
                   setExtras({});
                   await refresh();
                   setNotice("Sesión iniciada.");
+                }}
+              />
+            ) : form.denuncia ? (
+              <DenunciaForm
+                {...form.denuncia}
+                busy={busy}
+                onCancel={() => setForm(null)}
+                onSubmit={async (values) => {
+                  const ok = await run(
+                    () => api.post("/denuncias", values),
+                    "Denuncia enviada para revisión.",
+                  );
+                  if (ok) setForm(null);
                 }}
               />
             ) : form.path ? (

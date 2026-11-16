@@ -1,7 +1,15 @@
-import { DomainError, NotFoundError, ConflictError } from "../domain/errores.js";
+import {
+    DomainError,
+    NotFoundError,
+    ConflictError,
+    ForbiddenError,
+    UnavailableError,
+} from "../domain/errores.js";
 
 // El orden importa: las subclases van antes que DomainError
 const STATUS = new Map([
+    [ForbiddenError, 403],
+    [UnavailableError, 503],
     [NotFoundError, 404],
     [ConflictError, 409],
     [DomainError, 400],

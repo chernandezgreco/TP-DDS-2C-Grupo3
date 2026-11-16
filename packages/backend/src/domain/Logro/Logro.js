@@ -1,18 +1,12 @@
 import { DomainError } from "../errores.js";
 import { esTextoNoVacio } from "../validaciones.js";
+import { esUrlWebValida } from "../../utils/enlaces.js";
 
-const esUrlValida = (valor) => {
-    if (valor === null || valor === undefined || valor === "") {
-        return true;
-    }
-
-    try {
-        new URL(valor);
-        return true;
-    } catch {
-        return false;
-    }
-};
+const esUrlValida = (valor) =>
+    valor === null ||
+    valor === undefined ||
+    valor === "" ||
+    esUrlWebValida(valor);
 
 export class Logro {
     constructor(

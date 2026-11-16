@@ -1,17 +1,9 @@
 import { z } from "zod";
+import { sanitizarTexto } from "../utils/sanitizar.js";
+import { esUrlWebValida } from "../utils/enlaces.js";
 
-const esUrlValida = (valor) => {
-    if (valor === "") {
-        return true;
-    }
-
-    try {
-        new URL(valor);
-        return true;
-    } catch {
-        return false;
-    }
-};
+const esUrlValida = (valor) =>
+    valor === "" || esUrlWebValida(valor);
 
 const enlaceSistemaSchema = z
     .string()
@@ -35,10 +27,12 @@ export const crearLogroSchema = z.object(
             .string({
                 error: "La descripción del logro es obligatoria",
             })
-            .trim()
-            .min(1, {
-                error: "La descripción del logro es obligatoria",
-            }),
+            .transform(sanitizarTexto)
+            .pipe(
+                z.string().trim().min(1, {
+                    error: "La descripción del logro es obligatoria",
+                }),
+            ),
 
         porcentajeCompletitud: z
             .number({
@@ -61,13 +55,7 @@ export const crearLogroSchema = z.object(
 
 export const actualizarLogroSchema = z
     .object({
-        descripcion: z
-            .string()
-            .trim()
-            .min(1, {
-                error: "La descripción del logro es obligatoria",
-            })
-            .optional(),
+        descripcion: crearLogroSchema.shape.descripcion.optional(),
 
         porcentajeCompletitud: z
             .number()

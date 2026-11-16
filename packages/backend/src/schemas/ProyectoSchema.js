@@ -1,26 +1,63 @@
 import { z } from "zod";
 import { crearPerfilSchema } from "./PerfilSchema.js";
+import { sanitizarTexto } from "../utils/sanitizar.js";
+
+export const fechaCierreSchema = z.iso
+  .datetime({
+    offset: true,
+    error: "La fecha de cierre debe incluir fecha, hora y zona horaria",
+  })
+  .transform((valor) => new Date(valor))
+  .refine(
+    (fecha) => fecha.getTime() > Date.now(),
+    { message: "La fecha de cierre debe ser futura" },
+  )
+  .nullable()
+  .optional();
 
 export const usoIASchema = z
   .object({
-    descripcion: z.string().trim().min(1).max(500),
-    justificacion: z.string().trim().min(1).max(2000),
+    descripcion: z
+      .string()
+      .transform(sanitizarTexto)
+      .pipe(z.string().trim().min(1).max(500)),
+
+    justificacion: z
+      .string()
+      .transform(sanitizarTexto)
+      .pipe(z.string().trim().min(1).max(2000)),
     grado: z.enum(["BAJO", "MEDIO", "ALTO"]),
   })
   .strict();
 export const camposAdicionalesProyecto = {
   requiereIA: z.boolean().nullable().optional(),
   usosIA: z.array(usoIASchema).max(50).optional(),
+  fechaCierre: fechaCierreSchema,
   versionTerminosAceptada: z.string().trim().min(1),
 };
 
 export const crearProyectoSchema = z.object(
   {
     ...camposAdicionalesProyecto,
-    titulo: z.string({ error: "El título del proyecto es obligatorio" }),
-    descripcion: z.string({
-      error: "La descripción del proyecto es obligatoria",
-    }),
+    titulo: z
+      .string({ error: "El título del proyecto es obligatorio" })
+      .transform(sanitizarTexto)
+      .pipe(
+        z.string().trim().min(1, {
+          error: "El título del proyecto es obligatorio",
+        }),
+      ),
+
+    descripcion: z
+      .string({
+        error: "La descripción del proyecto es obligatoria",
+      })
+      .transform(sanitizarTexto)
+      .pipe(
+        z.string().trim().min(1, {
+          error: "La descripción del proyecto es obligatoria",
+        }),
+      ),
     perfiles: z
       .array(crearPerfilSchema, {
         error: "Los perfiles del proyecto deben ser una lista",
@@ -33,8 +70,8 @@ export const crearProyectoSchema = z.object(
 export const actualizarProyectoSchema = z
   .object({
     ...camposAdicionalesProyecto,
-    titulo: z.string().trim().min(1).optional(),
-    descripcion: z.string().trim().min(1).optional(),
+    titulo: crearProyectoSchema.shape.titulo.optional(),
+    descripcion: crearProyectoSchema.shape.descripcion.optional(),
   })
   .strict()
   .refine(

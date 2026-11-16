@@ -32,6 +32,28 @@ const sessionResponse = respuesta("Sesión actual", {
   },
 });
 export const pathsAuth = {
+  "/api/colaboradoras/{id}/cuenta": {
+    parameters: [parametro("id", "Id de la colaboradora")],
+    delete: {
+      tags: ["Colaboradoras"],
+      security: [{ SessionCookie: [] }],
+      summary: "Elimina la cuenta personal y anonimiza su perfil",
+      description:
+        "Sólo puede ejecutarlo la titular. Borra credenciales, sesiones, " +
+        "contactos, notificaciones recibidas y datos de LinkedIn. " +
+        "Conserva el historial con el nombre Persona eliminada y rechaza " +
+        "las postulaciones pendientes. La acción es permanente.",
+      responses: {
+        204: {
+          description:
+            "Cuenta eliminada y cookie de sesión borrada. Sin cuerpo de respuesta.",
+        },
+        401: error("Se requiere una sesión válida"),
+        403: error("No se puede eliminar una cuenta ajena"),
+        404: error("La cuenta o el perfil no existen"),
+      },
+    },
+  },
   "/api/auth/registro": {
     post: {
       tags: ["Autenticación"],
