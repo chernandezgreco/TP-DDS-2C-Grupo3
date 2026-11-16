@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TipoCompromiso } from "../domain/Compromiso/TipoCompromiso.js";
+import { sanitizarTexto } from "../utils/sanitizar.js";
 
 const compromisoSchema = z.object(
   {
@@ -61,9 +62,16 @@ const fechaLimiteSchema = z
 
 export const crearPerfilSchema = z.object(
   {
-    descripcionPerfil: z.string({
-      error: "La descripción del perfil es obligatoria",
-    }),
+    descripcionPerfil: z
+      .string({
+        error: "La descripción del perfil es obligatoria",
+      })
+      .transform(sanitizarTexto)
+      .pipe(
+        z.string().trim().min(1, {
+          error: "La descripción del perfil es obligatoria",
+        }),
+      ),
     fechaLimite: fechaLimiteSchema,
     cantidadLimite: cantidadLimiteSchema,
     habilidadesRequeridas: habilidadesRequeridasSchema,
@@ -79,9 +87,7 @@ export const actualizarPerfilSchema = z
     {
       fechaLimite: fechaLimiteSchema,
       cantidadLimite: cantidadLimiteSchema,
-      descripcionPerfil: z
-        .string({ error: "La descripción del perfil debe ser un texto" })
-        .optional(),
+      descripcionPerfil: crearPerfilSchema.shape.descripcionPerfil.optional(),
       habilidadesRequeridas: habilidadesRequeridasSchema.optional(),
       habilidadesOpcionales: habilidadesOpcionalesSchema.optional(),
       compromiso: compromisoSchema.optional(),

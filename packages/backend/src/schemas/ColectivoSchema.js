@@ -1,14 +1,38 @@
 import { z } from "zod";
+import { sanitizarTexto } from "../utils/sanitizar.js";
 
 export const crearColectivoSchema = z.object(
   {
-    nombre: z.string({ error: "El nombre del colectivo es obligatorio" }),
-    descripcion: z.string({
-      error: "La descripción del colectivo es obligatoria",
+    nombre: z
+      .string({ error: "El nombre del colectivo es obligatorio" })
+      .transform(sanitizarTexto)
+      .pipe(
+        z.string().trim().min(1, {
+          error: "El nombre del colectivo es obligatorio",
+        }),
+      ),
+
+    descripcion: z
+      .string({
+        error: "La descripción del colectivo es obligatoria",
+      })
+      .transform(sanitizarTexto)
+      .pipe(
+        z.string().trim().min(1, {
+          error: "La descripción del colectivo es obligatoria",
+        }),
+      ),
+
+    tipo: z.string({
+      error: "El tipo de colectivo es obligatorio",
     }),
-    tipo: z.string({ error: "El tipo de colectivo es obligatorio" }),
+
     ubicacion: z
-      .string({ error: "La ubicación del colectivo debe ser un texto" })
+      .string({
+        error: "La ubicación del colectivo debe ser un texto",
+      })
+      .transform(sanitizarTexto)
+      .pipe(z.string().trim())
       .optional(),
   },
   { error: "Los datos del colectivo son obligatorios" },

@@ -19,6 +19,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.4",
     "mongoose": "^8.24.9",
+    "sanitize-html": "2.17.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^14.0.2",
     "zod": "^4.6.5"

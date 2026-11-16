@@ -1,13 +1,17 @@
 import { esTextoNoVacio } from "../validaciones.js";
 import { ConflictError, DomainError } from "../errores.js";
+import { esCuentaCodigoValida } from "../../utils/enlaces.js";
 
 export class Colaboradora {
     constructor(id, nombreFantasia, github, nombreApellido, habilidades, pronombres, presentacion, mediosContacto = [], aceptaMensajeria = false, experienciaHabilidades = [], linkedinFoto = "") {
         if (!esTextoNoVacio(nombreFantasia)) {
             throw new DomainError("El nombre de fantasía es obligatorio", { campo: "nombreFantasia" });
         }
-        if (!esTextoNoVacio(github)) {
-            throw new DomainError("La cuenta de GitHub o GitLab es obligatoria", { campo: "github" });
+        if (!esCuentaCodigoValida(github)) {
+            throw new DomainError(
+                "La cuenta de GitHub o GitLab no es válida",
+                { campo: "github" },
+            );
         }
         if (!Array.isArray(habilidades) || habilidades.length === 0) {
             throw new DomainError("La colaboradora debe tener al menos una habilidad", { campo: "habilidades" });

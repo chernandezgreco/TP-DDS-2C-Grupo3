@@ -4,6 +4,7 @@ import { validar } from "../middlewares/validar.js";
 import { requiereAdministracion } from "../middlewares/requiereAdministracion.js";
 import { TerminosService } from "../services/TerminosService.js";
 import { RssService } from "../services/RssService.js";
+import { sanitizarTexto } from "../utils/sanitizar.js";
 const router = Router();
 router.get("/terminos/actual", async (req, res) =>
   res.json(await TerminosService.actual()),
@@ -17,8 +18,15 @@ router.post(
   validar(
     z
       .object({
-        titulo: z.string().trim().min(1).max(200),
-        contenido: z.string().trim().min(1).max(50000),
+        titulo: z
+          .string()
+          .transform(sanitizarTexto)
+          .pipe(z.string().trim().min(1).max(200)),
+
+        contenido: z
+          .string()
+          .transform(sanitizarTexto)
+          .pipe(z.string().trim().min(1).max(50000)),
       })
       .strict(),
   ),
@@ -34,7 +42,10 @@ router.post(
         recurso: z.enum(["proyectos", "colectivos"]),
         recursoId: z.string().regex(/^[a-f\d]{24}$/i),
         suspendido: z.boolean(),
-        motivo: z.string().trim().min(1).max(2000),
+        motivo: z
+          .string()
+          .transform(sanitizarTexto)
+          .pipe(z.string().trim().min(1).max(2000)),
       })
       .strict(),
   ),
