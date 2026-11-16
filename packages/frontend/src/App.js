@@ -531,6 +531,15 @@ export default function App() {
                 }{" "}
                 · <span className="badge">{selected.estado}</span>
               </p>
+              {selected.fechaCierre && (
+                <p className="hint">
+                  Fecha de cierre programada:{" "}
+                  <time dateTime={selected.fechaCierre}>
+                    {new Date(selected.fechaCierre).toLocaleString("es-AR")}
+                  </time>
+                  {" "}(hora local)
+                </p>
+              )}
               <Markdown className="description">
                 {selected.descripcion}
               </Markdown>

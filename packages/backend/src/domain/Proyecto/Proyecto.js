@@ -14,6 +14,7 @@ export class Proyecto {
     logros = [],
     estaBuscando = true,
     estado = EstadoProyecto.ACTIVO,
+    fechaCierre = null,
   ) {
     if (!esTextoNoVacio(titulo)) {
       throw new DomainError("El título del proyecto es obligatorio", {
@@ -37,6 +38,18 @@ export class Proyecto {
       });
     }
 
+    if (
+      fechaCierre !== null &&
+      (
+        !(fechaCierre instanceof Date) ||
+        !Number.isFinite(fechaCierre.getTime())
+      )
+    ) {
+      throw new DomainError("La fecha de cierre no es válida", {
+        campo: "fechaCierre",
+      });
+    }
+
     this.id = id;
     this.titulo = titulo;
     this.descripcion = descripcion;
@@ -45,18 +58,36 @@ export class Proyecto {
     this.perfiles = [...perfiles];
     this.logros = logros;
     this.estaBuscando = estaBuscando;
+    this.fechaCierre =
+      fechaCierre === null ? null : new Date(fechaCierre.getTime());
   }
+  debeCerrarse(fechaActual = new Date()) {
+    return (
+      this.estado === EstadoProyecto.ACTIVO &&
+      this.fechaCierre !== null &&
+      this.fechaCierre.getTime() <= fechaActual.getTime()
+    );
+  }
+
   validarSePuedeAnotar() {
-    if (!this.estaBuscando) {
-      throw new DomainError(
-        "El proyecto no se encuentra buscando colaboradores actualmente",
-        { campo: "estaBuscando" },
-      );
-    }
     if (this.estado !== EstadoProyecto.ACTIVO) {
       throw new ConflictError(
         "No se puede postular a un proyecto que no está activo",
         { campo: "estado" },
+      );
+    }
+
+    if (this.debeCerrarse()) {
+      throw new ConflictError(
+        "La fecha de cierre del proyecto ya fue alcanzada.",
+        { proyectoId: this.id },
+      );
+    }
+
+    if (!this.estaBuscando) {
+      throw new DomainError(
+        "El proyecto no se encuentra buscando colaboradores actualmente",
+        { campo: "estaBuscando" },
       );
     }
   }
@@ -77,6 +108,7 @@ export class Proyecto {
     }
 
     this.estado = EstadoProyecto.FINALIZADO;
+    this.estaBuscando = false;
   }
 
   // --- Perfiles ---

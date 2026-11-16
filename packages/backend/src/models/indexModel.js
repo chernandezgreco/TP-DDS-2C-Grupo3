@@ -106,6 +106,7 @@ const proyectoSchema = new mongoose.Schema({
     default: () => ({ suspendido: false }),
   },
   estaBuscando: { type: Boolean, default: true },
+  fechaCierre: { type: Date, default: null },
   titulo: { type: String, required: true },
   descripcion: { type: String, required: true },
   colectivoId: { type: String, required: true },
@@ -117,6 +118,7 @@ const proyectoSchema = new mongoose.Schema({
   perfiles: { type: [perfilSchema], default: [] },
   logros: { type: [logroSchema], default: [] },
 });
+proyectoSchema.index({ estado: 1, fechaCierre: 1 });
 export const ProyectoModel = mongoose.model("Proyecto", proyectoSchema);
 
 // --- 4. COLABORADORA ---

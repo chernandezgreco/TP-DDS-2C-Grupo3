@@ -2,6 +2,19 @@ import { z } from "zod";
 import { crearPerfilSchema } from "./PerfilSchema.js";
 import { sanitizarTexto } from "../utils/sanitizar.js";
 
+export const fechaCierreSchema = z.iso
+  .datetime({
+    offset: true,
+    error: "La fecha de cierre debe incluir fecha, hora y zona horaria",
+  })
+  .transform((valor) => new Date(valor))
+  .refine(
+    (fecha) => fecha.getTime() > Date.now(),
+    { message: "La fecha de cierre debe ser futura" },
+  )
+  .nullable()
+  .optional();
+
 export const usoIASchema = z
   .object({
     descripcion: z
@@ -19,6 +32,7 @@ export const usoIASchema = z
 export const camposAdicionalesProyecto = {
   requiereIA: z.boolean().nullable().optional(),
   usosIA: z.array(usoIASchema).max(50).optional(),
+  fechaCierre: fechaCierreSchema,
   versionTerminosAceptada: z.string().trim().min(1),
 };
 

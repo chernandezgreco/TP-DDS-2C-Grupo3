@@ -26,7 +26,21 @@ export const pathsEdicion = {
     ),
   },
   "/api/colectivos/{colectivoId}/proyectos/{proyectoId}": {
-    put: update("Proyectos", actualizarProyectoSchema, "Proyecto"),
+    put: {
+      ...update("Proyectos", actualizarProyectoSchema, "Proyecto"),
+      description:
+        "Permite configurar una fechaCierre futura con zona horaria. " +
+        "Omitirla conserva la programación; null la elimina. " +
+        "No se puede reprogramar un proyecto vencido o finalizado. " +
+        "El backend revisa vencimientos al arrancar y cada minuto; " +
+        "las postulaciones y aceptaciones se bloquean desde el vencimiento.",
+      responses: {
+        200: respuesta("Datos actualizados", ref("Proyecto")),
+        400: error("Datos inválidos o fecha no futura"),
+        404: error("Proyecto inexistente o ajeno"),
+        409: error("Proyecto vencido o finalizado: no se puede reprogramar"),
+      },
+    },
     delete: {
       tags: ["Proyectos"],
       summary: "Elimina un proyecto sin historial",

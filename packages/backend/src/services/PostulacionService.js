@@ -92,7 +92,7 @@ export class PostulacionService {
 
   static async cambiarEstadoPostulacion(postulacionId, nuevoEstado) {
     const actual = await this.obtenerPorId(postulacionId);
-    return serializar(actual.proyectoId + ":" + actual.perfilId, () =>
+    return serializar(`proyecto:${actual.proyectoId}`, () =>
       this.procesarCambio(postulacionId, nuevoEstado),
     );
   }
@@ -111,6 +111,11 @@ export class PostulacionService {
       const proyecto = await ProyectoService.obtenerPorId(
         postulacion.proyectoId,
       );
+      if (proyecto.debeCerrarse()) {
+        throw new ConflictError(
+          "La fecha de cierre del proyecto ya fue alcanzada.",
+        );
+      }
       if (!proyecto.estaActivo())
         throw new DomainError("El proyecto está finalizado.");
       const perfil = proyecto.obtenerPerfil(postulacion.perfilId);

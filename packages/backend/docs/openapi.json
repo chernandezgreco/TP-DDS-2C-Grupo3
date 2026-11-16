@@ -796,6 +796,12 @@
                       "additionalProperties": false
                     }
                   },
+                  "fechaCierre": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
                   "versionTerminosAceptada": {
                     "type": "string",
                     "minLength": 1
@@ -1078,7 +1084,7 @@
           "Proyectos"
         ],
         "summary": "Edita datos de Proyecto",
-        "description": "Pendiente integrar autenticación y autorización de sesión.",
+        "description": "Permite configurar una fechaCierre futura con zona horaria. Omitirla conserva la programación; null la elimina. No se puede reprogramar un proyecto vencido o finalizado. El backend revisa vencimientos al arrancar y cada minuto; las postulaciones y aceptaciones se bloquean desde el vencimiento.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1119,6 +1125,12 @@
                       "additionalProperties": false
                     }
                   },
+                  "fechaCierre": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
                   "versionTerminosAceptada": {
                     "type": "string",
                     "minLength": 1
@@ -1150,7 +1162,7 @@
             }
           },
           "400": {
-            "description": "Cambios inválidos",
+            "description": "Datos inválidos o fecha no futura",
             "content": {
               "application/json": {
                 "schema": {
@@ -1166,7 +1178,17 @@
             "description": "La cuenta no tiene permiso para esta operación"
           },
           "404": {
-            "description": "Recurso inexistente o ajeno",
+            "description": "Proyecto inexistente o ajeno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Proyecto vencido o finalizado: no se puede reprogramar",
             "content": {
               "application/json": {
                 "schema": {
@@ -4213,6 +4235,12 @@
               "ACTIVO",
               "FINALIZADO"
             ]
+          },
+          "fechaCierre": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Instante de cierre automático. null indica que no hay cierre programado."
           },
           "perfiles": {
             "type": "array",

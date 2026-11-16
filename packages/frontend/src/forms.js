@@ -2,6 +2,25 @@ import PropTypes from "prop-types";
 import Markdown from "./Markdown";
 import HuellaIA from "./HuellaIA";
 import React, { useState } from "react";
+
+export const fechaCierreParaFormulario = (valor) => {
+  if (!valor) {
+    return "";
+  }
+
+  const fecha = new Date(valor);
+
+  if (!Number.isFinite(fecha.getTime())) {
+    return "";
+  }
+
+  const fechaLocal = new Date(
+    fecha.getTime() - fecha.getTimezoneOffset() * 60000,
+  );
+
+  return fechaLocal.toISOString().slice(0, 16);
+};
+
 const field = (name, label, type = "text", extra = {}) => ({
   name,
   label,
@@ -11,6 +30,7 @@ const field = (name, label, type = "text", extra = {}) => ({
 export const projectFields = [
   field("titulo", "Título", "text", { required: true }),
   field("descripcion", "Descripción", "textarea", { required: true }),
+  field("fechaCierre", "Cierre automático (hora local, opcional)", "datetime-local"),
 ];
 export const collectiveFields = [
   field("nombre", "Nombre", "text", { required: true }),
@@ -85,6 +105,9 @@ export function ResourceForm({
     ...initial.compromiso,
     ...initial.modalidad,
     fechaLimite: initial.fechaLimite?.slice(0, 10),
+    ...(fields.some((f) => f.name === "fechaCierre")
+      ? { fechaCierre: fechaCierreParaFormulario(initial.fechaCierre) }
+      : {}),
   }));
   const [error, setError] = useState("");
   const update = (f, e) =>
@@ -116,6 +139,28 @@ export function ResourceForm({
       ) {
         setError("Completá " + f.label.toLowerCase());
         return;
+      }
+    }
+    if (fields.some((f) => f.name === "fechaCierre")) {
+      const valor = result.fechaCierre ?? "";
+      const original = fechaCierreParaFormulario(initial.fechaCierre);
+
+      if (valor === original) {
+        delete result.fechaCierre;
+      } else if (valor === "") {
+        result.fechaCierre = null;
+      } else {
+        const fecha = new Date(valor);
+
+        if (
+          !Number.isFinite(fecha.getTime()) ||
+          fecha.getTime() <= Date.now()
+        ) {
+          setError("La fecha de cierre debe ser válida y futura.");
+          return;
+        }
+
+        result.fechaCierre = fecha.toISOString();
       }
     }
     if (fields.some((f) => f.name === "cantidadHoras")) {

@@ -46,6 +46,13 @@ export const schemasProyectos = {
             descripcion: { type: "string" },
             colectivoId: { type: "string" },
             estado: { type: "string", enum: Object.values(EstadoProyecto) },
+            fechaCierre: {
+                type: "string",
+                format: "date-time",
+                nullable: true,
+                description:
+                    "Instante de cierre automático. null indica que no hay cierre programado.",
+            },
             perfiles: lista(ref("Perfil")),
             logros: lista(ref("Logro")),
         },
