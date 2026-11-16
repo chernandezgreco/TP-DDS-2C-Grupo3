@@ -8,12 +8,23 @@ export default function PublicProfile({
   onClose,
   onContacts,
 }) {
+  const experiencia = new Map(
+    (profile.experienciaHabilidades || []).map((item) => [item.codigo, item]),
+  );
   return (
     <section className="panel">
       <button className="text-button" onClick={onClose}>
         ← Volver al listado
       </button>
       <h1>{profile.nombre || profile.nombreFantasia}</h1>
+      {profile.linkedinFoto && /^https:\/\//i.test(profile.linkedinFoto) && (
+        <img
+          className="linkedin-avatar"
+          src={profile.linkedinFoto}
+          alt="Foto importada desde LinkedIn"
+          referrerPolicy="no-referrer"
+        />
+      )}
       <p>
         {profile.tipo?.replaceAll("_", " ") ||
           profile.pronombres ||
@@ -30,7 +41,14 @@ export default function PublicProfile({
           <h2>Habilidades</h2>
           <div className="tags">
             {profile.habilidades.map((h) => (
-              <span key={h}>{skillName(h)}</span>
+              <span key={h}>
+                {skillName(h)}
+                {experiencia.has(h) && (
+                  <small className="skill-experience-tag">
+                    {experiencia.get(h).nivel.toLowerCase()} · {experiencia.get(h).anios} años
+                  </small>
+                )}
+              </span>
             ))}
           </div>
           {profile.github && (
