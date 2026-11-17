@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { nuevoId } from "./ids.js";
 import { Logro } from "../domain/Logro/Logro.js";
 import { ProyectoService } from "./ProyectoService.js";
 
@@ -7,7 +7,7 @@ export class LogroService {
         const proyecto = await ProyectoService.obtenerPorId(proyectoId);
 
         const logro = new Logro(
-            uuidv4(),
+            nuevoId(),
             datos.descripcion,
             datos.porcentajeCompletitud,
             datos.enlaceSistema,

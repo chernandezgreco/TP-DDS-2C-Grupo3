@@ -2,7 +2,7 @@
 // Uso: npm run seed (toma MONGO_URI del .env). Cuidado: pisa todo lo que haya en esa base.
 import "dotenv/config";
 import mongoose from "mongoose";
-import { v4 as uuidv4 } from "uuid";
+import { nuevoId } from "../services/ids.js";
 import { conectarMongo } from "../config/mongo.js";
 import {
     ColaboracionModel,
@@ -46,7 +46,7 @@ const proyectos = PROYECTOS.map((p) => new Proyecto(
     p.titulo,
     p.descripcion,
     p.colectivoId,
-    p.perfiles.map((perfil) => crearPerfil(uuidv4(), perfil))
+    p.perfiles.map((perfil) => crearPerfil(nuevoId(), perfil))
 ));
 
 // las colaboraciones se arman con los proyectos activos; recién después se cierran los finalizados

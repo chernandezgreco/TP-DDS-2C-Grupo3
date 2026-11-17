@@ -111,6 +111,7 @@ export const pathsContacto = {
                                 properties: {
                                     notificacion: { $ref: "#/components/schemas/Notificacion" },
                                     mediosUsados: { type: "array", items: { $ref: "#/components/schemas/MedioContacto" } },
+                                    mediosFallidos: { type: "array", items: { $ref: "#/components/schemas/MedioContacto" }, description: "Medios cuyo envío falló; la notificación interna se guarda igual" },
                                 },
                             },
                         },

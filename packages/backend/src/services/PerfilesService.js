@@ -1,6 +1,6 @@
 import { ColaboracionModel, PostulacionModel } from "../models/indexModel.js";
 import { DomainError } from "../domain/errores.js";
-import { v4 as uuidv4 } from "uuid";
+import { nuevoId } from "./ids.js";
 import { ProyectoService, crearPerfil } from "./ProyectoService.js";
 import { ColaboradoraService } from "./ColaboradoraService.js";
 import { HabilidadService } from "./HabilidadService.js";
@@ -19,7 +19,7 @@ export class PerfilesService {
   static async crear(proyectoId, datos) {
     const proyecto = await ProyectoService.obtenerPorId(proyectoId);
 
-    const perfil = crearPerfil(uuidv4(), datos);
+    const perfil = crearPerfil(nuevoId(), datos);
     await HabilidadService.validarExistentes(perfil.todasLasHabilidades());
 
     proyecto.agregarPerfil(perfil);

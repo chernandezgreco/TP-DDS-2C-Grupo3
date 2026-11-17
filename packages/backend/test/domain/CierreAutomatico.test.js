@@ -93,3 +93,36 @@ describe("Cierre automático de proyectos", () => {
         );
     });
 });
+
+describe("Reabrir la búsqueda de colaboradores", () => {
+    test("se puede cerrar y reabrir la búsqueda de un proyecto activo", () => {
+        const proyecto = crearProyecto();
+
+        proyecto.cambiarEstadoBusqueda(false);
+        expect(proyecto.estaBuscando).toBe(false);
+        proyecto.cambiarEstadoBusqueda(true);
+        expect(proyecto.estaBuscando).toBe(true);
+    });
+
+    test("no se reabre la búsqueda de un proyecto finalizado", () => {
+        const proyecto = crearProyecto();
+        proyecto.cerrar();
+
+        expect(() => proyecto.cambiarEstadoBusqueda(true)).toThrow(ConflictError);
+        expect(proyecto.estaBuscando).toBe(false);
+    });
+
+    test("no se reabre la búsqueda de un proyecto vencido que todavía no se cerró", () => {
+        const proyecto = crearProyecto(new Date("2000-01-01T00:00:00Z"));
+        proyecto.cambiarEstadoBusqueda(false);
+
+        expect(() => proyecto.cambiarEstadoBusqueda(true)).toThrow(ConflictError);
+    });
+
+    test("un proyecto finalizado admite dejar la búsqueda cerrada", () => {
+        const proyecto = crearProyecto();
+        proyecto.cerrar();
+
+        expect(() => proyecto.cambiarEstadoBusqueda(false)).not.toThrow();
+    });
+});

@@ -18,6 +18,7 @@ export default function ExperienciaHabilidades({ person, skills, busy, onSave })
         codigo,
         nivel: actual.get(codigo)?.nivel || "INICIAL",
         anios: actual.get(codigo)?.anios ?? 0,
+        descripcion: actual.get(codigo)?.descripcion || "",
       })),
     );
   }, [person.habilidades, person.experienciaHabilidades]);
@@ -61,6 +62,16 @@ export default function ExperienciaHabilidades({ person, skills, busy, onSave })
                 step="1"
                 value={item.anios}
                 onChange={(event) => cambiar(item.codigo, "anios", Number(event.target.value))}
+                disabled={busy}
+              />
+            </label>
+            <label>
+              Descripción (opcional)
+              <textarea
+                maxLength={500}
+                rows={2}
+                value={item.descripcion}
+                onChange={(event) => cambiar(item.codigo, "descripcion", event.target.value)}
                 disabled={busy}
               />
             </label>

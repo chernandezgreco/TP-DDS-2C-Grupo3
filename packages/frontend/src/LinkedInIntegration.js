@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import { api } from "./api";
 
 export default function LinkedInIntegration({ actorType, onImported }) {
@@ -103,3 +104,8 @@ export default function LinkedInIntegration({ actorType, onImported }) {
     </section>
   );
 }
+
+LinkedInIntegration.propTypes = {
+  actorType: PropTypes.string,
+  onImported: PropTypes.func.isRequired,
+};

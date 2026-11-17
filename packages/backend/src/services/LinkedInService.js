@@ -1,3 +1,4 @@
+import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
 import {
   createCipheriv,
   createDecipheriv,
@@ -216,6 +217,7 @@ export class LinkedInService {
       const participacion = await ColaboracionModel.exists({
         proyectoId,
         colaboradoraId: actor.id,
+        estado: EstadoColaboracion.ACTIVA,
       });
       if (!participacion)
         throw new ForbiddenError("Sólo podés compartir logros de proyectos en los que colaborás.");

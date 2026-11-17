@@ -155,6 +155,11 @@ export class Proyecto {
     return this.perfiles.filter((perfil) => perfil.admiteA(colaboradora));
   }
 
+  // compatible si tiene al menos una habilidad requerida de algun perfil del proyecto
+  esCompatibleCon(colaboradora) {
+    return this.perfilesPara(colaboradora).length > 0;
+  }
+
   // el perfil en el que queda anotada la colaboradora: el que eligió o el primero que le corresponde
   perfilParaAnotar(colaboradora, perfilId) {
     this.validarSePuedeAnotar();
@@ -245,6 +250,13 @@ export class Proyecto {
       throw new DomainError(
         "El estado de búsqueda debe ser un valor booleano",
         { campo: "estaBuscando" },
+      );
+    }
+    // cerrar la busqueda siempre se puede; reabrirla no si el proyecto ya terminó o venció
+    if (nuevoEstado && (!this.estaActivo() || this.debeCerrarse())) {
+      throw new ConflictError(
+        "No se puede reabrir la búsqueda de un proyecto finalizado o vencido",
+        { proyectoId: this.id },
       );
     }
     this.estaBuscando = nuevoEstado;

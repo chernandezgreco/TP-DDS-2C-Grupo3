@@ -543,7 +543,7 @@ export default function App() {
               <Markdown className="description">
                 {selected.descripcion}
               </Markdown>
-              {!isOwner && (
+              {!isOwner && actor?.type !== "colectivos" && (
                 <button
                   className="secondary"
                   onClick={() => iniciarDenuncia("proyecto", selected)}
@@ -1631,7 +1631,7 @@ export default function App() {
                           <footer>
                             <small>
                               {x.titulo
-                                ? `${x.perfiles?.length || 0} perfiles`
+                                ? `${x.perfiles?.length || 0} ${x.perfiles?.length === 1 ? "perfil" : "perfiles"}`
                                 : x.ubicacion ||
                                   x.pronombres ||
                                   "Código a Voluntad"}
@@ -1660,7 +1660,8 @@ export default function App() {
                             )}
                           </footer>
                           {page === "proyectos" &&
-                            x.colectivoId !== actor?.id && (
+                            x.colectivoId !== actor?.id &&
+                            actor?.type !== "colectivos" && (
                               <button
                                 className="text-button"
                                 onClick={() => iniciarDenuncia("proyecto", x)}
@@ -1668,7 +1669,9 @@ export default function App() {
                                 Denunciar proyecto
                               </button>
                             )}
-                          {page === "colectivos" && idOf(x) !== actor?.id && (
+                          {page === "colectivos" &&
+                            idOf(x) !== actor?.id &&
+                            actor?.type !== "colectivos" && (
                             <button
                               className="text-button"
                               onClick={() => iniciarDenuncia("colectivo", x)}
@@ -1758,18 +1761,24 @@ export default function App() {
                 }}
               />
             ) : form.denuncia ? (
-              <DenunciaForm
-                {...form.denuncia}
-                busy={busy}
-                onCancel={() => setForm(null)}
-                onSubmit={async (values) => {
-                  const ok = await run(
-                    () => api.post("/denuncias", values),
-                    "Denuncia enviada para revisión.",
-                  );
-                  if (ok) setForm(null);
-                }}
-              />
+              <>
+                {/* el servidor rechaza con 403 a quien no participó: el motivo se ve dentro del modal */}
+                <p role="alert" className={error ? "error" : ""}>
+                  {error}
+                </p>
+                <DenunciaForm
+                  {...form.denuncia}
+                  busy={busy}
+                  onCancel={() => setForm(null)}
+                  onSubmit={async (values) => {
+                    const ok = await run(
+                      () => api.post("/denuncias", values),
+                      "Denuncia enviada para revisión.",
+                    );
+                    if (ok) setForm(null);
+                  }}
+                />
+              </>
             ) : form.path ? (
               <>
                 <p role="alert" className={error ? "error" : ""}>

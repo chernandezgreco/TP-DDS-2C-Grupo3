@@ -4,7 +4,7 @@ import { NotFoundError } from "../domain/errores.js";
 
 export const LOGROS_INICIALES = [
     {
-        id: "7209f904-0156-42f7-b401-14ff19894660",
+        id: "6720a1f00000000000000001",
         descripcion: "Diseño inicial del sistema terminado",
         porcentajeCompletitud: 25,
         enlaceSistema: null,
@@ -13,7 +13,7 @@ export const LOGROS_INICIALES = [
         fechaCreacion: new Date("2026-10-01T12:00:00Z"),
     },
     {
-        id: "95cbab52-671d-4c59-a4a3-b7966537619e",
+        id: "6720a1f00000000000000002",
         descripcion: "Primera versión de la API implementada",
         porcentajeCompletitud: 50,
         enlaceSistema: null,
@@ -43,12 +43,12 @@ export const cargarLogrosIniciales = async (proyectoId) => {
         await ProyectoModel.updateOne(
             {
                 _id: proyectoId,
-                "logros.id": { $ne: logro.id },
+                "logros._id": { $ne: logro.id },
             },
             {
                 $push: {
                     logros: {
-                        id: logro.id,
+                        _id: logro.id,
                         descripcion: logro.descripcion,
                         porcentajeCompletitud: logro.porcentajeCompletitud,
                         enlaceSistema: logro.enlaceSistema,

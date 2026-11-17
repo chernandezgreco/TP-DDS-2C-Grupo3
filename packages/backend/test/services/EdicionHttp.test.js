@@ -172,3 +172,27 @@ test("elimina proyectos sin historial y preserva los que tienen postulaciones", 
   ).toBe(204);
   expect(await ProyectoModel.exists({ _id: vacio.id })).toBeNull();
 });
+
+test("reabrir la búsqueda de un proyecto finalizado o vencido responde 409", async () => {
+  const c = await colectivo();
+  const finalizado = await ProyectoService.crearProyecto(
+    { versionTerminosAceptada: "1.0", titulo: "Finalizado", descripcion: "Descripción" },
+    c.id,
+  );
+  const vencido = await ProyectoService.crearProyecto(
+    { versionTerminosAceptada: "1.0", titulo: "Vencido", descripcion: "Descripción" },
+    c.id,
+  );
+  await ProyectoModel.updateOne({ _id: finalizado.id }, { estado: "FINALIZADO", estaBuscando: false });
+  await ProyectoModel.updateOne(
+    { _id: vencido.id },
+    { fechaCierre: new Date("2000-01-01T00:00:00Z"), estaBuscando: false },
+  );
+
+  for (const proyecto of [finalizado, vencido]) {
+    const ruta = `/colectivos/${c.id}/proyectos/${proyecto.id}/busqueda`;
+    expect((await request(ruta, "PATCH", { estaBuscando: true })).status).toBe(409);
+    expect((await request(ruta, "PATCH", { estaBuscando: false })).status).toBe(200);
+  }
+  expect((await ProyectoService.obtenerPorId(finalizado.id)).estaBuscando).toBe(false);
+});

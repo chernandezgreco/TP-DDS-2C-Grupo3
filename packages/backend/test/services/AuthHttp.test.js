@@ -244,7 +244,14 @@ test("postulación anónima conserva identidad interna, contactos requieren acep
       })
     ).status,
   ).toBe(200);
-  expect(await ColaboracionModel.countDocuments({ proyectoId: p.id })).toBe(0);
+  // la baja conserva el registro como historial, pero ya no cuenta como colaboración activa
+  expect(await ColaboracionModel.countDocuments({ proyectoId: p.id })).toBe(1);
+  expect(
+    await ColaboracionModel.countDocuments({
+      proyectoId: p.id,
+      estado: "ACTIVA",
+    }),
+  ).toBe(0);
   expect(
     (await req(`/colaboradoras/${cid}/contactos`, { cookie: a.cookie })).status,
   ).toBe(403);

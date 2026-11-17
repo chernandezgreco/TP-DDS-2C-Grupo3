@@ -26,7 +26,7 @@ let colectivo;
 let colaboradora;
 
 const perfil = {
-    id: "perfil-1",
+    _id: "6720a1f00000000000000011",
     descripcionPerfil: "Frontend",
     habilidadesRequeridas: ["react"],
     habilidadesOpcionales: [],
@@ -102,12 +102,12 @@ test("rechaza pendientes y conserva aceptaciones y colaboraciones", async () => 
     await PostulacionModel.create([
         {
             proyectoId: proyecto.id,
-            perfilId: perfil.id,
+            perfilId: perfil._id,
             colaboradoraId: colaboradora.id,
         },
         {
             proyectoId: proyecto.id,
-            perfilId: perfil.id,
+            perfilId: perfil._id,
             colaboradoraId: otra.id,
             estado: "ACEPTADA",
         },
@@ -115,7 +115,7 @@ test("rechaza pendientes y conserva aceptaciones y colaboraciones", async () => 
 
     const participacion = await ColaboracionModel.create({
         proyectoId: proyecto.id,
-        perfilId: perfil.id,
+        perfilId: perfil._id,
         colaboradoraId: otra.id,
     });
 
@@ -131,14 +131,14 @@ test("el vencimiento impide postularse, aceptar y reprogramar antes de la revisi
     const proyecto = await crearProyecto(new Date(Date.now() - 1000));
     const pendiente = await PostulacionModel.create({
         proyectoId: proyecto.id,
-        perfilId: perfil.id,
+        perfilId: perfil._id,
         colaboradoraId: colaboradora.id,
     });
 
     await expect(
         ProyectoService.anotarPostulacion(proyecto.id, {
             colaboradoraId: colaboradora.id,
-            perfilId: perfil.id,
+            perfilId: perfil._id,
         }),
     ).rejects.toThrow(ConflictError);
 
@@ -164,7 +164,7 @@ test("guardar una copia anterior no reabre un proyecto cerrado", async () => {
 
     await ProyectoService.cerrarProyecto(colectivo.id, proyecto.id);
 
-    copia.agregarLogro(new Logro("logro-1", "Hito publicado", 50));
+    copia.agregarLogro(new Logro("6720a1f00000000000000012", "Hito publicado", 50));
     await ProyectoService.guardar(copia);
 
     const guardado = await ProyectoModel.findById(proyecto.id);

@@ -26,7 +26,7 @@ const logroId = {
     in: "path",
     required: true,
     description: "UUID del logro",
-    schema: { type: "string", format: "uuid" },
+    schema: { type: "string", pattern: "^[a-f0-9]{24}$", description: "ObjectId de Mongo" },
 };
 
 const camposLogro = {
@@ -68,7 +68,7 @@ export const schemasLogros = {
             "fechaCreacion",
         ],
         properties: {
-            id: { type: "string", format: "uuid" },
+            id: { type: "string", pattern: "^[a-f0-9]{24}$", description: "ObjectId de Mongo" },
             ...camposLogro,
             fechaCreacion: { type: "string", format: "date-time" },
         },

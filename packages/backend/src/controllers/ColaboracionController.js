@@ -20,7 +20,12 @@ async function visibles(items, actor) {
 }
 export class ColaboracionController {
   static async listar(req, res) {
-    res.json(await visibles(await ColaboracionService.listar(), req.actor));
+    res.json(
+      await visibles(
+        await ColaboracionService.listar(req.query.estado),
+        req.actor,
+      ),
+    );
   }
 
   static async obtenerPorId(req, res) {

@@ -8,6 +8,7 @@ import { pathsCatalogo, schemasCatalogo } from "./catalogo.js";
 import { pathsProyectos, schemasProyectos } from "./proyectos.js";
 import { pathsContacto, schemasContacto } from "./contactoNotificaciones.js";
 import { pathsLogros, schemasLogros } from "./logros.js";
+import { pathsAmpliaciones } from "./ampliaciones.js";
 
 // Cada modulo suma sus paths y schemas acá
 export const especificacion = {
@@ -46,6 +47,8 @@ for (const [path, operations] of Object.entries(pathsEdicion)) {
 }
 
 Object.assign(especificacion.paths, pathsAdicionales);
+for (const [path, item] of Object.entries(pathsAmpliaciones))
+  especificacion.paths[path] = { ...especificacion.paths[path], ...item };
 especificacion.components.securitySchemes = {
   AdminApiKey: {
     type: "http",
@@ -105,5 +108,28 @@ for (const path of ["/api/colectivos", "/api/colaboradoras"]) {
     especificacion.paths[path].post.deprecated = true;
     especificacion.paths[path].post.description =
       "El alta con credenciales se realiza mediante POST /api/auth/registro.";
+  }
+}
+
+// Si una ruta tiene {parametros} que ninguna operacion declara, se agregan para que Swagger UI pida el valor
+for (const [path, item] of Object.entries(especificacion.paths)) {
+  const enRuta = [...path.matchAll(/\{(\w+)\}/g)].map(([, nombre]) => nombre);
+  for (const method of ["get", "post", "put", "patch", "delete"]) {
+    const operacion = item[method];
+    if (!operacion) continue;
+    const declarados = [...(item.parameters ?? []), ...(operacion.parameters ?? [])]
+      .filter((parametro) => parametro.in === "path")
+      .map((parametro) => parametro.name);
+    const faltantes = enRuta.filter((nombre) => !declarados.includes(nombre));
+    if (faltantes.length)
+      operacion.parameters = [
+        ...(operacion.parameters ?? []),
+        ...faltantes.map((nombre) => ({
+          name: nombre,
+          in: "path",
+          required: true,
+          schema: { type: "string" },
+        })),
+      ];
   }
 }

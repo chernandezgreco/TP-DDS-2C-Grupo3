@@ -108,6 +108,7 @@ npm run dev                                    # backend con recarga automática
 | `MONGO_URI` | Conexión a MongoDB (obligatoria) | `mongodb://localhost:27017/codigo_a_voluntad` |
 | `SERVER_PORT` / `PORT` | Puerto del backend (`PORT` tiene prioridad; por defecto 8000) | `8000` |
 | `ALLOWED_ORIGINS` | Orígenes permitidos por CORS, separados por coma | `http://localhost:3000` |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | Servidor de correo para enviar las notificaciones por email de verdad. Sin `SMTP_HOST` el envío se simula por consola; SMS y WhatsApp siempre se simulan | `smtp.gmail.com` / `587` |
 
 ### Scripts del backend (`packages/backend`)
 
@@ -119,7 +120,7 @@ npm run dev                                    # backend con recarga automática
 | `npm test` | Corre los tests de dominio y de services |
 | `npm run openapi` | Regenera `docs/openapi.json` a partir de la definición de Swagger |
 
-El despliegue en producción está explicado en [DEPLOY.md](DEPLOY.md).
+El despliegue en producción está explicado en [DEPLOY.md](DEPLOY.md). La aplicación publicada (front y API juntos) está en https://codigo-a-voluntad-g3.onrender.com.
 
 ---
 
@@ -234,6 +235,28 @@ También hay una **colección de Postman** en [`packages/backend/postman_collect
 | GET | `/api/proyectos/:proyectoId/logros/:logroId` | Obtiene un logro |
 | PUT | `/api/proyectos/:proyectoId/logros/:logroId` | Actualiza los campos informados |
 | DELETE | `/api/proyectos/:proyectoId/logros/:logroId` | Elimina un logro |
+
+**Agregados en la 3ra entrega** (detalle y respuestas en Swagger):
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| **Postulaciones y bajas** | | |
+| POST | `/api/proyectos/:proyectoId/postularse` | La colaboradora se postula a un perfil |
+| PATCH | `/api/colectivos/:colectivoId/proyectos/:proyectoId/postulaciones/:postulacionId` | El colectivo acepta o rechaza |
+| PATCH | `/api/colectivos/:colectivoId/proyectos/:proyectoId/busqueda` | Abre o cierra la búsqueda (no se reabre si el proyecto terminó o venció) |
+| DELETE | `/api/colectivos/colaboraciones/:colaboracionId` | Baja lógica hecha por el colectivo (queda en el historial) |
+| DELETE | `/api/colaboradoras/:colaboradoraId/proyectos/:proyectoId/baja` | Baja lógica hecha por la colaboradora |
+| **Perfil y cuentas** | | |
+| PUT | `/api/colaboradoras/:id/experiencia-habilidades` | Nivel, años y descripción opcional por habilidad |
+| DELETE | `/api/colaboradoras/:id/cuenta` | La colaboradora elimina su cuenta |
+| DELETE | `/api/colectivos/:id/cuenta` | El colectivo elimina su cuenta |
+| **Denuncias** | | |
+| POST | `/api/denuncias` | Denuncia a un colectivo o proyecto en el que se participó |
+| GET / PATCH | `/api/admin/denuncias` · `/api/admin/denuncias/:id/estado` | Revisión por administración (Bearer `ADMIN_API_KEY`) |
+| **LinkedIn** | | |
+| GET / DELETE | `/api/integraciones/linkedin` | Estado de la conexión / desconectar |
+| GET | `/api/integraciones/linkedin/conectar` · `/callback` | Autorización OAuth |
+| POST | `/api/integraciones/linkedin/importar` · `/publicar-logro` | Importar perfil / publicar un logro |
 
 ### Ejemplo: anotar a una colaboradora
 

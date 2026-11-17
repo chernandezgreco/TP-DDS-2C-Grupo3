@@ -17,7 +17,7 @@ export const schemasProyectos = {
     Perfil: {
         type: "object",
         properties: {
-            id: { type: "string", format: "uuid" },
+            id: { type: "string", pattern: "^[a-f0-9]{24}$", description: "ObjectId de Mongo" },
             descripcionPerfil: { type: "string", example: "Tester" },
             habilidadesRequeridas: lista({ type: "string", example: "testing-e2e-con-cypress" }),
             habilidadesOpcionales: lista({ type: "string", example: "soapui" }),
@@ -62,7 +62,7 @@ export const schemasProyectos = {
         properties: {
             id: { type: "string" },
             proyectoId: { type: "string" },
-            perfilId: { type: "string", format: "uuid" },
+            perfilId: { type: "string", pattern: "^[a-f0-9]{24}$", description: "ObjectId de Mongo" },
             colaboradoraId: { type: "string", description: "\"Anonimo\" si la colaboración es anónima" },
             estado: { type: "string", enum: Object.values(EstadoColaboracion) },
             fechaCreacion: { type: "string", format: "date-time" },
