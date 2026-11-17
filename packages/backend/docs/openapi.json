@@ -2496,7 +2496,17 @@
           "403": {
             "description": "La cuenta no tiene permiso para esta operación"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/api/colaboradoras/{id}/preferencias": {
