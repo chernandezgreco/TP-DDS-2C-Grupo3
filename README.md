@@ -120,7 +120,7 @@ npm run dev                                    # backend con recarga automática
 | `npm test` | Corre los tests de dominio y de services |
 | `npm run openapi` | Regenera `docs/openapi.json` a partir de la definición de Swagger |
 
-El despliegue en producción está explicado en [DEPLOY.md](DEPLOY.md).
+El despliegue en producción está explicado en [DEPLOY.md](DEPLOY.md). La aplicación publicada (front y API juntos) está en https://codigo-a-voluntad-g3.onrender.com.
 
 ---
 

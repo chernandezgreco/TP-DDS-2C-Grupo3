@@ -50,6 +50,14 @@ Desde la 3ra entrega hay **un solo servicio**: la imagen del `Dockerfile` compil
 
 Render gratis no corre un contenedor de MongoDB con datos persistentes, así que la base va en **MongoDB Atlas** (cluster gratuito M0). Para correr todo en un servidor propio con Mongo en Docker, ver "Servidor propio" más abajo.
 
+**Estado (17/11/2026): desplegado.**
+
+- URL pública (front y API): https://codigo-a-voluntad-g3.onrender.com
+- Health check: https://codigo-a-voluntad-g3.onrender.com/health
+- Documentación de la API: https://codigo-a-voluntad-g3.onrender.com/api-docs
+- Servicio en Render (plan Free, rama `E3-Correcciones-E2`, Dockerfile `packages/backend/Dockerfile`) y base en MongoDB Atlas (M0), con los datos de ejemplo cargados con `npm run seed`.
+- El plan Free duerme el servicio sin tráfico: la primera visita después de un rato tarda cerca de 50 segundos.
+
 ### 1. Base en Atlas
 
 1. Crear cuenta en https://www.mongodb.com/atlas y un cluster gratuito (M0).
