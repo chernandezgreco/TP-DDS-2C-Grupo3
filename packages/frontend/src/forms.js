@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import Markdown from "./Markdown";
 import HuellaIA from "./HuellaIA";
 import React, { useState } from "react";
+import { estadosPermitidos } from "./tareas";
 const field = (name, label, type = "text", extra = {}) => ({
   name,
   label,
@@ -69,6 +70,49 @@ export const achievementFields = [
   }),
   field("enlaceSistema", "Enlace al sistema", "url"),
   field("enlaceFuentePublica", "Repositorio público", "url"),
+];
+const estadosTarea = [
+  ["PENDIENTE", "Pendiente"],
+  ["EN_CURSO", "En curso"],
+  ["FINALIZADA", "Finalizada"],
+];
+// responsables: [[id, nombre]] de quienes ya colaboran en el proyecto.
+// Al editar se puede cambiar el estado, pero sólo a los que permite pasar desde el actual.
+export const taskFields = (
+  responsables,
+  { conEstado = false, estadoActual } = {},
+) => [
+  field("nombre", "Nombre de la tarea", "text", {
+    required: true,
+    maxLength: 100,
+  }),
+  field("descripcion", "Descripción (opcional)", "textarea"),
+  field("fechaInicio", "Fecha de inicio", "date", {
+    required: true,
+    min: "2020-01-01",
+    max: "2050-12-31",
+  }),
+  field("fechaFin", "Fecha de fin", "date", {
+    required: true,
+    min: "2020-01-01",
+    max: "2050-12-31",
+  }),
+  field("responsableId", "Responsable (opcional)", "select", {
+    options: responsables,
+    emptyLabel: "Sin responsable",
+  }),
+  ...(conEstado
+    ? [
+        field("estado", "Estado", "select", {
+          options: estadoActual
+            ? estadosTarea.filter(([valor]) =>
+                estadosPermitidos(estadoActual).includes(valor),
+              )
+            : estadosTarea,
+          required: true,
+        }),
+      ]
+    : []),
 ];
 export function ResourceForm({
   fields,
@@ -182,7 +226,9 @@ export function ResourceForm({
                 value={values[f.name] || (f.type === "multi" ? [] : "")}
                 onChange={(e) => update(f, e)}
               >
-                {f.type === "select" && <option value="">Seleccionar…</option>}
+                {f.type === "select" && (
+                  <option value="">{f.emptyLabel ?? "Seleccionar…"}</option>
+                )}
                 {f.options.map((o) => (
                   <option
                     key={Array.isArray(o) ? o[0] : o}
