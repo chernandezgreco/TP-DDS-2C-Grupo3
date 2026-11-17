@@ -252,6 +252,13 @@ export class Proyecto {
         { campo: "estaBuscando" },
       );
     }
+    // cerrar la busqueda siempre se puede; reabrirla no si el proyecto ya terminó o venció
+    if (nuevoEstado && (!this.estaActivo() || this.debeCerrarse())) {
+      throw new ConflictError(
+        "No se puede reabrir la búsqueda de un proyecto finalizado o vencido",
+        { proyectoId: this.id },
+      );
+    }
     this.estaBuscando = nuevoEstado;
   }
 }
