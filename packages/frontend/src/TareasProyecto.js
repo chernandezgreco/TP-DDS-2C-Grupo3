@@ -157,33 +157,41 @@ export default function TareasProyecto({
         <>
           <Gantt tareas={tareas} nombreResponsable={nombreDe} />
           <div className="tabla-scroll">
-            <table className="tareas-tabla">
+            <table className="tareas-tabla" role="table">
               <caption>Detalle de las tareas del proyecto</caption>
               <thead>
-                <tr>
-                  <th scope="col">Tarea</th>
-                  <th scope="col">Responsable</th>
-                  <th scope="col">Inicio</th>
-                  <th scope="col">Fin</th>
-                  <th scope="col">Duración</th>
-                  <th scope="col">Estado</th>
-                  {isOwner && <th scope="col">Acciones</th>}
+                <tr role="row">
+                  <th scope="col" role="columnheader">Tarea</th>
+                  <th scope="col" role="columnheader">Responsable</th>
+                  <th scope="col" role="columnheader">Inicio</th>
+                  <th scope="col" role="columnheader">Fin</th>
+                  <th scope="col" role="columnheader">Duración</th>
+                  <th scope="col" role="columnheader">Estado</th>
+                  {isOwner && <th scope="col" role="columnheader">Acciones</th>}
                 </tr>
               </thead>
               <tbody>
                 {tareas.map((t) => {
                   const estado = ESTADOS_TAREA[t.estado] || ESTADOS_TAREA.PENDIENTE;
                   return (
-                    <tr key={idOf(t)}>
-                      <th scope="row">
+                    <tr key={idOf(t)} role="row">
+                      <th scope="row" role="rowheader">
                         {t.nombre}
                         {t.descripcion && <Markdown>{t.descripcion}</Markdown>}
                       </th>
-                      <td>{nombreDe(t.responsableId)}</td>
-                      <td>{formatearDia(t.fechaInicio)}</td>
-                      <td>{formatearDia(t.fechaFin)}</td>
-                      <td>{textoDuracion(t.duracion)}</td>
-                      <td>
+                      <td role="cell" data-label="Responsable">
+                        {nombreDe(t.responsableId)}
+                      </td>
+                      <td role="cell" data-label="Inicio">
+                        {formatearDia(t.fechaInicio)}
+                      </td>
+                      <td role="cell" data-label="Fin">
+                        {formatearDia(t.fechaFin)}
+                      </td>
+                      <td role="cell" data-label="Duración">
+                        {textoDuracion(t.duracion)}
+                      </td>
+                      <td role="cell" data-label="Estado">
                         <span
                           className={`estado-chip estado-${t.estado.toLowerCase().replace("_", "-")}`}
                         >
@@ -192,7 +200,7 @@ export default function TareasProyecto({
                         </span>
                       </td>
                       {isOwner && (
-                        <td>
+                        <td role="cell">
                           <div className="toolbar">
                             <button
                               className="secondary"

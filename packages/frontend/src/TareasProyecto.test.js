@@ -81,6 +81,32 @@ test("muestra el Gantt y la tabla con responsable, fechas, duración y estado", 
   expect(api.get).toHaveBeenCalledWith("/proyectos/p1/tareas");
 });
 
+test("cada dato de la tabla trae su rótulo y la tabla conserva su semántica para apilarse en celular", async () => {
+  api.get.mockResolvedValue([tarea({ responsableId: "c1" })]);
+  mostrar({ isOwner: true });
+  const tabla = await screen.findByRole("table", { name: "Detalle de las tareas del proyecto" });
+  const fila = within(tabla).getByRole("row", { name: /Diseño de pantallas/ });
+  const celdas = within(fila).getAllByRole("cell");
+  expect(celdas.map((c) => c.getAttribute("data-label"))).toEqual([
+    "Responsable",
+    "Inicio",
+    "Fin",
+    "Duración",
+    "Estado",
+    null,
+  ]);
+  expect(within(tabla).getAllByRole("columnheader").map((c) => c.textContent)).toEqual([
+    "Tarea",
+    "Responsable",
+    "Inicio",
+    "Fin",
+    "Duración",
+    "Estado",
+    "Acciones",
+  ]);
+  expect(within(fila).getByRole("rowheader")).toHaveTextContent("Diseño de pantallas");
+});
+
 test("sin tareas lo dice y no dibuja el Gantt", async () => {
   mostrar();
   expect(await screen.findByText(/Todavía no hay tareas planificadas/)).toBeInTheDocument();

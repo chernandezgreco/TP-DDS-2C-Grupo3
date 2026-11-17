@@ -877,6 +877,7 @@ header .toolbar {
 .estado-chip {
   display: inline-block;
   width: fit-content;
+  white-space: nowrap;
   font-size: 12px;
   font-weight: 600;
   line-height: 1.3;
@@ -913,8 +914,8 @@ header .toolbar {
 }
 .gantt-grid {
   display: grid;
-  grid-template-columns: 200px minmax(var(--gantt-ancho, 480px), 1fr);
-  min-width: calc(200px + var(--gantt-ancho, 480px));
+  grid-template-columns: var(--gantt-etiqueta, 200px) minmax(var(--gantt-ancho, 480px), 1fr);
+  min-width: calc(var(--gantt-etiqueta, 200px) + var(--gantt-ancho, 480px));
 }
 .gantt-label {
   position: sticky;
@@ -1038,4 +1039,50 @@ header .toolbar {
 button[aria-disabled="true"] {
   opacity: 0.55;
   cursor: not-allowed;
+}
+/* Celular: columna de nombres más angosta y la tabla de tareas se apila en tarjetas */
+@media (max-width: 640px) {
+  .gantt-grid {
+    --gantt-etiqueta: 118px;
+  }
+  .gantt-label .estado-chip {
+    white-space: normal;
+    font-size: 11px;
+  }
+  .tareas-tabla,
+  .tareas-tabla tbody,
+  .tareas-tabla tr,
+  .tareas-tabla th,
+  .tareas-tabla td,
+  .tareas-tabla caption {
+    display: block;
+  }
+  .tareas-tabla thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .tareas-tabla tbody tr {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #d7e0db;
+    border-radius: 8px;
+  }
+  .tareas-tabla tbody th,
+  .tareas-tabla tbody td {
+    padding: 3px 0;
+    border: 0;
+  }
+  .tareas-tabla tbody td[data-label]::before {
+    content: attr(data-label) ": ";
+    font-weight: 700;
+    color: #33423b;
+  }
+  .tareas-tabla .toolbar {
+    margin-top: 6px;
+  }
 }

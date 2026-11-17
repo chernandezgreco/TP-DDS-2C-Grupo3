@@ -8,6 +8,11 @@ import {
   textoDuracion,
 } from "./tareas";
 
+// Ancho mínimo de un día en la escala: con 12 px un plan de unos dos meses entra en una pantalla de escritorio sin scroll.
+const PX_POR_DIA = 12;
+// Cada cuántos días se marca la escala para que las etiquetas dd/mm no se pisen.
+const pasoDeEscala = (dias) => (dias <= 14 ? 1 : dias <= 28 ? 2 : dias <= 120 ? 7 : 30);
+
 // Diagrama de tiempo de las tareas. Es sólo visual (aria-hidden): la tabla de TareasProyecto es su versión accesible.
 // El estado no depende del color: cada uno tiene su patrón y su texto.
 export default function Gantt({
@@ -22,7 +27,7 @@ export default function Gantt({
   const desde = Math.min(...inicios);
   const hasta = Math.max(...fines);
   const total = hasta - desde + 1;
-  const paso = total <= 21 ? 1 : total <= 120 ? 7 : 30;
+  const paso = pasoDeEscala(total);
   const porcentaje = (dias) => (dias / total) * 100;
   const hoyEnRango = hoy >= desde && hoy <= hasta;
 
@@ -34,7 +39,9 @@ export default function Gantt({
       <div className="gantt-scroll">
         <div
           className="gantt-grid"
-          style={{ "--gantt-ancho": `${Math.min(Math.max(total * 22, 480), 4000)}px` }}
+          style={{
+            "--gantt-ancho": `${Math.min(Math.max(total * PX_POR_DIA, 480), 4000)}px`,
+          }}
         >
           <div className="gantt-label gantt-head">Tarea</div>
           <div className="gantt-track gantt-head">
