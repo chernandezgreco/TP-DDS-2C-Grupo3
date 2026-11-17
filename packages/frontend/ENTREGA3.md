@@ -80,7 +80,9 @@ Revisión del código y de los estilos, sin recorrido visual en el navegador:
 - **Tamaño de texto:** las etiquetas y metadatos de 10 a 11 px pasaron a 12 px.
 - **Diseño adaptable:** cortes en 1500, 1150 y 760 px.
 
-Lo que no está verificado: no se hizo un recorrido visual en escritorio ni en celular, ni una prueba completa solo con teclado o con un lector de pantalla, y no se afirma conformidad WCAG completa. Queda pendiente la revisión manual antes de la entrega.
+Revisión visual (17/11/2026, capturas en Chrome): escritorio a 1900 px y celular a 375 px (modo dispositivo, iPhone SE) en el listado de proyectos. Con los textos secundarios más oscuros y de 12 px, las tarjetas, el encabezado, el pie y el menú se ven sin desbordes; en celular las tarjetas pasan a una columna y el menú de secciones se desplaza horizontalmente. Se detectaron y corrigieron dos defectos: el botón "Denunciar" aparecía para los colectivos (el servidor sólo admite denuncias de colaboradoras) y las tarjetas decían "1 perfiles".
+
+Lo que no está verificado: el recorrido solo con teclado y con un lector de pantalla, las demás pantallas en celular (detalle, formularios, mensajes), y no se afirma conformidad WCAG completa.
 
 ## Validación técnica
 
