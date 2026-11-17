@@ -18,6 +18,8 @@ import { ColaboracionService } from "./ColaboracionService.js";
 import { HabilidadService } from "./HabilidadService.js";
 import { esIdValido } from "./ids.js";
 import { PostulacionService } from "./PostulacionService.js";
+import { TareaService } from "./TareaService.js";
+import { serializar } from "./serializar.js";
 import { DomainError } from "../domain/errores.js";
 
 // --- Conversión entre Mongo y dominio. Es el único lugar que conoce la forma del documento ---
@@ -180,24 +182,28 @@ export class ProyectoService {
   }
 
   static async eliminar(colectivoId, proyectoId) {
-    const proyecto = await this.obtenerPorId(proyectoId);
-    if (!proyecto.perteneceA(colectivoId))
-      throw new NotFoundError("El proyecto no pertenece a este colectivo");
-    const [colaboracion, postulacion] = await Promise.all([
-      ColaboracionModel.exists({ proyectoId }),
-      PostulacionModel.exists({ proyectoId }),
-    ]);
-    if (colaboracion || postulacion || proyecto.logros.length) {
-      throw new DomainError(
-        "Este proyecto tiene historial. Finalizalo para conservar sus postulaciones, colaboraciones y logros.",
-      );
-    }
-    const resultado = await ProyectoModel.deleteOne({
-      _id: proyectoId,
-      colectivoId,
+    // mismo turno que las altas de tareas: ninguna tarea nueva queda huérfana mientras se borra el proyecto
+    return await serializar(`proyecto:${proyectoId}`, async () => {
+      const proyecto = await this.obtenerPorId(proyectoId);
+      if (!proyecto.perteneceA(colectivoId))
+        throw new NotFoundError("El proyecto no pertenece a este colectivo");
+      const [colaboracion, postulacion] = await Promise.all([
+        ColaboracionModel.exists({ proyectoId }),
+        PostulacionModel.exists({ proyectoId }),
+      ]);
+      if (colaboracion || postulacion || proyecto.logros.length) {
+        throw new DomainError(
+          "Este proyecto tiene historial. Finalizalo para conservar sus postulaciones, colaboraciones y logros.",
+        );
+      }
+      const resultado = await ProyectoModel.deleteOne({
+        _id: proyectoId,
+        colectivoId,
+      });
+      if (!resultado.deletedCount)
+        throw new NotFoundError("Proyecto no encontrado");
+      await TareaService.eliminarDeProyecto(proyectoId);
     });
-    if (!resultado.deletedCount)
-      throw new NotFoundError("Proyecto no encontrado");
   }
 
   static async listar() {
@@ -284,17 +290,27 @@ export class ProyectoService {
   }
 
   static async cerrarProyecto(colectivoId, proyectoId) {
-    const proyecto = await this.obtenerPorId(proyectoId);
+    // mismo turno que las altas de tareas: ninguna tarea nueva queda abierta en un proyecto finalizado
+    return await serializar(`proyecto:${proyectoId}`, async () => {
+      const proyecto = await this.obtenerPorId(proyectoId);
 
-    if (!proyecto.perteneceA(colectivoId)) {
-      throw new NotFoundError("El proyecto no pertenece a este colectivo", {
-        proyectoId,
-        colectivoId,
-      });
-    }
+      if (!proyecto.perteneceA(colectivoId)) {
+        throw new NotFoundError("El proyecto no pertenece a este colectivo", {
+          proyectoId,
+          colectivoId,
+        });
+      }
 
-    proyecto.cerrar();
-    return await this.guardar(proyecto);
+      // si un cierre anterior quedó a medias, las tareas se terminan de cerrar antes de avisar que ya estaba finalizado
+      if (!proyecto.estaActivo())
+        await TareaService.cerrarDeProyecto(proyecto.id);
+
+      proyecto.cerrar();
+      const cerrado = await this.guardar(proyecto);
+      // primero el proyecto y después sus tareas; cerrar las tareas se puede repetir sin efectos
+      await TareaService.cerrarDeProyecto(proyecto.id);
+      return cerrado;
+    });
   }
 
   static async anotarPostulacion(

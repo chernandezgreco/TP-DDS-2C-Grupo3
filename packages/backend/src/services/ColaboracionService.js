@@ -1,5 +1,6 @@
 import { ColaboracionModel } from "../models/indexModel.js";
 import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
+import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
 import { ConflictError, NotFoundError } from "../domain/errores.js";
 import { esIdValido } from "./ids.js";
 
@@ -38,6 +39,16 @@ export class ColaboracionService {
     const docs = await ColaboracionModel.find({ proyectoId });
 
     return docs.map(aDominio);
+  }
+
+  static async esColaboradoraActiva(proyectoId, colaboradoraId) {
+    return Boolean(
+      await ColaboracionModel.exists({
+        proyectoId,
+        colaboradoraId,
+        estado: EstadoColaboracion.ACTIVA,
+      }),
+    );
   }
 
   static async crear(proyectoId, perfilId, colaboradoraId, anonimidad = false) {
