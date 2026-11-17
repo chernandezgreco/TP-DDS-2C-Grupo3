@@ -3,6 +3,20 @@ import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
 import { sanitizarTexto } from "../utils/sanitizar.js";
 import { esCuentaCodigoValida } from "../utils/enlaces.js";
 
+// un item de experiencia por habilidad; la descripcion es opcional y se sanitiza
+export const itemExperienciaSchema = z
+  .object({
+    codigo: z.string().trim().min(1),
+    nivel: z.enum(["INICIAL", "INTERMEDIO", "AVANZADO"]),
+    anios: z.number().min(0).max(60),
+    descripcion: z
+      .string()
+      .transform(sanitizarTexto)
+      .pipe(z.string().trim().max(500, { error: "La descripción admite hasta 500 caracteres" }))
+      .optional(),
+  })
+  .strict();
+
 export const crearColaboradoraSchema = z.object(
   {
       nombreFantasia: z
@@ -32,18 +46,7 @@ export const crearColaboradoraSchema = z.object(
       }),
       { error: "La colaboradora debe tener al menos una habilidad" },
     ),
-    experienciaHabilidades: z
-      .array(
-        z
-          .object({
-            codigo: z.string().trim().min(1),
-            nivel: z.enum(["INICIAL", "INTERMEDIO", "AVANZADO"]),
-            anios: z.number().min(0).max(60),
-          })
-          .strict(),
-      )
-      .max(100)
-      .optional(),
+    experienciaHabilidades: z.array(itemExperienciaSchema).max(100).optional(),
       nombreApellido: z
       .string({ error: "El nombre y apellido debe ser un texto" })
       .transform(sanitizarTexto)
@@ -104,16 +107,6 @@ export const contactosSchema = z
 
 export const experienciaHabilidadesSchema = z
   .object({
-    experienciaHabilidades: z
-      .array(
-        z
-          .object({
-            codigo: z.string().trim().min(1),
-            nivel: z.enum(["INICIAL", "INTERMEDIO", "AVANZADO"]),
-            anios: z.number().min(0).max(60),
-          })
-          .strict(),
-      )
-      .max(100),
+    experienciaHabilidades: z.array(itemExperienciaSchema).max(100),
   })
   .strict();

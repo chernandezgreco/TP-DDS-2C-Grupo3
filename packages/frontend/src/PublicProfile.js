@@ -48,6 +48,9 @@ export default function PublicProfile({
                     {experiencia.get(h).nivel.toLowerCase()} · {experiencia.get(h).anios} años
                   </small>
                 )}
+                {experiencia.get(h)?.descripcion && (
+                  <small className="skill-experience-desc">{experiencia.get(h).descripcion}</small>
+                )}
               </span>
             ))}
           </div>

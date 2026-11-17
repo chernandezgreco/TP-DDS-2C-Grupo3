@@ -138,6 +138,7 @@ const colaboradoraSchema = new mongoose.Schema({
           codigo: { type: String, required: true },
           nivel: { type: String, enum: ["INICIAL", "INTERMEDIO", "AVANZADO"], required: true },
           anios: { type: Number, min: 0, max: 60, required: true },
+          descripcion: { type: String, maxlength: 500, default: "" },
         },
         { _id: false },
       ),
