@@ -10,6 +10,7 @@ import { Perfil } from "../domain/Perfil/Perfil.js";
 import { Compromiso } from "../domain/Compromiso/Compromiso.js";
 import { ModalidadColaboracion } from "../domain/ModalidadColaboracion/ModalidadColaboracion.js";
 import { Logro } from "../domain/Logro/Logro.js";
+import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
 import { NotFoundError, ConflictError } from "../domain/errores.js";
 import { ColectivoService } from "./ColectivosService.js";
 import { ColaboradoraService } from "./ColaboradoraService.js";
@@ -462,6 +463,7 @@ export class ProyectoService {
       const ocupadas = await ColaboracionModel.countDocuments({
         proyectoId: proyecto.id,
         perfilId: perfil.id,
+        estado: EstadoColaboracion.ACTIVA,
       });
 
       perfil.validarPuedeAnotar(ocupadas);

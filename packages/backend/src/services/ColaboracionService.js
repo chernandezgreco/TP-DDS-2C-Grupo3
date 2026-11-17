@@ -1,6 +1,11 @@
 import { ColaboracionModel } from "../models/indexModel.js";
 import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
-import { ConflictError, NotFoundError } from "../domain/errores.js";
+import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
+import {
+  ConflictError,
+  DomainError,
+  NotFoundError,
+} from "../domain/errores.js";
 import { esIdValido } from "./ids.js";
 
 const aDominio = (doc) =>
@@ -12,13 +17,40 @@ const aDominio = (doc) =>
       doc.colaboradoraId,
       doc.estado,
       doc.fechaCreacion,
+      doc.fechaBaja ?? null,
     ),
     { anonimidad: doc.anonimidad || false },
   );
 
+const TODAS = "TODAS";
+
+// pasa el dominio a TERMINADA y lo guarda; el filtro por estado evita que dos bajas simultáneas se pisen
+const terminar = async (colaboracion) => {
+  colaboracion.darDeBaja();
+  const resultado = await ColaboracionModel.updateOne(
+    { _id: colaboracion.id, estado: EstadoColaboracion.ACTIVA },
+    { $set: { estado: colaboracion.estado, fechaBaja: colaboracion.fechaBaja } },
+  );
+  if (resultado.modifiedCount === 0) {
+    throw new ConflictError("La colaboración ya fue dada de baja", {
+      colaboracionId: colaboracion.id,
+    });
+  }
+};
+
 export class ColaboracionService {
-  static async listar() {
-    const docs = await ColaboracionModel.find();
+  // por defecto solo las activas (lo que antes era "todas", porque la baja borraba); TERMINADA es el historial
+  static async listar(estado = EstadoColaboracion.ACTIVA) {
+    const estadosValidos = [...Object.values(EstadoColaboracion), TODAS];
+    if (!estadosValidos.includes(estado)) {
+      throw new DomainError("El estado de colaboración no es válido", {
+        estado,
+        estadosValidos,
+      });
+    }
+    const docs = await ColaboracionModel.find(
+      estado === TODAS ? {} : { estado },
+    );
 
     return docs.map(aDominio);
   }
@@ -35,7 +67,10 @@ export class ColaboracionService {
   }
 
   static async listarDeProyecto(proyectoId) {
-    const docs = await ColaboracionModel.find({ proyectoId });
+    const docs = await ColaboracionModel.find({
+      proyectoId,
+      estado: EstadoColaboracion.ACTIVA,
+    });
 
     return docs.map(aDominio);
   }
@@ -78,26 +113,26 @@ export class ColaboracionService {
   }
 
   static async darDeBaja(colaboracionId) {
-    const colaboracion =
-      await ColaboracionModel.findByIdAndDelete(colaboracionId);
-    if (!colaboracion) {
-      throw new NotFoundError("Colaboración no encontrada", { colaboracionId });
-    }
+    await terminar(await this.obtenerPorId(colaboracionId));
     return { mensaje: "Colaboración dada de baja exitosamente" };
   }
 
+  // la persona se baja de todas sus colaboraciones activas en el proyecto (puede estar en más de un perfil)
   static async darDeBajaPorColaborador(proyectoId, colaboradoraId) {
-    const colaboracion = await ColaboracionModel.findOneAndDelete({
+    const docs = await ColaboracionModel.find({
       proyectoId,
       colaboradoraId,
+      estado: EstadoColaboracion.ACTIVA,
     });
 
-    if (!colaboracion) {
+    if (docs.length === 0) {
       throw new NotFoundError(
         "No se encontró una colaboración activa para este proyecto y colaborador",
         { proyectoId, colaboradoraId },
       );
     }
+
+    await Promise.all(docs.map((doc) => terminar(aDominio(doc))));
 
     return { mensaje: "Te has dado de baja del proyecto exitosamente" };
   }

@@ -176,6 +176,8 @@ const colaboracionSchema = new mongoose.Schema({
     default: EstadoColaboracion.ACTIVA,
   },
   fechaCreacion: { type: Date, default: Date.now },
+  // se completa al dar de baja; una colaboración dada de baja queda como historial
+  fechaBaja: { type: Date, default: null },
 });
 export const ColaboracionModel = mongoose.model(
   "Colaboracion",

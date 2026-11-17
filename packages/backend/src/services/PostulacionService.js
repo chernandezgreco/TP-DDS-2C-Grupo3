@@ -1,6 +1,7 @@
 import { serializar } from "./serializar.js";
 import { ProyectoService } from "./ProyectoService.js";
 import { ColaboracionModel } from "../models/indexModel.js";
+import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
 import { TerminosService } from "./TerminosService.js";
 import { PostulacionModel } from "../models/indexModel.js";
 import { Postulacion } from "../domain/Postulacion/Postulacion.js";
@@ -122,6 +123,7 @@ export class PostulacionService {
       const ocupadas = await ColaboracionModel.countDocuments({
         proyectoId: postulacion.proyectoId,
         perfilId: postulacion.perfilId,
+        estado: EstadoColaboracion.ACTIVA,
       });
       if (perfil.cantidadLimite != null && ocupadas >= perfil.cantidadLimite)
         throw new ConflictError(

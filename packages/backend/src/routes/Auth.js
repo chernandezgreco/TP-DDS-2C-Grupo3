@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { rateLimit } from "express-rate-limit";
+import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
 import { validar } from "../middlewares/validar.js";
 import {
   AuthService,
@@ -138,6 +139,7 @@ router.get("/colaboradoras/:id/contactos", async (req, res) => {
     const accepted = await ColaboracionModel.exists({
       proyectoId: { $in: proyectos.map((p) => p.id) },
       colaboradoraId: req.params.id,
+      estado: EstadoColaboracion.ACTIVA,
     });
     if (!accepted)
       return res
