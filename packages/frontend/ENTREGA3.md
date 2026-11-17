@@ -82,7 +82,9 @@ Revisión del código y de los estilos, sin recorrido visual en el navegador:
 
 Revisión visual (17/11/2026, capturas en Chrome): escritorio a 1900 px y celular a 375 px (modo dispositivo, iPhone SE) en el listado de proyectos. Con los textos secundarios más oscuros y de 12 px, las tarjetas, el encabezado, el pie y el menú se ven sin desbordes; en celular las tarjetas pasan a una columna y el menú de secciones se desplaza horizontalmente. Se detectaron y corrigieron dos defectos: el botón "Denunciar" aparecía para los colectivos (el servidor sólo admite denuncias de colaboradoras) y las tarjetas decían "1 perfiles".
 
-Lo que no está verificado: el recorrido solo con teclado y con un lector de pantalla, las demás pantallas en celular (detalle, formularios, mensajes), y no se afirma conformidad WCAG completa.
+Recorrido con teclado (17/11/2026): se probó la navegación con la tecla Tab en el navegador y funciona.
+
+Lo que no está verificado: el cierre del modal con Escape, el recorrido completo solo con teclado y el uso con un lector de pantalla, las demás pantallas en celular (detalle, formularios, mensajes), y no se afirma conformidad WCAG completa.
 
 ## Validación técnica
 
