@@ -90,10 +90,10 @@ aside {
   font-size: 24px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.6px;
-  color: #72877c;
+  color: #63756b;
   margin: 35px 0 17px;
 }
 nav {
@@ -134,8 +134,8 @@ nav a > span {
   color: #66766a;
 }
 aside > small {
-  font-size: 10px;
-  color: #7b897f;
+  font-size: 12px;
+  color: #68746b;
   margin-top: 24px;
 }
 .workspace {
@@ -150,7 +150,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 0 46px;
-  color: #78847e;
+  color: #6b7671;
   font-size: 13px;
 }
 main {
@@ -160,7 +160,7 @@ main {
 }
 .breadcrumb {
   font-size: 12px;
-  color: #7a8a81;
+  color: #66736c;
   margin-bottom: 30px;
 }
 h1 {
@@ -187,7 +187,7 @@ h3 {
   margin-top: 5px;
 }
 .subtitle {
-  color: #6a7c72;
+  color: #64756c;
   margin-bottom: 30px;
 }
 .hero {
@@ -209,7 +209,7 @@ h3 {
 }
 .hero p {
   line-height: 1.7;
-  color: #677c68;
+  color: #617562;
   font-size: 14px;
 }
 .hero a {
@@ -220,7 +220,7 @@ h3 {
 }
 .badge {
   display: inline-block;
-  font-size: 11px;
+  font-size: 12px;
   border-radius: 5px;
   background: #edf5ed;
   color: #326649;
@@ -320,7 +320,7 @@ h3 {
   margin: 26px 0 18px;
 }
 .results span {
-  color: #87938a;
+  color: #69726b;
 }
 .grid {
   display: grid;
@@ -379,7 +379,7 @@ h3 {
 .card-copy {
   font-size: 13px;
   line-height: 1.7;
-  color: #768277;
+  color: #697369;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -395,7 +395,7 @@ h3 {
 .tags span {
   background: #f3f5f2;
   padding: 5px 8px;
-  font-size: 10px;
+  font-size: 12px;
   border-radius: 4px;
   color: #5e7163;
 }
@@ -409,8 +409,8 @@ h3 {
   gap: 8px;
 }
 .card footer small {
-  color: #819081;
-  font-size: 11px;
+  color: #687468;
+  font-size: 12px;
 }
 .card footer button {
   font-size: 12px;
@@ -450,8 +450,8 @@ h3 {
   padding: 25px 0;
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
-  color: #7a897e;
+  font-size: 12px;
+  color: #67746b;
 }
 .empty {
   text-align: center;
@@ -459,7 +459,7 @@ h3 {
   background: white;
   border: 1px dashed #d7e0d7;
   border-radius: 12px;
-  color: #718273;
+  color: #657467;
 }
 .success,
 .error {
@@ -484,7 +484,7 @@ h3 {
 }
 .count {
   font-size: 14px;
-  color: #7a8d7c;
+  color: #657566;
 }
 .modal-backdrop {
   position: fixed;
@@ -540,7 +540,7 @@ select[multiple] {
 }
 label small {
   display: block;
-  color: #758578;
+  color: #667569;
   margin-top: 6px;
 }
 .check input {
@@ -720,8 +720,8 @@ progress {
 }
 .markdown-help {
   display: block;
-  font-size: 11px;
-  color: #647b6a;
+  font-size: 12px;
+  color: #607665;
   margin-top: 5px;
 }
 fieldset {
@@ -736,7 +736,7 @@ fieldset legend {
 }
 .ia-fields p {
   font-size: 12px;
-  color: #657867;
+  color: #637665;
 }
 details {
   margin: 18px 0;

@@ -68,7 +68,19 @@ Los cinco adicionales de este trabajo están explicados en [ADICIONALES.md](ADIC
 
 Navegación por hash y enlaces directos de RSS; búsqueda, estados vacíos y errores con reintento. Formularios con etiquetas y controles nativos, validación de datos, prevención de envíos repetidos y vista previa de Markdown. Indicadores de carga y mensajes anunciables por lectores de pantalla. Modal con foco contenido, Escape y devolución de foco. Grillas de tres/dos/una columnas y navegación móvil horizontal. Se admiten errores por permisos y sesión vencida sin mostrar datos privados.
 
-La inspección visual automatizada fue bloqueada por la herramienta de control de Windows al no poder verificar la URL del navegador. Falta la revisión manual en escritorio/celular y con teclado; no se afirma conformidad WCAG completa ni una validación visual perfecta.
+### Revisión de accesibilidad (17/11/2026)
+
+Revisión del código y de los estilos, sin recorrido visual en el navegador:
+
+- **Idioma y metadatos:** `lang="es"`, título y viewport definidos.
+- **Teclado y foco:** enlace para saltar al contenido, indicador de foco visible (borde de 3 px) en botones, enlaces y campos; el modal contiene el foco, se cierra con Escape y lo devuelve.
+- **Lectores de pantalla:** estados y errores con `role="status"` / `role="alert"`, modal con `aria-modal`, página actual con `aria-current`, imágenes con texto alternativo, decoración con `aria-hidden`. Todos los campos de formulario tienen su etiqueta.
+- **Tamaño táctil:** botones de al menos 44 px de alto.
+- **Contraste (WCAG AA, mínimo 4.5:1):** texto principal 11.5:1, botones 6.4:1, enlaces 6.0:1. Se encontraron 15 textos secundarios (migas de pan, contadores, pie de página, ayudas) con contraste entre 3.0:1 y 4.5:1; se oscurecieron manteniendo el tono hasta superar 4.5:1. Los elementos decorativos (`aria-hidden`) quedaron como estaban.
+- **Tamaño de texto:** las etiquetas y metadatos de 10 a 11 px pasaron a 12 px.
+- **Diseño adaptable:** cortes en 1500, 1150 y 760 px.
+
+Lo que no está verificado: no se hizo un recorrido visual en escritorio ni en celular, ni una prueba completa solo con teclado o con un lector de pantalla, y no se afirma conformidad WCAG completa. Queda pendiente la revisión manual antes de la entrega.
 
 ## Validación técnica
 
@@ -88,4 +100,4 @@ Configurar el origen real del frontend en ALLOWED_ORIGINS, la URL pública en PU
 
 El despliegue del equipo, la integración de los adicionales de compañeros y la prueba manual final siguen fuera del resultado verificado localmente.
 
-Resultado de la revisión: lint sin errores, 11 pruebas de frontend aprobadas y suite completa de backend con 154 pruebas aprobadas. Mongoose actualizado a 8.24.9. Las pruebas usan datos temporales; no se borraron ni sembraron datos de desarrollo.
+Resultado de la revisión (17/11/2026): lint sin errores, 20 pruebas de frontend y 260 de backend aprobadas, y compilación del frontend correcta. Mongoose actualizado a 8.24.9. Las pruebas usan datos temporales; no se borraron ni sembraron datos de desarrollo.
