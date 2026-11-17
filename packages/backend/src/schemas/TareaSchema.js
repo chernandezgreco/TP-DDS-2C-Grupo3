@@ -1,15 +1,21 @@
 import { z } from "zod";
 import { EstadoTarea } from "../domain/Tarea/EstadoTarea.js";
+import { sanitizarTexto } from "../utils/sanitizar.js";
 
 // la fecha de una tarea es un día de calendario: llega como YYYY-MM-DD y se guarda a medianoche UTC, sin corrimientos de zona horaria
 const fechaSchema = (mensaje) =>
     z.iso.date({ error: mensaje }).transform((dia) => new Date(`${dia}T00:00:00.000Z`));
 
-const nombreSchema = z.string({ error: "El nombre de la tarea es obligatorio" }).trim().min(1, {
-    error: "El nombre de la tarea es obligatorio",
-});
+// como en el resto de los recursos, los textos pasan por sanitizarTexto antes de validarse (sin etiquetas HTML)
+const nombreSchema = z
+    .string({ error: "El nombre de la tarea es obligatorio" })
+    .transform(sanitizarTexto)
+    .pipe(z.string().trim().min(1, { error: "El nombre de la tarea es obligatorio" }));
 
-const descripcionSchema = z.string({ error: "La descripción de la tarea debe ser un texto" }).nullable();
+const descripcionSchema = z
+    .string({ error: "La descripción de la tarea debe ser un texto" })
+    .transform(sanitizarTexto)
+    .nullable();
 
 // el front manda "" cuando no se elige a nadie
 const responsableSchema = z

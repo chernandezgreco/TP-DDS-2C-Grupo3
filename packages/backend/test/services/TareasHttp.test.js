@@ -204,6 +204,50 @@ describe("API de tareas", () => {
         });
     });
 
+    describe("sanitización de textos", () => {
+        test("el nombre y la descripción se guardan sin etiquetas HTML, como en el resto de los recursos", async () => {
+            const respuesta = await crear({
+                nombre: "<img src=x onerror=alert(1)>Diseño",
+                descripcion: "<script>alert(1)</script>Mockups <b>principales</b>",
+            });
+
+            expect(respuesta.status).toBe(201);
+            expect(respuesta.data.nombre).toBe("Diseño");
+            expect(respuesta.data.descripcion).toBe("Mockups principales");
+            const guardada = await TareaModel.findById(respuesta.data.id);
+            expect(guardada.nombre).toBe("Diseño");
+            expect(guardada.descripcion).toBe("Mockups principales");
+        });
+
+        test("un nombre que es solo HTML queda vacío y se rechaza", async () => {
+            const respuesta = await crear({ nombre: "<script></script>" });
+
+            expect(respuesta.status).toBe(400);
+            expect(await TareaModel.countDocuments()).toBe(0);
+        });
+
+        test("también se sanitiza al editar", async () => {
+            const creada = (await crear()).data;
+
+            const respuesta = await req(`${base}/${creada.id}`, {
+                method: "PUT",
+                cookie: dueno.cookie,
+                body: { nombre: "<iframe src=x></iframe>Nuevo nombre", descripcion: "<script>x</script>" },
+            });
+
+            expect(respuesta.status).toBe(200);
+            expect(respuesta.data.nombre).toBe("Nuevo nombre");
+            expect(respuesta.data.descripcion).toBeNull();
+        });
+
+        test("un texto normal con símbolos no se altera", async () => {
+            const respuesta = await crear({ nombre: "Armar API & base de datos", descripcion: "a < b y c > d" });
+
+            expect(respuesta.status).toBe(201);
+            expect(respuesta.data.nombre).toBe("Armar API & base de datos");
+        });
+    });
+
     describe("editar", () => {
         test("reprograma con un PUT parcial", async () => {
             const creada = (await crear()).data;
