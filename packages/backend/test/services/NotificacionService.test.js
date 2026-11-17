@@ -3,6 +3,7 @@ import { ColaboradoraModel, ColectivoModel, NotificacionModel, ProyectoModel } f
 import { TipoMedioContacto } from "../../src/domain/Colaboradora/TipoMedioContacto.js";
 import { ConflictError, DomainError, NotFoundError } from "../../src/domain/errores.js";
 import { NotificacionService } from "../../src/services/NotificacionService.js";
+import { EnviadorEmail } from "../../src/services/enviadores/EnviadorEmail.js";
 import {
     conectarBaseDePrueba,
     desconectarBaseDePrueba,
@@ -89,6 +90,20 @@ describe("NotificacionService", () => {
         expect(notificacion).toBeDefined();
         expect(mediosUsados).toEqual([]);
         expect(consola).not.toHaveBeenCalled();
+    });
+
+    test("si falla el email la interna queda guardada y el otro medio igual se envía", async () => {
+        const envio = jest.spyOn(EnviadorEmail.prototype, "enviar").mockRejectedValue(new Error("SMTP caido"));
+        const errores = jest.spyOn(console, "error").mockImplementation(() => {});
+
+        const { notificacion, mediosUsados, mediosFallidos } = await NotificacionService.crear(datos);
+
+        expect(notificacion).toBeDefined();
+        expect(await NotificacionModel.countDocuments()).toBe(1);
+        expect(mediosUsados).toEqual([TipoMedioContacto.SMS]);
+        expect(mediosFallidos).toEqual([TipoMedioContacto.EMAIL]);
+        envio.mockRestore();
+        errores.mockRestore();
     });
 
     test("no notifica a quien no acepta mensajería", async () => {

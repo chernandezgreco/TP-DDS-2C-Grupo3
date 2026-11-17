@@ -49,10 +49,19 @@ export class NotificacionService {
         });
         const notificacion = aDominio(doc);
 
-        colaboradora.mediosContacto.forEach((medio) => ENVIADORES[medio.tipo].enviar(medio, notificacion));
-        const mediosUsados = colaboradora.mediosContacto.map((medio) => medio.tipo);
+        // un medio que falla no tumba la notificacion interna, que ya quedo guardada
+        const resultados = await Promise.allSettled(
+            colaboradora.mediosContacto.map(async (medio) => ENVIADORES[medio.tipo].enviar(medio, notificacion)),
+        );
+        const mediosUsados = colaboradora.mediosContacto
+            .filter((medio, indice) => resultados[indice].status === "fulfilled")
+            .map((medio) => medio.tipo);
+        const mediosFallidos = colaboradora.mediosContacto
+            .filter((medio, indice) => resultados[indice].status === "rejected")
+            .map((medio) => medio.tipo);
+        mediosFallidos.forEach((tipo) => console.error(`No se pudo enviar la notificación por ${tipo}`));
 
-        return { notificacion, mediosUsados };
+        return { notificacion, mediosUsados, mediosFallidos };
     }
 
     static async listarDeColaboradora(colaboradoraId) {

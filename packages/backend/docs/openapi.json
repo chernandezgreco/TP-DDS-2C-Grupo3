@@ -312,6 +312,9 @@
                           "type": "number",
                           "minimum": 0,
                           "maximum": 60
+                        },
+                        "descripcion": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -541,6 +544,9 @@
                           "type": "number",
                           "minimum": 0,
                           "maximum": 60
+                        },
+                        "descripcion": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -2699,6 +2705,13 @@
                       "items": {
                         "$ref": "#/components/schemas/MedioContacto"
                       }
+                    },
+                    "mediosFallidos": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MedioContacto"
+                      },
+                      "description": "Medios cuyo envío falló; la notificación interna se guarda igual"
                     }
                   }
                 }
