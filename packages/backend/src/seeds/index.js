@@ -11,6 +11,7 @@ import {
     HabilidadModel,
     NotificacionModel,
     ProyectoModel,
+    TareaModel,
 } from "../models/indexModel.js";
 import { Habilidad } from "../domain/Habilidad/Habilidad.js";
 import { Colectivo } from "../domain/Colectivo/Colectivo.js";
@@ -19,9 +20,10 @@ import { MedioContacto } from "../domain/Colaboradora/MedioContacto.js";
 import { Proyecto } from "../domain/Proyecto/Proyecto.js";
 import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
 import { Notificacion } from "../domain/Notificacion/Notificacion.js";
+import { Tarea } from "../domain/Tarea/Tarea.js";
 import { aDocumento, crearPerfil } from "../services/ProyectoService.js";
 import { cargarLogrosIniciales } from "./logros.js";
-import { COLABORACIONES, COLABORADORAS, COLECTIVOS, HABILIDADES, IDS, NOTIFICACIONES, PROYECTOS } from "./datos.js";
+import { COLABORACIONES, COLABORADORAS, COLECTIVOS, HABILIDADES, IDS, NOTIFICACIONES, PROYECTOS, TAREAS } from "./datos.js";
 
 // cada entidad se arma con su clase de dominio, así los datos semilla pasan por las mismas validaciones
 
@@ -59,6 +61,16 @@ const colaboraciones = COLABORACIONES.map(({ proyectoId, colaboradoraId }) => {
 
 PROYECTOS.filter((p) => p.finalizado).forEach((p) => proyectos.find((proyecto) => proyecto.id === p.id).cerrar());
 
+// las tareas sin terminar de un proyecto finalizado quedan cerradas, igual que al finalizarlo por la API
+const dia = (texto) => new Date(`${texto}T00:00:00.000Z`);
+const tareas = TAREAS.map((t) => {
+    const tarea = new Tarea(null, t.proyectoId, t.nombre, t.descripcion, dia(t.fechaInicio), dia(t.fechaFin), t.responsableId, t.estado);
+    if (!proyectos.find((proyecto) => proyecto.id === t.proyectoId).estaActivo()) {
+        tarea.cerrar();
+    }
+    return tarea;
+});
+
 const notificaciones = NOTIFICACIONES.map((n) => new Notificacion(null, n.colaboradoraId, n.colectivoId, n.proyectoId, n.texto));
 
 // referencias: todas las habilidades usadas tienen que existir
@@ -82,6 +94,7 @@ await Promise.all([
     ProyectoModel.deleteMany({}),
     ColaboracionModel.deleteMany({}),
     NotificacionModel.deleteMany({}),
+    TareaModel.deleteMany({}),
 ]);
 
 await HabilidadModel.insertMany(habilidades.map((h) => ({ codigo: h.codigo, titulo: h.titulo, descripcion: h.descripcion })));
@@ -116,6 +129,16 @@ await ColaboracionModel.insertMany(colaboraciones.map((c) => ({
     fechaCreacion: c.fechaCreacion,
 })));
 
+await TareaModel.insertMany(tareas.map((t) => ({
+    proyectoId: t.proyectoId,
+    nombre: t.nombre,
+    descripcion: t.descripcion,
+    fechaInicio: t.fechaInicio,
+    fechaFin: t.fechaFin,
+    responsableId: t.responsableId,
+    estado: t.estado,
+})));
+
 await NotificacionModel.insertMany(notificaciones.map((n) => ({
     colaboradoraId: n.colaboradoraId,
     colectivoId: n.colectivoId,
@@ -128,7 +151,7 @@ await cargarLogrosIniciales(IDS.proyectos.webDonaciones);
 
 console.log(
     `Listo: ${habilidades.length} habilidades, ${colectivos.length} colectivos, ${colaboradoras.length} colaboradoras, ` +
-    `${proyectos.length} proyectos, ${colaboraciones.length} colaboraciones, ${notificaciones.length} notificaciones y logros iniciales.`
+    `${proyectos.length} proyectos, ${tareas.length} tareas, ${colaboraciones.length} colaboraciones, ${notificaciones.length} notificaciones y logros iniciales.`
 );
 
 await mongoose.disconnect();

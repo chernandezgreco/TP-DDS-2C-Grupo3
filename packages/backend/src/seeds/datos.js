@@ -218,3 +218,50 @@ export const NOTIFICACIONES = [
         texto: "Tenemos un proyecto nuevo que encaja con tus habilidades",
     },
 ];
+
+// días de calendario (AAAA-MM-DD). Los responsables tienen que ser colaboradoras del proyecto (ver COLABORACIONES)
+export const TAREAS = [
+    {
+        proyectoId: IDS.proyectos.webDonaciones,
+        nombre: "Diseño de pantallas",
+        descripcion: "Mockups del listado de donaciones y del formulario de carga",
+        fechaInicio: "2026-11-02",
+        fechaFin: "2026-11-13",
+        responsableId: IDS.colaboradoras.ada,
+        estado: "FINALIZADA",
+    },
+    {
+        proyectoId: IDS.proyectos.webDonaciones,
+        nombre: "Formulario de donaciones",
+        descripcion: "Alta, edición y baja de donaciones",
+        fechaInicio: "2026-11-16",
+        fechaFin: "2026-12-04",
+        responsableId: IDS.colaboradoras.ada,
+        estado: "EN_CURSO",
+    },
+    {
+        proyectoId: IDS.proyectos.webDonaciones,
+        nombre: "Puesta en producción",
+        fechaInicio: "2026-12-07",
+        fechaFin: "2026-12-11",
+        responsableId: null,
+        estado: "PENDIENTE",
+    },
+    {
+        proyectoId: IDS.proyectos.encuestaVecinal,
+        nombre: "Análisis de las respuestas",
+        descripcion: "Limpieza y análisis de la encuesta",
+        fechaInicio: "2026-10-05",
+        fechaFin: "2026-10-23",
+        responsableId: IDS.colaboradoras.pyto,
+        estado: "FINALIZADA",
+    },
+    {
+        proyectoId: IDS.proyectos.encuestaVecinal,
+        nombre: "Informe final",
+        fechaInicio: "2026-10-26",
+        fechaFin: "2026-10-30",
+        responsableId: null,
+        estado: "PENDIENTE",
+    },
+];
