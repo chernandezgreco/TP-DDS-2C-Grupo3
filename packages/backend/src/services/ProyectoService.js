@@ -18,6 +18,7 @@ import { ColaboracionService } from "./ColaboracionService.js";
 import { HabilidadService } from "./HabilidadService.js";
 import { esIdValido, nuevoId } from "./ids.js";
 import { PostulacionService } from "./PostulacionService.js";
+import { TareaService } from "./TareaService.js";
 import { DomainError } from "../domain/errores.js";
 import { serializar } from "./serializar.js";
 
@@ -213,24 +214,28 @@ export class ProyectoService {
   }
 
   static async eliminar(colectivoId, proyectoId) {
-    const proyecto = await this.obtenerPorId(proyectoId);
-    if (!proyecto.perteneceA(colectivoId))
-      throw new NotFoundError("El proyecto no pertenece a este colectivo");
-    const [colaboracion, postulacion] = await Promise.all([
-      ColaboracionModel.exists({ proyectoId }),
-      PostulacionModel.exists({ proyectoId }),
-    ]);
-    if (colaboracion || postulacion || proyecto.logros.length) {
-      throw new DomainError(
-        "Este proyecto tiene historial. Finalizalo para conservar sus postulaciones, colaboraciones y logros.",
-      );
-    }
-    const resultado = await ProyectoModel.deleteOne({
-      _id: proyectoId,
-      colectivoId,
+    // mismo turno que las altas de tareas: ninguna tarea nueva queda huérfana mientras se borra el proyecto
+    return await serializar(`proyecto:${proyectoId}`, async () => {
+      const proyecto = await this.obtenerPorId(proyectoId);
+      if (!proyecto.perteneceA(colectivoId))
+        throw new NotFoundError("El proyecto no pertenece a este colectivo");
+      const [colaboracion, postulacion] = await Promise.all([
+        ColaboracionModel.exists({ proyectoId }),
+        PostulacionModel.exists({ proyectoId }),
+      ]);
+      if (colaboracion || postulacion || proyecto.logros.length) {
+        throw new DomainError(
+          "Este proyecto tiene historial. Finalizalo para conservar sus postulaciones, colaboraciones y logros.",
+        );
+      }
+      const resultado = await ProyectoModel.deleteOne({
+        _id: proyectoId,
+        colectivoId,
+      });
+      if (!resultado.deletedCount)
+        throw new NotFoundError("Proyecto no encontrado");
+      await TareaService.eliminarDeProyecto(proyectoId);
     });
-    if (!resultado.deletedCount)
-      throw new NotFoundError("Proyecto no encontrado");
   }
 
   static async listar() {
@@ -347,6 +352,11 @@ export class ProyectoService {
         $set: { estado: "RECHAZADA" },
       },
     );
+
+    // Las tareas sin terminar se cierran antes de marcar el proyecto: si algo falla acá el proyecto sigue activo
+    // y repetir el cierre (manual o el del job automático) lo completa, porque cerrar tareas se puede repetir.
+    // Los dos caminos de cierre ya llaman a finalizar con el turno del proyecto tomado.
+    await TareaService.cerrarDeProyecto(proyecto.id);
 
     const resultado = await ProyectoModel.updateOne(
       {

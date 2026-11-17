@@ -5,6 +5,7 @@ import { EstadoProyecto } from "../domain/Proyecto/EstadoProyecto.js";
 import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
 import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
 import { EstadoPostulacion } from "../domain/Postulacion/EstadoPostulacion.js";
+import { EstadoTarea } from "../domain/Tarea/EstadoTarea.js";
 
 // --- 1. HABILIDAD ---
 const habilidadSchema = new mongoose.Schema({
@@ -266,3 +267,21 @@ export const DenunciaModel = mongoose.model(
   "Denuncia",
   denunciaSchema,
 );
+
+// --- TAREA (colección propia: el proyecto no las contiene, se consultan por proyectoId) ---
+const tareaSchema = new mongoose.Schema({
+  proyectoId: { type: String, required: true },
+  nombre: { type: String, required: true, trim: true },
+  descripcion: { type: String, default: null },
+  fechaInicio: { type: Date, required: true },
+  fechaFin: { type: Date, required: true },
+  responsableId: { type: String, default: null },
+  estado: {
+    type: String,
+    enum: Object.values(EstadoTarea),
+    default: EstadoTarea.PENDIENTE,
+  },
+  fechaCreacion: { type: Date, default: Date.now },
+});
+tareaSchema.index({ proyectoId: 1, fechaInicio: 1 });
+export const TareaModel = mongoose.model("Tarea", tareaSchema);

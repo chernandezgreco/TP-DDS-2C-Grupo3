@@ -75,6 +75,16 @@ export class ColaboracionService {
     return docs.map(aDominio);
   }
 
+  static async esColaboradoraActiva(proyectoId, colaboradoraId) {
+    return Boolean(
+      await ColaboracionModel.exists({
+        proyectoId,
+        colaboradoraId,
+        estado: EstadoColaboracion.ACTIVA,
+      }),
+    );
+  }
+
   static async crear(proyectoId, perfilId, colaboradoraId, anonimidad = false) {
     const existente = await ColaboracionModel.findOne({
       proyectoId,

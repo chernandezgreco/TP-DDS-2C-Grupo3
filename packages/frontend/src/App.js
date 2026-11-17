@@ -7,6 +7,7 @@ import DenunciaForm from "./DenunciaForm";
 import DenunciasAdmin from "./DenunciasAdmin";
 import ExperienciaHabilidades from "./ExperienciaHabilidades";
 import LinkedInIntegration from "./LinkedInIntegration";
+import TareasProyecto from "./TareasProyecto";
 import React, { useEffect, useState } from "react";
 import { api, idOf } from "./api";
 import {
@@ -185,7 +186,14 @@ export default function App() {
       setBusy(false);
     }
   }
-  async function edit(name, fields, path, method = "post", values = {}) {
+  async function edit(
+    name,
+    fields,
+    path,
+    method = "post",
+    values = {},
+    extra = {},
+  ) {
     const initialValues =
       method === "patch" || fields === projectFields
         ? Object.fromEntries(
@@ -217,7 +225,8 @@ export default function App() {
       } finally {
         setBusy(false);
       }
-    } else setForm({ name, fields, path, method, initial: initialValues });
+    } else
+      setForm({ name, fields, path, method, initial: initialValues, ...extra });
   }
   const pid = idOf(selected),
     isOwner =
@@ -979,6 +988,18 @@ export default function App() {
                   </div>
                 ))}
               </section>
+              <TareasProyecto
+                pid={pid}
+                proyecto={selected}
+                isOwner={isOwner}
+                colaboradoras={data.colaboradoras}
+                colaboraciones={data.colaboraciones.filter(
+                  (c) => c.proyectoId === pid,
+                )}
+                edit={edit}
+                run={run}
+                busy={busy}
+              />
               {isOwner && (
                 <section className="panel">
                   <h2>Postulaciones</h2>

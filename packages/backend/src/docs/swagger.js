@@ -9,6 +9,7 @@ import { pathsProyectos, schemasProyectos } from "./proyectos.js";
 import { pathsContacto, schemasContacto } from "./contactoNotificaciones.js";
 import { pathsLogros, schemasLogros } from "./logros.js";
 import { pathsAmpliaciones } from "./ampliaciones.js";
+import { pathsTareas, schemasTareas } from "./tareas.js";
 
 // Cada modulo suma sus paths y schemas acá
 export const especificacion = {
@@ -23,6 +24,7 @@ export const especificacion = {
     ...pathsProyectos,
     ...pathsContacto,
     ...pathsLogros,
+    ...pathsTareas,
   },
   components: {
     schemas: {
@@ -37,6 +39,7 @@ export const especificacion = {
       ...schemasProyectos,
       ...schemasContacto,
       ...schemasLogros,
+      ...schemasTareas,
     },
   },
 };

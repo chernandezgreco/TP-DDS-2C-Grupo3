@@ -16,6 +16,7 @@ import colaboradorasRoutes from "./routes/Colaboradora.js";
 import habilidadesRoutes from "./routes/Habilidades.js";
 import colaboracionesRoutes from "./routes/Colaboracion.js";
 import logrosRoutes from "./routes/Logros.js";
+import tareasRoutes from "./routes/Tareas.js";
 import notificacionesRoutes from "./routes/Notificaciones.js";
 import perfilesRoutes from "./routes/Perfiles.js";
 import denunciasRoutes from "./routes/Denuncias.js";
@@ -62,6 +63,7 @@ export function crearApp({
   app.use("/api", linkedinRoutes);
   app.use("/api/proyectos/:proyectoId/logros", logrosRoutes);
   app.use("/api/proyectos/:proyectoId/perfiles", perfilesRoutes);
+  app.use("/api/proyectos/:proyectoId/tareas", tareasRoutes);
   app.use("/api/proyectos", proyectosRoutes);
   app.use("/api/colectivos", colectivosRoutes);
   app.use("/api/colaboradoras", colaboradorasRoutes);

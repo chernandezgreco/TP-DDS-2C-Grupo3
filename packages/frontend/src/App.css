@@ -859,3 +859,183 @@ header .toolbar {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Tareas y diagrama de Gantt ----
+   Los colores de estado son variables para poder cambiar toda la paleta (modo daltónico) sin tocar los componentes.
+   Nunca se usa sólo el color: cada estado tiene también un patrón, un ícono y un texto. */
+:root {
+  --estado-pendiente-fondo: #e7ecf1;
+  --estado-pendiente-borde: #4f5f6d;
+  --estado-en-curso-fondo: #d3e8f6;
+  --estado-en-curso-borde: #0067a3;
+  --estado-finalizada-fondo: #d2eee4;
+  --estado-finalizada-borde: #00694f;
+  --estado-cerrada-fondo: #f6e0d2;
+  --estado-cerrada-borde: #9a4208;
+  --gantt-hoy: #b4232b;
+}
+.estado-chip {
+  display: inline-block;
+  width: fit-content;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  border-radius: 999px;
+  border: 1.5px solid;
+  padding: 2px 9px;
+  color: #1d2a24;
+}
+.estado-chip.estado-pendiente {
+  background: var(--estado-pendiente-fondo);
+  border-color: var(--estado-pendiente-borde);
+}
+.estado-chip.estado-en-curso {
+  background: var(--estado-en-curso-fondo);
+  border-color: var(--estado-en-curso-borde);
+}
+.estado-chip.estado-finalizada {
+  background: var(--estado-finalizada-fondo);
+  border-color: var(--estado-finalizada-borde);
+}
+.estado-chip.estado-cerrada {
+  background: var(--estado-cerrada-fondo);
+  border-color: var(--estado-cerrada-borde);
+  border-style: dashed;
+}
+.gantt {
+  margin: 8px 0 18px;
+}
+.gantt-scroll {
+  overflow-x: auto;
+  border: 1px solid #d7e0db;
+  border-radius: 8px;
+  background: #fff;
+}
+.gantt-grid {
+  display: grid;
+  grid-template-columns: 200px minmax(var(--gantt-ancho, 480px), 1fr);
+  min-width: calc(200px + var(--gantt-ancho, 480px));
+}
+.gantt-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 10px;
+  background: #fff;
+  border-right: 1px solid #d7e0db;
+  border-bottom: 1px solid #edf1ef;
+}
+.gantt-nombre {
+  font-size: 13px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gantt-track {
+  position: relative;
+  min-height: 52px;
+  border-bottom: 1px solid #edf1ef;
+}
+.gantt-head {
+  min-height: 34px;
+  background: #f4f7f5;
+  font-size: 12px;
+  font-weight: 700;
+  color: #33423b;
+}
+.gantt-head.gantt-label {
+  justify-content: center;
+}
+.gantt-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding: 8px 0 0 4px;
+  border-left: 1px solid #b9c7c0;
+  font-size: 11px;
+  font-weight: 600;
+}
+.gantt-bar {
+  position: absolute;
+  top: 16px;
+  height: 20px;
+  min-width: 6px;
+  border: 1.5px solid;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+.gantt-bar.estado-pendiente {
+  border-color: var(--estado-pendiente-borde);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--estado-pendiente-borde) 0 2px,
+    var(--estado-pendiente-fondo) 2px 7px
+  );
+}
+.gantt-bar.estado-en-curso {
+  border-color: var(--estado-en-curso-borde);
+  background: var(--estado-en-curso-borde);
+}
+.gantt-bar.estado-finalizada {
+  border-color: var(--estado-finalizada-borde);
+  background:
+    radial-gradient(circle, #fff 1.5px, transparent 2px) 0 0 / 8px 8px,
+    var(--estado-finalizada-borde);
+}
+.gantt-bar.estado-cerrada {
+  border-color: var(--estado-cerrada-borde);
+  border-style: dashed;
+  background:
+    repeating-linear-gradient(45deg, var(--estado-cerrada-borde) 0 1.5px, transparent 1.5px 6px),
+    repeating-linear-gradient(-45deg, var(--estado-cerrada-borde) 0 1.5px, transparent 1.5px 6px),
+    var(--estado-cerrada-fondo);
+}
+.gantt-hoy {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--gantt-hoy);
+  z-index: 1;
+}
+.tabla-scroll {
+  overflow-x: auto;
+}
+.tareas-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.tareas-tabla caption {
+  text-align: left;
+  font-weight: 700;
+  padding: 6px 0;
+}
+.tareas-tabla th,
+.tareas-tabla td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e3eae6;
+}
+.tareas-tabla thead th {
+  background: #f4f7f5;
+  font-size: 13px;
+}
+.tareas-tabla tbody th {
+  font-weight: 650;
+}
+.tareas-tabla tbody th p {
+  margin: 4px 0 0;
+  font-weight: 400;
+  color: #3f4d46;
+}
+button[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

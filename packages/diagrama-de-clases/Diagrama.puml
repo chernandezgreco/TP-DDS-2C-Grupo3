@@ -86,6 +86,28 @@ package "Colectivos y proyectos" {
         - fechaCreacion: Date
         + actualizar(datos): Logro
     }
+
+    class Tarea {
+        - id: String
+        - nombre: String
+        - descripcion: String [0..1]
+        - fechaInicio: Date (día)
+        - fechaFin: Date (día)
+        - responsableId: String [0..1]
+        - estado: EstadoTarea
+        - fechaCreacion: Date
+        + duracionEnDias(): Number
+        + cambiarEstado(estado): Tarea
+        + cerrar(): Boolean
+        + actualizar(datos): Tarea
+    }
+
+    enum EstadoTarea {
+        PENDIENTE
+        EN_CURSO
+        FINALIZADA
+        CERRADA
+    }
 }
 
 package "Personas colaboradoras" {
@@ -150,6 +172,9 @@ Colectivo --> TipoColectivo
 Proyecto --> EstadoProyecto
 Proyecto "1" *-- "*" Perfil : necesita >
 Proyecto "1" *-- "*" Logro : registra >
+Proyecto "1" -- "*" Tarea : planifica >
+Tarea --> EstadoTarea
+Tarea "*" ..> "0..1" Colaboradora : responsable (debe colaborar en el proyecto) >
 Perfil *-- "1" Compromiso
 Perfil *-- "1" ModalidadColaboracion
 Compromiso --> TipoCompromiso
@@ -164,6 +189,12 @@ Colaboracion --> EstadoColaboracion
 Notificacion "*" --> "1" Colaboradora : destinataria >
 Notificacion "*" --> "1" Colectivo : remitente >
 Notificacion "*" --> "1" Proyecto : sobre >
+
+note right of Tarea
+  La duración se calcula a partir de las fechas.
+  CERRADA la asigna el sistema al finalizar el
+  proyecto con la tarea sin terminar.
+end note
 
 note right of Perfil
   Una colaboradora puede anotarse en un perfil
