@@ -1758,18 +1758,24 @@ export default function App() {
                 }}
               />
             ) : form.denuncia ? (
-              <DenunciaForm
-                {...form.denuncia}
-                busy={busy}
-                onCancel={() => setForm(null)}
-                onSubmit={async (values) => {
-                  const ok = await run(
-                    () => api.post("/denuncias", values),
-                    "Denuncia enviada para revisión.",
-                  );
-                  if (ok) setForm(null);
-                }}
-              />
+              <>
+                {/* el servidor rechaza con 403 a quien no participó: el motivo se ve dentro del modal */}
+                <p role="alert" className={error ? "error" : ""}>
+                  {error}
+                </p>
+                <DenunciaForm
+                  {...form.denuncia}
+                  busy={busy}
+                  onCancel={() => setForm(null)}
+                  onSubmit={async (values) => {
+                    const ok = await run(
+                      () => api.post("/denuncias", values),
+                      "Denuncia enviada para revisión.",
+                    );
+                    if (ok) setForm(null);
+                  }}
+                />
+              </>
             ) : form.path ? (
               <>
                 <p role="alert" className={error ? "error" : ""}>

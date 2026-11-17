@@ -40,7 +40,7 @@ export async function autorizar(req, res, next) {
     if (parts[0] === "denuncias") {
       if (req.method !== "POST") return deny();
       if (!req.actor)
-        return res.status(401).json({ error: "IniciÃ¡ sesiÃ³n para denunciar." });
+        return res.status(401).json({ error: "Iniciá sesión para denunciar." });
       return next();
     }
     if (parts[0] === "integraciones") {
