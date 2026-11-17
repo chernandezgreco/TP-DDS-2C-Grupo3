@@ -8,6 +8,7 @@ import { pathsCatalogo, schemasCatalogo } from "./catalogo.js";
 import { pathsProyectos, schemasProyectos } from "./proyectos.js";
 import { pathsContacto, schemasContacto } from "./contactoNotificaciones.js";
 import { pathsLogros, schemasLogros } from "./logros.js";
+import { pathsAmpliaciones } from "./ampliaciones.js";
 
 // Cada modulo suma sus paths y schemas acá
 export const especificacion = {
@@ -46,6 +47,8 @@ for (const [path, operations] of Object.entries(pathsEdicion)) {
 }
 
 Object.assign(especificacion.paths, pathsAdicionales);
+for (const [path, item] of Object.entries(pathsAmpliaciones))
+  especificacion.paths[path] = { ...especificacion.paths[path], ...item };
 especificacion.components.securitySchemes = {
   AdminApiKey: {
     type: "http",

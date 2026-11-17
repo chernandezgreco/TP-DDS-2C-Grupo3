@@ -3644,6 +3644,1595 @@
         }
       }
     },
+    "/api/denuncias": {
+      "post": {
+        "tags": [
+          "Denuncias"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Denuncia a un colectivo o proyecto en el que la persona participó",
+        "description": "Sólo pueden denunciar las personas colaboradoras que participaron (aunque ya hayan dejado el proyecto). Denunciar un colectivo exige haber participado en alguno de sus proyectos; denunciar un proyecto, en ese proyecto. La identidad sale de la sesión, nunca del cuerpo.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tipoEntidadDenunciada": {
+                    "type": "string",
+                    "enum": [
+                      "colectivo",
+                      "proyecto"
+                    ]
+                  },
+                  "entidadDenunciadaId": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{24}$"
+                  },
+                  "motivo": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tipoEntidadDenunciada",
+                  "entidadDenunciadaId",
+                  "motivo",
+                  "descripcion"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Denuncia registrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "tipoEntidadDenunciada": {
+                      "type": "string",
+                      "enum": [
+                        "colectivo",
+                        "proyecto"
+                      ]
+                    },
+                    "entidadDenunciadaId": {
+                      "type": "string"
+                    },
+                    "motivo": {
+                      "type": "string"
+                    },
+                    "descripcion": {
+                      "type": "string"
+                    },
+                    "estado": {
+                      "type": "string",
+                      "enum": [
+                        "pendiente",
+                        "en_revision",
+                        "resuelta",
+                        "desestimada"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "404": {
+            "description": "La entidad denunciada no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/denuncias": {
+      "get": {
+        "tags": [
+          "Denuncias"
+        ],
+        "security": [
+          {
+            "AdminApiKey": []
+          }
+        ],
+        "summary": "Lista las denuncias (administración)",
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pendiente",
+                "en_revision",
+                "resuelta",
+                "desestimada"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Denuncias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "tipoEntidadDenunciada": {
+                        "type": "string",
+                        "enum": [
+                          "colectivo",
+                          "proyecto"
+                        ]
+                      },
+                      "entidadDenunciadaId": {
+                        "type": "string"
+                      },
+                      "motivo": {
+                        "type": "string"
+                      },
+                      "descripcion": {
+                        "type": "string"
+                      },
+                      "estado": {
+                        "type": "string",
+                        "enum": [
+                          "pendiente",
+                          "en_revision",
+                          "resuelta",
+                          "desestimada"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial administrativa inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "ADMIN_API_KEY no configurada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/denuncias/{id}/estado": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Id de la denuncia",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Denuncias"
+        ],
+        "security": [
+          {
+            "AdminApiKey": []
+          }
+        ],
+        "summary": "Cambia el estado de una denuncia (administración)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "pendiente",
+                      "en_revision",
+                      "resuelta",
+                      "desestimada"
+                    ]
+                  }
+                },
+                "required": [
+                  "estado"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Denuncia actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "tipoEntidadDenunciada": {
+                      "type": "string",
+                      "enum": [
+                        "colectivo",
+                        "proyecto"
+                      ]
+                    },
+                    "entidadDenunciadaId": {
+                      "type": "string"
+                    },
+                    "motivo": {
+                      "type": "string"
+                    },
+                    "descripcion": {
+                      "type": "string"
+                    },
+                    "estado": {
+                      "type": "string",
+                      "enum": [
+                        "pendiente",
+                        "en_revision",
+                        "resuelta",
+                        "desestimada"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Estado inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credencial administrativa inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La denuncia no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integraciones/linkedin": {
+      "get": {
+        "tags": [
+          "LinkedIn"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Estado de la conexión con LinkedIn de la cuenta",
+        "responses": {
+          "200": {
+            "description": "Estado de la conexión",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere una sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "LinkedIn"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Desconecta LinkedIn y borra los datos guardados de la conexión",
+        "responses": {
+          "204": {
+            "description": "Desconectado. Sin cuerpo de respuesta."
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integraciones/linkedin/conectar": {
+      "get": {
+        "tags": [
+          "LinkedIn"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Inicia la autorización OAuth con LinkedIn",
+        "description": "Redirige (302) a la pantalla de autorización de LinkedIn.",
+        "responses": {
+          "302": {
+            "description": "Redirección a LinkedIn"
+          },
+          "401": {
+            "description": "Se requiere una sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "La integración con LinkedIn no está configurada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integraciones/linkedin/callback": {
+      "get": {
+        "tags": [
+          "LinkedIn"
+        ],
+        "summary": "Retorno de LinkedIn tras autorizar",
+        "description": "Lo invoca LinkedIn, no el frontend. Siempre redirige (302) a la aplicación con `?linkedin=conectado` o `?linkedin=error`.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirección a la aplicación"
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integraciones/linkedin/importar": {
+      "post": {
+        "tags": [
+          "LinkedIn"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Importa datos del perfil de LinkedIn al perfil de la colaboradora",
+        "responses": {
+          "200": {
+            "description": "Perfil actualizado con los datos importados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integraciones/linkedin/publicar-logro": {
+      "post": {
+        "tags": [
+          "LinkedIn"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Publica un logro en LinkedIn",
+        "description": "Sólo si la persona tiene una colaboración activa en el proyecto del logro.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "proyectoId",
+                  "logroId"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "proyectoId": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{24}$",
+                    "description": "ObjectId de Mongo"
+                  },
+                  "logroId": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{24}$",
+                    "description": "ObjectId de Mongo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Logro publicado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "404": {
+            "description": "Proyecto o logro inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras/{id}/experiencia-habilidades": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Id de la colaboradora",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "tags": [
+          "Colaboradoras"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Reemplaza la experiencia (nivel, años y descripción opcional) por habilidad",
+        "description": "Sólo para habilidades que ya están en el perfil, sin repetir ninguna. La descripción es opcional, admite hasta 500 caracteres y se sanitiza.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "experienciaHabilidades": {
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "codigo": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "nivel": {
+                          "type": "string",
+                          "enum": [
+                            "INICIAL",
+                            "INTERMEDIO",
+                            "AVANZADO"
+                          ]
+                        },
+                        "anios": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 60
+                        },
+                        "descripcion": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "codigo",
+                        "nivel",
+                        "anios"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "experienciaHabilidades"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Colaboradora actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Colaboradora"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos, habilidad repetida o ajena al perfil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "404": {
+            "description": "La colaboradora no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colectivos/{id}/cuenta": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Id del colectivo",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "delete": {
+        "tags": [
+          "Colectivos"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Elimina la cuenta del colectivo",
+        "description": "Sólo puede ejecutarlo el propio colectivo. Borra credenciales y sesiones y deja de buscar colaboradoras en sus proyectos. La acción es permanente.",
+        "responses": {
+          "204": {
+            "description": "Cuenta eliminada. Sin cuerpo de respuesta."
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "404": {
+            "description": "La cuenta o el colectivo no existen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colectivos/colaboraciones/{colaboracionId}": {
+      "parameters": [
+        {
+          "name": "colaboracionId",
+          "in": "path",
+          "required": true,
+          "description": "Id de la colaboración",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "delete": {
+        "tags": [
+          "Colaboraciones"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "El colectivo da de baja una colaboración",
+        "description": "Baja lógica: la colaboración queda TERMINADA con su fecha y se conserva como historial. Libera el cupo y corta el acceso a los datos de contacto.",
+        "responses": {
+          "200": {
+            "description": "Colaboración dada de baja",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "proyectoId": {
+                      "type": "string"
+                    },
+                    "colaboradoraId": {
+                      "type": "string"
+                    },
+                    "estado": {
+                      "type": "string",
+                      "enum": [
+                        "ACTIVA",
+                        "TERMINADA"
+                      ]
+                    },
+                    "fechaBaja": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "404": {
+            "description": "La colaboración no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La colaboración ya fue dada de baja",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colaboradoras/{colaboradoraId}/proyectos/{proyectoId}/baja": {
+      "parameters": [
+        {
+          "name": "colaboradoraId",
+          "in": "path",
+          "required": true,
+          "description": "Id de la colaboradora",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "delete": {
+        "tags": [
+          "Colaboraciones"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "La colaboradora se da de baja de un proyecto",
+        "description": "Baja lógica: la participación queda en el historial como TERMINADA.",
+        "responses": {
+          "200": {
+            "description": "Colaboración dada de baja",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "proyectoId": {
+                      "type": "string"
+                    },
+                    "colaboradoraId": {
+                      "type": "string"
+                    },
+                    "estado": {
+                      "type": "string",
+                      "enum": [
+                        "ACTIVA",
+                        "TERMINADA"
+                      ]
+                    },
+                    "fechaBaja": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "404": {
+            "description": "No tiene una colaboración activa en el proyecto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/proyectos/{proyectoId}/postularse": {
+      "parameters": [
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "La colaboradora se postula a un perfil del proyecto",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "colaboradoraId"
+                ],
+                "properties": {
+                  "colaboradoraId": {
+                    "type": "string"
+                  },
+                  "perfilId": {
+                    "type": "string"
+                  },
+                  "anonimidad": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Postulación registrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No tiene ninguna habilidad requerida por el perfil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "409": {
+            "description": "Proyecto cerrado, vencido, sin búsqueda activa o sin cupo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colectivos/{colectivoId}/proyectos/{proyectoId}/busqueda": {
+      "parameters": [
+        {
+          "name": "colectivoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del colectivo",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Proyectos"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "Abre o cierra la búsqueda de colaboradoras",
+        "description": "Cerrar siempre se puede. Reabrir no, si el proyecto está finalizado o ya venció (409).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "estaBuscando"
+                ],
+                "properties": {
+                  "estaBuscando": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Búsqueda actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "estaBuscando debe ser booleano",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "409": {
+            "description": "El proyecto está finalizado o vencido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colectivos/{colectivoId}/proyectos/{proyectoId}/postulaciones/pendientes": {
+      "parameters": [
+        {
+          "name": "colectivoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del colectivo",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "summary": "Postulaciones pendientes de decisión",
+        "responses": {
+          "200": {
+            "description": "Postulaciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colectivos/{colectivoId}/proyectos/{proyectoId}/postulaciones/procesadas": {
+      "parameters": [
+        {
+          "name": "colectivoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del colectivo",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "summary": "Postulaciones ya aceptadas o rechazadas",
+        "responses": {
+          "200": {
+            "description": "Postulaciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colectivos/{colectivoId}/proyectos/{proyectoId}/postulaciones/{postulacionId}": {
+      "parameters": [
+        {
+          "name": "colectivoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del colectivo",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "proyectoId",
+          "in": "path",
+          "required": true,
+          "description": "Id del proyecto",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "postulacionId",
+          "in": "path",
+          "required": true,
+          "description": "Id de la postulación",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "patch": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "summary": "El colectivo acepta o rechaza una postulación",
+        "description": "Al aceptar se crea la colaboración y se hacen visibles los contactos de la persona.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "estado"
+                ],
+                "properties": {
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "ACEPTADA",
+                      "RECHAZADA"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Postulación actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Estado inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
+          },
+          "409": {
+            "description": "La postulación ya fue resuelta o no hay cupo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/colaboradoras/{id}/cuenta": {
       "parameters": [
         {
