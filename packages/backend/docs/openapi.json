@@ -2926,7 +2926,8 @@
           "description": "UUID del logro",
           "schema": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[a-f0-9]{24}$",
+            "description": "ObjectId de Mongo"
           }
         }
       ],
@@ -4160,7 +4161,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[a-f0-9]{24}$",
+            "description": "ObjectId de Mongo"
           },
           "descripcionPerfil": {
             "type": "string",
@@ -4306,7 +4308,8 @@
           },
           "perfilId": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[a-f0-9]{24}$",
+            "description": "ObjectId de Mongo"
           },
           "colaboradoraId": {
             "type": "string",
@@ -4393,7 +4396,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[a-f0-9]{24}$",
+            "description": "ObjectId de Mongo"
           },
           "descripcion": {
             "type": "string",

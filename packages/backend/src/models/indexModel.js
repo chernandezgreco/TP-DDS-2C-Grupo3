@@ -38,9 +38,9 @@ const colectivoSchema = new mongoose.Schema({
 export const ColectivoModel = mongoose.model("Colectivo", colectivoSchema);
 
 // --- 3. PROYECTO ---
+// perfiles y logros usan el _id de Mongo (ObjectId); el dominio lo ve como "id" (texto)
 const perfilSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true },
     descripcionPerfil: { type: String, required: true },
     fechaLimite: { type: Date, default: null },
     cantidadLimite: { type: Number, min: 1, default: null },
@@ -61,12 +61,10 @@ const perfilSchema = new mongoose.Schema(
       contratacionEventual: { type: Boolean, required: true },
     },
   },
-  { _id: false },
 );
 
 const logroSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true },
     descripcion: { type: String, required: true, trim: true },
     porcentajeCompletitud: {
       type: Number,
@@ -78,7 +76,6 @@ const logroSchema = new mongoose.Schema(
     enlaceFuentePublica: { type: String, default: null },
     fechaCreacion: { type: Date, default: Date.now },
   },
-  { _id: false },
 );
 
 const proyectoSchema = new mongoose.Schema({

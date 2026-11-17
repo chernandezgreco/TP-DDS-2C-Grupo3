@@ -1,5 +1,4 @@
 import { TerminosService } from "./TerminosService.js";
-import { v4 as uuidv4 } from "uuid";
 import {
   ProyectoModel,
   ColaboracionModel,
@@ -16,7 +15,7 @@ import { ColectivoService } from "./ColectivosService.js";
 import { ColaboradoraService } from "./ColaboradoraService.js";
 import { ColaboracionService } from "./ColaboracionService.js";
 import { HabilidadService } from "./HabilidadService.js";
-import { esIdValido } from "./ids.js";
+import { esIdValido, nuevoId } from "./ids.js";
 import { PostulacionService } from "./PostulacionService.js";
 import { DomainError } from "../domain/errores.js";
 import { serializar } from "./serializar.js";
@@ -46,11 +45,11 @@ const aDominio = (doc) =>
       doc.titulo,
       doc.descripcion,
       doc.colectivoId,
-      doc.perfiles.map((perfil) => crearPerfil(perfil.id, perfil)),
+      doc.perfiles.map((perfil) => crearPerfil(perfil._id.toString(), perfil)),
       doc.logros.map(
         (logro) =>
           new Logro(
-            logro.id,
+            logro._id.toString(),
             logro.descripcion,
             logro.porcentajeCompletitud,
             logro.enlaceSistema,
@@ -99,7 +98,7 @@ export const aDocumento = (proyecto) => ({
   estaBuscando: proyecto.estaBuscando,
   fechaCierre: proyecto.fechaCierre,
   perfiles: proyecto.perfiles.map((perfil) => ({
-    id: perfil.id,
+    _id: perfil.id,
     descripcionPerfil: perfil.descripcionPerfil,
     fechaLimite: perfil.fechaLimite,
     cantidadLimite: perfil.cantidadLimite,
@@ -116,7 +115,7 @@ export const aDocumento = (proyecto) => ({
     },
   })),
   logros: proyecto.logros.map((logro) => ({
-    id: logro.id,
+    _id: logro.id,
     descripcion: logro.descripcion,
     porcentajeCompletitud: logro.porcentajeCompletitud,
     enlaceSistema: logro.enlaceSistema,
@@ -290,7 +289,7 @@ export class ProyectoService {
     const perfilesData = data.perfiles || data.body?.perfiles || [];
 
     const perfiles = perfilesData.map((perfil) =>
-      crearPerfil(uuidv4(), perfil),
+      crearPerfil(nuevoId(), perfil),
     );
     const borrador = new Proyecto(
       null,

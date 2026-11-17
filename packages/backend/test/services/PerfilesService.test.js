@@ -87,7 +87,7 @@ describe("PerfilesService", () => {
         });
 
         test("no rompe los logros del proyecto", async () => {
-            await ProyectoModel.findByIdAndUpdate(proyectoId, { logros: [{ id: "logro-1", descripcion: "Primer logro", porcentajeCompletitud: 10 }] });
+            await ProyectoModel.findByIdAndUpdate(proyectoId, { logros: [{ _id: "6720a1f00000000000000012", descripcion: "Primer logro", porcentajeCompletitud: 10 }] });
 
             await PerfilesService.crear(proyectoId, datosPerfil());
 
