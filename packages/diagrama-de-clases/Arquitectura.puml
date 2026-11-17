@@ -15,7 +15,7 @@ node "Servidor (Docker)" {
     }
 
     package "Services" {
-        [ProyectoService\nPerfilesService\nLogroService] as svcProyectos
+        [ProyectoService\nPerfilesService\nLogroService\nTareaService] as svcProyectos
         [ColaboradoraService\nColaboracionService\nNotificacionService] as svcPersonas
         [ColectivoService\nHabilidadService] as svcCatalogo
         [Enviadores\n(Email, WhatsApp, SMS)] as enviadores

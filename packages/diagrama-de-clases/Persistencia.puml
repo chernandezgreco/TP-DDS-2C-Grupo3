@@ -54,6 +54,19 @@ entity "Logro (embebido)" as logro {
     fechaCreacion: Date
 }
 
+entity "tareas" as tareas {
+    * _id: ObjectId
+    --
+    * proyectoId: String
+    * nombre: String
+    descripcion: String
+    * fechaInicio: Date
+    * fechaFin: Date
+    responsableId: String
+    * estado: EstadoTarea
+    fechaCreacion: Date
+}
+
 entity "colaboradoras" as colaboradoras {
     * _id: ObjectId
     --
@@ -91,6 +104,8 @@ proyectos ||--o{ perfil : embebe
 proyectos ||--o{ logro : embebe
 colectivos ||..o{ proyectos : colectivoId
 proyectos ||..o{ colaboraciones : proyectoId
+proyectos ||..o{ tareas : proyectoId
+colaboradoras ||..o{ tareas : responsableId
 perfil ||..o{ colaboraciones : perfilId
 colaboradoras ||..o{ colaboraciones : colaboradoraId
 colaboradoras ||..o{ notificaciones : colaboradoraId
@@ -100,6 +115,8 @@ habilidades ||..o{ colaboradoras : codigo
 note bottom of proyectos
   Perfiles y logros viven dentro del documento del
   proyecto: se leen y se guardan junto con él.
+  Las tareas tienen su propia colección y se consultan
+  por proyectoId, para no cargar el documento del proyecto.
 end note
 
 @enduml
