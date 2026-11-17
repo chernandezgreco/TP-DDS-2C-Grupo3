@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 
 const ASUNTO = "Nueva notificación de Código a Voluntad";
+const TIEMPO_MAXIMO_MS = 8000;
 
 // arma el transporte SMTP con las variables de entorno; sin SMTP_HOST devuelve null (envio simulado)
 const crearTransporteDesdeEntorno = () => {
@@ -14,6 +15,11 @@ const crearTransporteDesdeEntorno = () => {
         port: puerto,
         secure: puerto === 465,
         auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+        // topes cortos: si el hosting bloquea el puerto SMTP, el envio falla rapido
+        // en vez de dejar colgado el pedido (por defecto nodemailer espera 2 minutos)
+        connectionTimeout: TIEMPO_MAXIMO_MS,
+        greetingTimeout: TIEMPO_MAXIMO_MS,
+        socketTimeout: TIEMPO_MAXIMO_MS,
     });
 };
 
