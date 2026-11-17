@@ -59,7 +59,14 @@ export class NotificacionService {
         const mediosFallidos = colaboradora.mediosContacto
             .filter((medio, indice) => resultados[indice].status === "rejected")
             .map((medio) => medio.tipo);
-        mediosFallidos.forEach((tipo) => console.error(`No se pudo enviar la notificación por ${tipo}`));
+        // se registra el motivo (codigo o mensaje del error) para poder diagnosticarlo en los logs
+        resultados.forEach(
+            (resultado, indice) =>
+                resultado.status === "rejected" &&
+                console.error(
+                    `No se pudo enviar la notificación por ${colaboradora.mediosContacto[indice].tipo}: ${resultado.reason?.code ?? resultado.reason?.message}`,
+                ),
+        );
 
         return { notificacion, mediosUsados, mediosFallidos };
     }

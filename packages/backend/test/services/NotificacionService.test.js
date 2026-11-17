@@ -102,6 +102,8 @@ describe("NotificacionService", () => {
         expect(await NotificacionModel.countDocuments()).toBe(1);
         expect(mediosUsados).toEqual([TipoMedioContacto.SMS]);
         expect(mediosFallidos).toEqual([TipoMedioContacto.EMAIL]);
+        // el log incluye el motivo, para poder diagnosticarlo en el servidor
+        expect(errores).toHaveBeenCalledWith(expect.stringContaining("SMTP caido"));
         envio.mockRestore();
         errores.mockRestore();
     });
