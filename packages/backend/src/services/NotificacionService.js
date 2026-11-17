@@ -27,6 +27,13 @@ export class NotificacionService {
         if (!proyecto.perteneceA(colectivo.id)) {
             throw new DomainError("El proyecto no pertenece a este colectivo", { proyectoId: proyecto.id, colectivoId: colectivo.id });
         }
+        // solo se invita a quien tiene alguna habilidad requerida por un perfil del proyecto
+        if (!proyecto.esCompatibleCon(colaboradora)) {
+            throw new DomainError("La colaboradora no tiene ninguna habilidad requerida por los perfiles del proyecto", {
+                colaboradoraId: colaboradora.id,
+                proyectoId: proyecto.id,
+            });
+        }
         if (!colaboradora.puedeSerContactada()) {
             throw new ConflictError("La colaboradora no acepta mensajes internos", { colaboradoraId: colaboradora.id });
         }

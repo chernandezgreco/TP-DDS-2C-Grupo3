@@ -155,6 +155,11 @@ export class Proyecto {
     return this.perfiles.filter((perfil) => perfil.admiteA(colaboradora));
   }
 
+  // compatible si tiene al menos una habilidad requerida de algun perfil del proyecto
+  esCompatibleCon(colaboradora) {
+    return this.perfilesPara(colaboradora).length > 0;
+  }
+
   // el perfil en el que queda anotada la colaboradora: el que eligió o el primero que le corresponde
   perfilParaAnotar(colaboradora, perfilId) {
     this.validarSePuedeAnotar();

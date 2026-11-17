@@ -37,7 +37,19 @@ describe("NotificacionService", () => {
 
         colectivo = await ColectivoModel.create({ nombre: "Verde", descripcion: "Cuidamos plazas", tipo: "ONG", ubicacion: "CABA" });
         otroColectivo = await ColectivoModel.create({ nombre: "Azul", descripcion: "Cuidamos rios", tipo: "ONG", ubicacion: "CABA" });
-        proyecto = await ProyectoModel.create({ titulo: "Plazas", descripcion: "App de plazas", colectivoId: colectivo.id });
+        proyecto = await ProyectoModel.create({
+            titulo: "Plazas",
+            descripcion: "App de plazas",
+            colectivoId: colectivo.id,
+            perfiles: [
+                {
+                    descripcionPerfil: "Frontend",
+                    habilidadesRequeridas: ["react"],
+                    compromiso: { cantidadHoras: 5, tipo: "SEMANALES" },
+                    modalidad: { gratuita: true, incentivoEconomico: false, contratacionEventual: false },
+                },
+            ],
+        });
         colaboradora = await crearColaboradora("Ana", {
             mediosContacto: [
                 { tipo: TipoMedioContacto.EMAIL, valor: "ana@mail.com" },
@@ -85,6 +97,22 @@ describe("NotificacionService", () => {
         await expect(NotificacionService.crear({ ...datos, colaboradoraId: noAcepta.id })).rejects.toThrow(ConflictError);
         expect(await NotificacionModel.countDocuments()).toBe(0);
         expect(consola).not.toHaveBeenCalled();
+    });
+
+    test("no notifica a quien no tiene ninguna habilidad requerida por el proyecto", async () => {
+        const incompatible = await crearColaboradora("Ines", { habilidades: ["python"] });
+
+        await expect(NotificacionService.crear({ ...datos, colaboradoraId: incompatible.id })).rejects.toThrow(DomainError);
+        expect(await NotificacionModel.countDocuments()).toBe(0);
+        expect(consola).not.toHaveBeenCalled();
+    });
+
+    test("alcanza con una sola habilidad requerida en común con algún perfil", async () => {
+        const parcial = await crearColaboradora("Pia", { habilidades: ["python", "react"] });
+
+        const { notificacion } = await NotificacionService.crear({ ...datos, colaboradoraId: parcial.id });
+
+        expect(notificacion.colaboradoraId).toBe(parcial.id);
     });
 
     test("no guarda ni envía si el texto está vacío", async () => {
