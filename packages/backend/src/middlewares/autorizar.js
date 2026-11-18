@@ -26,7 +26,7 @@ export async function autorizar(req, res, next) {
     if (path === "/habilidades" && !read(req))
       return requiereAdministracion(req, res, next);
     const sensitive =
-      /\/notificaciones$|\/proyectos-potenciales$|\/colaboradoras-potenciales$|\/postulaciones\//.test(
+      /\/notificaciones$|\/proyectos-potenciales$|\/colaboradoras-potenciales$|\/postulaciones\/|^\/mi\//.test(
         path,
       );
     if (read(req) && !sensitive) return next();
@@ -37,6 +37,8 @@ export async function autorizar(req, res, next) {
         .status(403)
         .json({ error: "No tenés permiso para realizar esta acción." });
     const parts = path.split("/").filter(Boolean);
+    // /mi/* siempre opera sobre la cuenta de la sesión; nunca es una lectura pública
+    if (parts[0] === "mi") return next();
     if (parts[0] === "denuncias") {
       if (req.method !== "POST") return deny();
       if (!req.actor)
