@@ -24,7 +24,7 @@ Deja Mongo en `localhost:27017`. En `packages/backend/.env` (copiar de `.env.exa
 
 ### Datos iniciales (seeds)
 
-El script semilla **borra** las colecciones de la base de `MONGO_URI` y carga habilidades, colectivos, colaboradoras (con medios de contacto), proyectos con perfiles, colaboraciones, una notificación y logros. Se puede correr las veces que haga falta.
+El script semilla **borra** las colecciones de la base de `MONGO_URI` y carga habilidades, colectivos, colaboradoras (con medios de contacto), proyectos con perfiles, colaboraciones, una notificación, logros y tareas de ejemplo para el Gantt. Se puede correr las veces que haga falta.
 
 ```
 # desarrollo local (desde packages/backend)

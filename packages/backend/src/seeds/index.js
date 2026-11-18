@@ -84,6 +84,14 @@ if (inexistentes.length > 0) {
     throw new Error(`Los datos semilla usan habilidades que no existen: ${[...new Set(inexistentes)].join(", ")}`);
 }
 
+// referencias: el responsable de una tarea tiene que colaborar en ese proyecto
+const sinColaboracion = TAREAS.filter(
+    (t) => t.responsableId && !COLABORACIONES.some((c) => c.proyectoId === t.proyectoId && c.colaboradoraId === t.responsableId),
+);
+if (sinColaboracion.length > 0) {
+    throw new Error(`Los datos semilla tienen tareas con responsables que no colaboran en el proyecto: ${sinColaboracion.map((t) => t.nombre).join(", ")}`);
+}
+
 await conectarMongo();
 console.log(`Cargando datos semilla en la base "${mongoose.connection.name}"...`);
 

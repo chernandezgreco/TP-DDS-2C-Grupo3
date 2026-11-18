@@ -282,7 +282,7 @@ Content-Type: application/json
 
 ## Datos semilla
 
-`npm run seed` borra las colecciones y carga 9 habilidades, 3 colectivos, 5 colaboradoras (con medios de contacto), 4 proyectos con perfiles (uno finalizado), 4 colaboraciones, una notificación y logros. Los datos pasan por las mismas validaciones del dominio que la API.
+`npm run seed` borra las colecciones y carga 9 habilidades, 3 colectivos, 5 colaboradoras (con medios de contacto), 4 proyectos con perfiles (uno finalizado), 4 colaboraciones, una notificación, logros y 12 tareas para ver el Gantt (en "Web de donaciones", "API de inventario" y "Encuesta vecinal": con y sin responsable, finalizadas, en curso, pendientes y cerradas). Los datos pasan por las mismas validaciones del dominio que la API.
 
 Los ids son fijos para poder usarlos directamente en las requests (el detalle está en [`src/seeds/datos.js`](packages/backend/src/seeds/datos.js)):
 

@@ -219,34 +219,101 @@ export const NOTIFICACIONES = [
     },
 ];
 
-// días de calendario (AAAA-MM-DD). Los responsables tienen que ser colaboradoras del proyecto (ver COLABORACIONES)
+// Días de calendario (AAAA-MM-DD). Cuentan la misma historia que los logros y las colaboraciones de arriba:
+// los responsables tienen que ser colaboradoras del proyecto (ver COLABORACIONES) y a propósito algunas tareas
+// no tienen responsable (por ejemplo, las del perfil Tester de "Web de donaciones", que todavía no tiene a nadie).
 export const TAREAS = [
+    // Web de donaciones: el diseño (1/10) y la primera versión de la API (10/10) coinciden con sus logros
     {
         proyectoId: IDS.proyectos.webDonaciones,
-        nombre: "Diseño de pantallas",
-        descripcion: "Mockups del listado de donaciones y del formulario de carga",
-        fechaInicio: "2026-11-02",
-        fechaFin: "2026-11-13",
+        nombre: "Diseño inicial del sistema",
+        descripcion: "Relevamiento con la fundación y diseño de las pantallas del listado y del formulario",
+        fechaInicio: "2026-09-21",
+        fechaFin: "2026-10-01",
+        responsableId: IDS.colaboradoras.ada,
+        estado: "FINALIZADA",
+    },
+    {
+        proyectoId: IDS.proyectos.webDonaciones,
+        nombre: "Primera versión de la API",
+        descripcion: "Endpoints para registrar y listar las donaciones",
+        fechaInicio: "2026-10-02",
+        fechaFin: "2026-10-10",
         responsableId: IDS.colaboradoras.ada,
         estado: "FINALIZADA",
     },
     {
         proyectoId: IDS.proyectos.webDonaciones,
         nombre: "Formulario de donaciones",
-        descripcion: "Alta, edición y baja de donaciones",
-        fechaInicio: "2026-11-16",
-        fechaFin: "2026-12-04",
+        descripcion: "Alta, edición y baja de donaciones desde la web",
+        fechaInicio: "2026-10-12",
+        fechaFin: "2026-11-27",
         responsableId: IDS.colaboradoras.ada,
         estado: "EN_CURSO",
     },
     {
         proyectoId: IDS.proyectos.webDonaciones,
+        nombre: "Pruebas end to end con Cypress",
+        descripcion: "Recorridos completos de una donación, de la carga a la entrega",
+        fechaInicio: "2026-11-30",
+        fechaFin: "2026-12-11",
+        responsableId: null,
+        estado: "PENDIENTE",
+    },
+    {
+        proyectoId: IDS.proyectos.webDonaciones,
         nombre: "Puesta en producción",
+        fechaInicio: "2026-12-14",
+        fechaFin: "2026-12-18",
+        responsableId: null,
+        estado: "PENDIENTE",
+    },
+    // API de inventario: Grace lleva el backend; una tarea ya arrancada todavía no tiene quién la lleve
+    {
+        proyectoId: IDS.proyectos.apiInventario,
+        nombre: "Modelo de datos del stock",
+        descripcion: "Productos, depósitos y movimientos del comedor",
+        fechaInicio: "2026-10-05",
+        fechaFin: "2026-10-16",
+        responsableId: IDS.colaboradoras.grace,
+        estado: "FINALIZADA",
+    },
+    {
+        proyectoId: IDS.proyectos.apiInventario,
+        nombre: "Endpoints de entradas y salidas",
+        descripcion: "Registrar lo que ingresa y lo que se usa en el comedor",
+        fechaInicio: "2026-10-19",
+        fechaFin: "2026-11-20",
+        responsableId: IDS.colaboradoras.grace,
+        estado: "EN_CURSO",
+    },
+    {
+        proyectoId: IDS.proyectos.apiInventario,
+        nombre: "Alertas de stock mínimo",
+        descripcion: "Aviso cuando un producto está por agotarse",
+        fechaInicio: "2026-11-16",
+        fechaFin: "2026-12-04",
+        responsableId: null,
+        estado: "EN_CURSO",
+    },
+    {
+        proyectoId: IDS.proyectos.apiInventario,
+        nombre: "Documentación con Swagger",
         fechaInicio: "2026-12-07",
         fechaFin: "2026-12-11",
         responsableId: null,
         estado: "PENDIENTE",
     },
+    {
+        proyectoId: IDS.proyectos.apiInventario,
+        nombre: "Carga inicial del inventario",
+        descripcion: "Cargar el stock actual del comedor",
+        fechaInicio: "2026-12-14",
+        fechaFin: "2026-12-18",
+        responsableId: IDS.colaboradoras.grace,
+        estado: "PENDIENTE",
+    },
+    // Encuesta vecinal: proyecto finalizado; la tarea que no se terminó queda CERRADA (lo hace el seed al armarlas)
     {
         proyectoId: IDS.proyectos.encuestaVecinal,
         nombre: "Análisis de las respuestas",
