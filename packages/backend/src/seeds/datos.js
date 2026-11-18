@@ -42,6 +42,7 @@ export const COLECTIVOS = [
         descripcion: "Asistencia alimentaria en barrios del conurbano",
         ubicacion: "Avellaneda, Buenos Aires",
         tipo: "FUNDACION",
+        etiquetas: ["alimentacion", "conurbano", "solidaridad"],
     },
     {
         id: IDS.colectivos.asambleaVillaCrespo,
@@ -49,6 +50,7 @@ export const COLECTIVOS = [
         descripcion: "Asamblea vecinal que organiza actividades culturales",
         ubicacion: "Villa Crespo, CABA",
         tipo: "ASAMBLEA",
+        etiquetas: ["cultura", "barrio", "caba"],
     },
     {
         id: IDS.colectivos.codigoAbierto,
@@ -56,6 +58,7 @@ export const COLECTIVOS = [
         descripcion: "Enseñanza de programación a jóvenes",
         ubicacion: "Rosario, Santa Fe",
         tipo: "ONG",
+        etiquetas: ["educacion", "programacion", "juventudes"],
     },
 ];
 
@@ -130,6 +133,7 @@ export const PROYECTOS = [
         colectivoId: IDS.colectivos.manosUnidas,
         titulo: "Web de donaciones",
         descripcion: "Sitio para recibir y organizar donaciones de alimentos",
+        etiquetas: ["alimentacion", "donaciones", "web"],
         perfiles: [
             {
                 descripcionPerfil: "Frontend",
@@ -152,6 +156,7 @@ export const PROYECTOS = [
         colectivoId: IDS.colectivos.manosUnidas,
         titulo: "API de inventario",
         descripcion: "Backend para controlar el stock del comedor",
+        etiquetas: ["alimentacion", "comedor", "backend"],
         perfiles: [
             {
                 descripcionPerfil: "Backend",
@@ -167,6 +172,7 @@ export const PROYECTOS = [
         colectivoId: IDS.colectivos.codigoAbierto,
         titulo: "Plataforma de cursos",
         descripcion: "Plataforma para los cursos de programación",
+        etiquetas: ["educacion", "programacion", "web"],
         perfiles: [
             {
                 descripcionPerfil: "Fullstack",
@@ -189,6 +195,7 @@ export const PROYECTOS = [
         colectivoId: IDS.colectivos.asambleaVillaCrespo,
         titulo: "Encuesta vecinal",
         descripcion: "Análisis de datos de la encuesta del barrio",
+        etiquetas: ["barrio", "datos", "participacion"],
         finalizado: true,
         perfiles: [
             {
