@@ -3,7 +3,7 @@ import { actualizarPerfilSchema, crearPerfilSchema } from "../schemas/PerfilSche
 import { TipoCompromiso } from "../domain/Compromiso/TipoCompromiso.js";
 import { EstadoProyecto } from "../domain/Proyecto/EstadoProyecto.js";
 import { EstadoColaboracion } from "../domain/Colaboracion/EstadoColaboracion.js";
-import { cuerpo, error, lista, parametro, ref, respuesta } from "./comun.js";
+import { cuerpo, error, esquemaEtiquetas, lista, parametro, parametroEtiquetas, ref, respuesta } from "./comun.js";
 
 // Proyectos, perfiles, colaboraciones y búsquedas
 
@@ -55,6 +55,7 @@ export const schemasProyectos = {
             },
             perfiles: lista(ref("Perfil")),
             logros: lista(ref("Logro")),
+            etiquetas: esquemaEtiquetas,
         },
     },
     Colaboracion: {
@@ -107,8 +108,12 @@ export const pathsProyectos = {
     "/api/proyectos": {
         get: {
             tags: ["Proyectos"],
-            summary: "Lista los proyectos",
-            responses: { 200: respuesta("Proyectos", lista(ref("Proyecto"))) },
+            summary: "Lista los proyectos, opcionalmente filtrados por etiquetas",
+            parameters: [parametroEtiquetas],
+            responses: {
+                200: respuesta("Proyectos", lista(ref("Proyecto"))),
+                400: error("Alguna etiqueta del filtro no es válida"),
+            },
         },
     },
     "/api/proyectos/{proyectoId}": {

@@ -30,6 +30,13 @@
                   },
                   "ubicacion": {
                     "type": "string"
+                  },
+                  "etiquetas": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
@@ -99,7 +106,19 @@
         "tags": [
           "Colectivos"
         ],
-        "summary": "Lista los colectivos",
+        "summary": "Lista los colectivos, opcionalmente filtrados por etiquetas",
+        "parameters": [
+          {
+            "name": "etiquetas",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por etiquetas separadas por coma (o repitiendo el parámetro). Se normalizan igual que al cargarlas y el resultado debe tener todas.",
+            "schema": {
+              "type": "string",
+              "example": "salud,educacion"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Colectivos",
@@ -110,6 +129,16 @@
                   "items": {
                     "$ref": "#/components/schemas/Colectivo"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Alguna etiqueta del filtro no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -808,6 +837,13 @@
                     "format": "date-time",
                     "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
                   },
+                  "etiquetas": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   "versionTerminosAceptada": {
                     "type": "string",
                     "minLength": 1
@@ -1090,7 +1126,7 @@
           "Proyectos"
         ],
         "summary": "Edita datos de Proyecto",
-        "description": "Permite configurar una fechaCierre futura con zona horaria. Omitirla conserva la programación; null la elimina. No se puede reprogramar un proyecto vencido o finalizado. El backend revisa vencimientos al arrancar y cada minuto; las postulaciones y aceptaciones se bloquean desde el vencimiento.",
+        "description": "Permite configurar una fechaCierre futura con zona horaria. Omitirla conserva la programación; null la elimina. No se puede reprogramar un proyecto vencido o finalizado. El backend revisa vencimientos al arrancar y cada minuto; las postulaciones y aceptaciones se bloquean desde el vencimiento. Las etiquetas enviadas reemplazan a las anteriores; omitirlas las conserva y una lista vacía las quita.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1136,6 +1172,13 @@
                     "type": "string",
                     "format": "date-time",
                     "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "etiquetas": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   },
                   "versionTerminosAceptada": {
                     "type": "string",
@@ -1295,7 +1338,19 @@
         "tags": [
           "Proyectos"
         ],
-        "summary": "Lista los proyectos",
+        "summary": "Lista los proyectos, opcionalmente filtrados por etiquetas",
+        "parameters": [
+          {
+            "name": "etiquetas",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por etiquetas separadas por coma (o repitiendo el parámetro). Se normalizan igual que al cargarlas y el resultado debe tener todas.",
+            "schema": {
+              "type": "string",
+              "example": "salud,educacion"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Proyectos",
@@ -1306,6 +1361,16 @@
                   "items": {
                     "$ref": "#/components/schemas/Proyecto"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Alguna etiqueta del filtro no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -3690,7 +3755,7 @@
           "Colectivos"
         ],
         "summary": "Edita datos de Colectivo",
-        "description": "Pendiente integrar autenticación y autorización de sesión.",
+        "description": "Solo cambian los campos enviados. Las etiquetas enviadas reemplazan a las anteriores; omitirlas las conserva y una lista vacía las quita.",
         "requestBody": {
           "required": true,
           "content": {
@@ -3709,6 +3774,13 @@
                   },
                   "ubicacion": {
                     "type": "string"
+                  },
+                  "etiquetas": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -6250,6 +6322,18 @@
               "ONG",
               "ASAMBLEA"
             ]
+          },
+          "etiquetas": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+              "minLength": 2,
+              "maxLength": 30,
+              "example": "educacion-popular"
+            },
+            "maxItems": 10,
+            "description": "Etiquetas libres, normalizadas: minúsculas, sin acentos y con guiones en lugar de espacios (\"Educación Popular\" se guarda como \"educacion-popular\"). Hasta 10, sin repetir."
           }
         }
       },
@@ -6405,6 +6489,18 @@
             "items": {
               "$ref": "#/components/schemas/Logro"
             }
+          },
+          "etiquetas": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+              "minLength": 2,
+              "maxLength": 30,
+              "example": "educacion-popular"
+            },
+            "maxItems": 10,
+            "description": "Etiquetas libres, normalizadas: minúsculas, sin acentos y con guiones en lugar de espacios (\"Educación Popular\" se guarda como \"educacion-popular\"). Hasta 10, sin repetir."
           },
           "requiereIA": {
             "type": "boolean",

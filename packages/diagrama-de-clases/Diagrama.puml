@@ -15,6 +15,7 @@ package "Colectivos y proyectos" {
         - descripcion: String
         - ubicacion: String [0..1]
         - tipo: TipoColectivo
+        - etiquetas: List<String>
     }
 
     enum TipoColectivo {
@@ -29,6 +30,7 @@ package "Colectivos y proyectos" {
         - titulo: String
         - descripcion: String
         - estado: EstadoProyecto
+        - etiquetas: List<String>
         + perteneceA(colectivoId): Boolean
         + estaActivo(): Boolean
         + cerrar(): void
@@ -195,6 +197,13 @@ note right of Tarea
   CERRADA la asigna el sistema al finalizar el
   proyecto con la tarea sin terminar.
 end note
+
+note "Etiquetas libres, normalizadas al construir
+(minúsculas, sin acentos, guiones; 2 a 30
+caracteres; hasta 10 sin repetir).
+Ver domain/etiquetas.js" as NotaEtiquetas
+NotaEtiquetas .. Colectivo
+NotaEtiquetas .. Proyecto
 
 note right of Perfil
   Una colaboradora puede anotarse en un perfil

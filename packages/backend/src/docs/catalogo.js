@@ -2,7 +2,7 @@ import { crearColectivoSchema } from "../schemas/ColectivoSchema.js";
 import { crearHabilidadSchema } from "../schemas/HabilidadSchema.js";
 import { agregarHabilidadSchema, crearColaboradoraSchema } from "../schemas/ColaboradoraSchema.js";
 import { TipoColectivo } from "../domain/Colectivo/TipoColectivo.js";
-import { cuerpo, error, lista, parametro, ref, respuesta } from "./comun.js";
+import { cuerpo, error, esquemaEtiquetas, lista, parametro, parametroEtiquetas, ref, respuesta } from "./comun.js";
 
 // Colectivos, habilidades y colaboradoras
 
@@ -17,6 +17,7 @@ export const schemasCatalogo = {
             descripcion: { type: "string" },
             ubicacion: { type: "string", example: "Avellaneda, Buenos Aires" },
             tipo: { type: "string", enum: Object.values(TipoColectivo) },
+            etiquetas: esquemaEtiquetas,
         },
     },
     Habilidad: {
@@ -56,8 +57,12 @@ export const pathsCatalogo = {
         },
         get: {
             tags: ["Colectivos"],
-            summary: "Lista los colectivos",
-            responses: { 200: respuesta("Colectivos", lista(ref("Colectivo"))) },
+            summary: "Lista los colectivos, opcionalmente filtrados por etiquetas",
+            parameters: [parametroEtiquetas],
+            responses: {
+                200: respuesta("Colectivos", lista(ref("Colectivo"))),
+                400: error("Alguna etiqueta del filtro no es válida"),
+            },
         },
     },
     "/api/habilidades": {
