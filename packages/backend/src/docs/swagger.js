@@ -17,8 +17,12 @@ export const especificacion = {
   openapi: "3.0.3",
   info: {
     title: "Código a Voluntad - API",
-    version: "2.0.0",
-    description: "API del backend del TP de Desarrollo de Software (grupo 3)",
+    version: "3.0.0",
+    description:
+      "API del backend del TP de Desarrollo de Software (grupo 3), tercera entrega. " +
+      "Las rutas de escritura y las privadas usan la cookie de sesión cav_session: " +
+      "registrarse o iniciar sesión con /api/auth/registro o /api/auth/login desde esta misma página " +
+      "y el navegador la envía sola. Las rutas administrativas usan Authorization: Bearer <ADMIN_API_KEY>.",
   },
   paths: {
     ...pathsCatalogo,
@@ -114,6 +118,23 @@ for (const path of ["/api/colectivos", "/api/colaboradoras"]) {
     especificacion.paths[path].post.description =
       "El alta con credenciales se realiza mediante POST /api/auth/registro.";
   }
+}
+
+// Lecturas privadas: no son escrituras, pero igual exigen sesión y ser el titular o el colectivo dueño
+for (const path of [
+  "/api/proyectos/{proyectoId}/perfiles/{perfilId}/colaboradoras-potenciales",
+  "/api/colaboradoras/{id}/proyectos-potenciales",
+  "/api/colaboradoras/{id}/notificaciones",
+  "/api/colectivos/{colectivoId}/proyectos/{proyectoId}/postulaciones/pendientes",
+  "/api/colectivos/{colectivoId}/proyectos/{proyectoId}/postulaciones/procesadas",
+]) {
+  const operacion = especificacion.paths[path]?.get;
+  if (!operacion) continue;
+  operacion.security = [{ SessionCookie: [] }];
+  operacion.responses[401] = { description: "Se requiere sesión válida" };
+  operacion.responses[403] = {
+    description: "La cuenta no es la titular ni el colectivo dueño",
+  };
 }
 
 // Si una ruta tiene {parametros} que ninguna operacion declara, se agregan para que Swagger UI pida el valor

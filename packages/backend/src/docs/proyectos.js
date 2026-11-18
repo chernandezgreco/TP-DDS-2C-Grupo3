@@ -1,4 +1,4 @@
-import { anotarColaboradoraSchema, cerrarProyectoSchema, crearProyectoSchema } from "../schemas/ProyectoSchema.js";
+import { cerrarProyectoSchema, crearProyectoSchema } from "../schemas/ProyectoSchema.js";
 import { actualizarPerfilSchema, crearPerfilSchema } from "../schemas/PerfilSchema.js";
 import { TipoCompromiso } from "../domain/Compromiso/TipoCompromiso.js";
 import { EstadoProyecto } from "../domain/Proyecto/EstadoProyecto.js";
@@ -96,7 +96,7 @@ export const pathsProyectos = {
         parameters: [colectivoId, proyectoId],
         patch: {
             tags: ["Proyectos"],
-            summary: "Cierra el proyecto: deja de admitir colaboraciones",
+            summary: "Finaliza el proyecto: rechaza las postulaciones pendientes y no admite nuevas",
             requestBody: cuerpo(cerrarProyectoSchema),
             responses: {
                 200: respuesta("Proyecto finalizado", ref("Proyecto")),
@@ -200,22 +200,6 @@ export const pathsProyectos = {
             responses: {
                 200: respuesta("Proyectos potenciales", lista(ref("ProyectoPotencial"))),
                 404: error("Colaboradora inexistente"),
-            },
-        },
-    },
-    "/api/proyectos/{proyectoId}/colaboraciones": {
-        parameters: [proyectoId],
-        post: {
-            tags: ["Colaboraciones"],
-            summary: "Anota a una colaboradora en el proyecto",
-            description: "La colaboradora necesita al menos una habilidad requerida del perfil. "
-                + "Si no se indica perfilId, queda en el primer perfil que le corresponde.",
-            requestBody: cuerpo(anotarColaboradoraSchema),
-            responses: {
-                201: respuesta("Colaboración creada", ref("Colaboracion")),
-                400: error("No tiene ninguna habilidad requerida"),
-                404: error("Proyecto, perfil o colaboradora inexistente"),
-                409: error("Proyecto finalizado o colaboradora ya anotada en ese perfil"),
             },
         },
     },

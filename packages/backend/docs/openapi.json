@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Código a Voluntad - API",
-    "version": "2.0.0",
-    "description": "API del backend del TP de Desarrollo de Software (grupo 3)"
+    "version": "3.0.0",
+    "description": "API del backend del TP de Desarrollo de Software (grupo 3), tercera entrega. Las rutas de escritura y las privadas usan la cookie de sesión cav_session: registrarse o iniciar sesión con /api/auth/registro o /api/auth/login desde esta misma página y el navegador la envía sola. Las rutas administrativas usan Authorization: Bearer <ADMIN_API_KEY>."
   },
   "paths": {
     "/api/colectivos": {
@@ -1037,7 +1037,7 @@
         "tags": [
           "Proyectos"
         ],
-        "summary": "Cierra el proyecto: deja de admitir colaboraciones",
+        "summary": "Finaliza el proyecto: rechaza las postulaciones pendientes y no admite nuevas",
         "requestBody": {
           "required": true,
           "content": {
@@ -1989,6 +1989,12 @@
               }
             }
           },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no es la titular ni el colectivo dueño"
+          },
           "404": {
             "description": "Proyecto o perfil inexistente",
             "content": {
@@ -2017,7 +2023,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
       }
     },
     "/api/colaboradoras/{id}/proyectos-potenciales": {
@@ -2053,119 +2064,14 @@
               }
             }
           },
-          "404": {
-            "description": "Colaboradora inexistente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Se excedió la cuota de solicitudes por IP",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "Segundos hasta el reinicio de cuota"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/proyectos/{proyectoId}/colaboraciones": {
-      "parameters": [
-        {
-          "name": "proyectoId",
-          "in": "path",
-          "required": true,
-          "description": "Id del proyecto",
-          "schema": {
-            "type": "string",
-            "example": "650000000000000000000201"
-          }
-        }
-      ],
-      "post": {
-        "tags": [
-          "Colaboraciones"
-        ],
-        "summary": "Anota a una colaboradora en el proyecto",
-        "description": "La colaboradora necesita al menos una habilidad requerida del perfil. Si no se indica perfilId, queda en el primer perfil que le corresponde.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "colaboradoraId": {
-                    "type": "string"
-                  },
-                  "perfilId": {
-                    "type": "string"
-                  },
-                  "anonimidad": {
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "colaboradoraId"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Colaboración creada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Colaboracion"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "No tiene ninguna habilidad requerida",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "401": {
             "description": "Se requiere sesión válida"
           },
           "403": {
-            "description": "La cuenta no tiene permiso para esta operación"
+            "description": "La cuenta no es la titular ni el colectivo dueño"
           },
           "404": {
-            "description": "Proyecto, perfil o colaboradora inexistente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Proyecto finalizado o colaboradora ya anotada en ese perfil",
+            "description": "Colaboradora inexistente",
             "content": {
               "application/json": {
                 "schema": {
@@ -2696,6 +2602,12 @@
               }
             }
           },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no es la titular ni el colectivo dueño"
+          },
           "404": {
             "description": "Colaboradora no encontrada",
             "content": {
@@ -2724,7 +2636,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
       }
     },
     "/api/notificaciones": {
@@ -5650,6 +5567,12 @@
               }
             }
           },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no es la titular ni el colectivo dueño"
+          },
           "429": {
             "description": "Se excedió la cuota de solicitudes por IP",
             "headers": {
@@ -5668,7 +5591,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
       }
     },
     "/api/colectivos/{colectivoId}/proyectos/{proyectoId}/postulaciones/procesadas": {
@@ -5711,6 +5639,12 @@
               }
             }
           },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no es la titular ni el colectivo dueño"
+          },
           "429": {
             "description": "Se excedió la cuota de solicitudes por IP",
             "headers": {
@@ -5729,7 +5663,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
       }
     },
     "/api/colectivos/{colectivoId}/proyectos/{proyectoId}/postulaciones/{postulacionId}": {
