@@ -1,124 +1,276 @@
 @startuml
-' Colecciones de MongoDB y documentos embebidos
-title Código a Voluntad - Persistencia en MongoDB
+' Colecciones de MongoDB y documentos embebidos - 3ra entrega
+' Refleja packages/backend/src/models (indexModel, AuthModel, AdicionalesModel, LinkedInModel)
+' Los nombres de colección son los que genera Mongoose (plural automático del modelo)
+title Código a Voluntad - Persistencia en MongoDB (3ra entrega)
 
 hide circle
 hide methods
 skinparam linetype ortho
 
-entity "habilidads" as habilidades {
-    * _id: ObjectId
-    --
-    * codigo: String <<unique>>
-    * titulo: String
-    * descripcion: String
+package "Dominio" {
+    entity "habilidads" as habilidades {
+        * _id: ObjectId
+        --
+        * codigo: String <<unique>>
+        * titulo: String
+        * descripcion: String
+    }
+
+    entity "colectivos" as colectivos {
+        * _id: ObjectId
+        --
+        * nombre: String
+        * descripcion: String
+        * tipo: TipoColectivo
+        ubicacion: String
+        etiquetas: [String] <<index>>
+        cuentaEliminadaAt: Date
+        moderacionTerminos: { suspendido, motivo, version, fecha }
+    }
+
+    entity "proyectos" as proyectos {
+        * _id: ObjectId
+        --
+        * titulo: String
+        * descripcion: String
+        * colectivoId: String
+        estado: EstadoProyecto <<index estado+fechaCierre>>
+        estaBuscando: Boolean
+        fechaCierre: Date
+        perfiles: [Perfil]
+        logros: [Logro]
+        etiquetas: [String] <<index>>
+        requiereIA: Boolean
+        usosIA: [{ descripcion, justificacion, grado }]
+        aceptacionTerminos: { version, fecha }
+        moderacionTerminos: { suspendido, motivo, version, fecha }
+    }
+
+    entity "Perfil (embebido)" as perfil {
+        * _id: ObjectId
+        --
+        * descripcionPerfil: String
+        fechaLimite: Date
+        cantidadLimite: Number
+        * habilidadesRequeridas: [codigo]
+        habilidadesOpcionales: [codigo]
+        * compromiso: { cantidadHoras, tipo }
+        * modalidad: { gratuita, incentivoEconomico, contratacionEventual }
+    }
+
+    entity "Logro (embebido)" as logro {
+        * _id: ObjectId
+        --
+        * descripcion: String
+        * porcentajeCompletitud: Number
+        enlaceSistema: String
+        enlaceFuentePublica: String
+        fechaCreacion: Date
+    }
+
+    entity "tareas" as tareas {
+        * _id: ObjectId
+        --
+        * proyectoId: String <<index proyectoId+fechaInicio>>
+        * nombre: String
+        descripcion: String
+        * fechaInicio: Date
+        * fechaFin: Date
+        responsableId: String
+        estado: EstadoTarea
+        fechaCreacion: Date
+    }
+
+    entity "colaboradoras" as colaboradoras {
+        * _id: ObjectId
+        --
+        * nombreFantasia: String
+        github: String [requerido si no hay cuentaEliminadaAt]
+        nombreApellido: String
+        habilidades: [codigo]
+        experienciaHabilidades: [{ codigo, nivel, anios, descripcion }]
+        pronombres: String
+        presentacion: String
+        aceptaMensajeria: Boolean
+        mediosContacto: [{ tipo, valor }]
+        linkedinFoto: String
+        cuentaEliminadaAt: Date
+    }
+
+    entity "postulacions" as postulaciones {
+        * _id: ObjectId
+        --
+        * proyectoId: String
+        * perfilId: String
+        * colaboradoraId: String
+        estado: EstadoPostulacion
+        anonimidad: Boolean
+        fechaCreacion: Date
+    }
+
+    entity "colaboracions" as colaboraciones {
+        * _id: ObjectId
+        --
+        * proyectoId: String
+        * perfilId: String
+        * colaboradoraId: String
+        estado: EstadoColaboracion
+        anonimidad: Boolean
+        fechaCreacion: Date
+        fechaBaja: Date
+    }
+
+    entity "notificacions" as notificaciones {
+        * _id: ObjectId
+        --
+        * colaboradoraId: String
+        * colectivoId: String
+        * proyectoId: String
+        * texto: String
+        fecha: Date
+    }
 }
 
-entity "colectivos" as colectivos {
-    * _id: ObjectId
-    --
-    * nombre: String
-    * descripcion: String
-    * tipo: TipoColectivo
-    ubicacion: String
-    etiquetas: [String] <<index>>
+package "Cuentas y sesiones" {
+    entity "cuentas" as cuentas {
+        * _id: ObjectId
+        --
+        * email: String <<unique>>
+        * passwordHash: String <<select:false>>
+        * salt: String <<select:false>>
+        * tipo: colectivos | colaboradoras
+        * perfilId: String
+        createdAt / updatedAt: Date
+    }
+
+    entity "sesions" as sesiones {
+        * _id: ObjectId
+        --
+        * tokenHash: String <<unique>>
+        * cuentaId: ObjectId
+        * expira: Date <<TTL>>
+    }
 }
 
-entity "proyectos" as proyectos {
-    * _id: ObjectId
-    --
-    * titulo: String
-    * descripcion: String
-    * colectivoId: String
-    * estado: EstadoProyecto
-    perfiles: [Perfil]
-    logros: [Logro]
-    etiquetas: [String] <<index>>
+package "Adicionales" {
+    entity "denuncias" as denuncias {
+        * _id: ObjectId
+        --
+        * cuentaDenuncianteId: ObjectId
+        * denuncianteTipo: colectivos | colaboradoras
+        * denunciantePerfilId: String
+        * tipoEntidadDenunciada: colectivo | proyecto
+        * entidadDenunciadaId: ObjectId
+        * motivo: String
+        * descripcion: String
+        estado: pendiente | en_revision | resuelta | desestimada
+        fechaCreacion: Date
+    }
+
+    entity "terminos" as terminos {
+        * _id: ObjectId
+        --
+        * version: String <<unique>>
+        * titulo: String
+        * contenido: String
+        createdAt / updatedAt: Date
+    }
+
+    entity "revisionterminos" as revisiones {
+        * _id: ObjectId
+        --
+        * recurso: proyectos | colectivos
+        * recursoId: String
+        * suspendido: Boolean
+        * motivo: String
+        * versionTerminos: String
+        createdAt / updatedAt: Date
+    }
 }
 
-entity "Perfil (embebido)" as perfil {
-    * id: UUID
-    --
-    * descripcionPerfil: String
-    * habilidadesRequeridas: [codigo]
-    habilidadesOpcionales: [codigo]
-    * compromiso: { cantidadHoras, tipo }
-    * modalidad: { gratuita, incentivoEconomico, contratacionEventual }
-}
+package "Integración LinkedIn" {
+    entity "linkedinconnections" as linkedinConexiones {
+        * _id: ObjectId
+        --
+        * cuentaId: ObjectId <<unique>>
+        * memberId: String
+        nombre / nombrePila / apellido: String
+        foto: String
+        * tokenCifrado: String <<select:false>>
+        * tokenIv: String <<select:false>>
+        * tokenTag: String <<select:false>>
+        * tokenExpira: Date
+        createdAt / updatedAt: Date
+    }
 
-entity "Logro (embebido)" as logro {
-    * id: UUID
-    --
-    * descripcion: String
-    * porcentajeCompletitud: Number
-    enlaceSistema: String
-    enlaceFuentePublica: String
-    fechaCreacion: Date
-}
-
-entity "tareas" as tareas {
-    * _id: ObjectId
-    --
-    * proyectoId: String
-    * nombre: String
-    descripcion: String
-    * fechaInicio: Date
-    * fechaFin: Date
-    responsableId: String
-    * estado: EstadoTarea
-    fechaCreacion: Date
-}
-
-entity "colaboradoras" as colaboradoras {
-    * _id: ObjectId
-    --
-    * nombreFantasia: String
-    * github: String
-    nombreApellido: String
-    habilidades: [codigo]
-    pronombres: String
-    presentacion: String
-    aceptaMensajeria: Boolean
-    mediosContacto: [{ tipo, valor }]
-}
-
-entity "colaboracions" as colaboraciones {
-    * _id: ObjectId
-    --
-    * proyectoId: String
-    * perfilId: UUID
-    * colaboradoraId: String
-    estado: EstadoColaboracion
-    fechaCreacion: Date
-}
-
-entity "notificacions" as notificaciones {
-    * _id: ObjectId
-    --
-    * colaboradoraId: String
-    * colectivoId: String
-    * proyectoId: String
-    * texto: String
-    fecha: Date
+    entity "linkedinoauthstates" as linkedinEstados {
+        * _id: ObjectId
+        --
+        * stateHash: String <<unique>>
+        * cuentaId: ObjectId
+        * expira: Date <<TTL>>
+    }
 }
 
 proyectos ||--o{ perfil : embebe
 proyectos ||--o{ logro : embebe
 colectivos ||..o{ proyectos : colectivoId
-proyectos ||..o{ colaboraciones : proyectoId
 proyectos ||..o{ tareas : proyectoId
 colaboradoras ||..o{ tareas : responsableId
+proyectos ||..o{ postulaciones : proyectoId
+perfil ||..o{ postulaciones : perfilId
+colaboradoras ||..o{ postulaciones : colaboradoraId
+proyectos ||..o{ colaboraciones : proyectoId
 perfil ||..o{ colaboraciones : perfilId
 colaboradoras ||..o{ colaboraciones : colaboradoraId
 colaboradoras ||..o{ notificaciones : colaboradoraId
+colectivos ||..o{ notificaciones : colectivoId
+proyectos ||..o{ notificaciones : proyectoId
 habilidades ||..o{ perfil : codigo
 habilidades ||..o{ colaboradoras : codigo
+colectivos ||..o| cuentas : perfilId
+colaboradoras ||..o| cuentas : perfilId
+cuentas ||..o{ sesiones : cuentaId
+cuentas ||..o{ denuncias : cuentaDenuncianteId
+cuentas ||..o| linkedinConexiones : cuentaId
+cuentas ||..o{ linkedinEstados : cuentaId
+terminos ||..o{ revisiones : versionTerminos
 
 note bottom of proyectos
   Perfiles y logros viven dentro del documento del
   proyecto: se leen y se guardan junto con él.
   Las tareas tienen su propia colección y se consultan
   por proyectoId, para no cargar el documento del proyecto.
+  El índice estado+fechaCierre lo usa el job de cierre automático.
+end note
+
+note bottom of sesiones
+  Se guarda el SHA-256 del token de la cookie
+  cav_session, nunca el token. El índice TTL
+  sobre expira (7 días) borra la sesión vencida.
+end note
+
+note bottom of linkedinConexiones
+  El token de LinkedIn se guarda cifrado
+  (AES-256-GCM). Los campos select:false no
+  se leen salvo pedido explícito.
+end note
+
+note bottom of denuncias
+  entidadDenunciadaId apunta a colectivos o a
+  proyectos según tipoEntidadDenunciada.
+  revisionterminos.recursoId hace lo mismo
+  según recurso: son referencias polimórficas,
+  sin ref en el schema.
+end note
+
+note top of cuentas
+  perfilId apunta a colectivos o a colaboradoras
+  según tipo. Al eliminar la cuenta se borran este
+  documento, sus sesiones y lo de LinkedIn; el perfil
+  se conserva con cuentaEliminadaAt (la colaboradora,
+  además, queda anonimizada).
 end note
 
 @enduml

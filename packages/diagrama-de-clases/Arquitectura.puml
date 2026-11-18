@@ -1,56 +1,114 @@
 @startuml
-' Arquitectura en capas del backend
-title Código a Voluntad - Arquitectura del backend
+' Arquitectura en capas y flujo de un pedido - 3ra entrega
+' Refleja packages/backend/src/app.js, index.js, jobs/ y DEPLOY.md
+title Código a Voluntad - Arquitectura (3ra entrega)
 
 skinparam componentStyle rectangle
 
-actor "Cliente HTTP\n(frontend, Postman)" as cliente
+actor "Persona usuaria\n(navegador)" as usuario
+actor "Cliente HTTP\n(Postman, administración, lector RSS)" as cliente
 
-node "Servidor (Docker)" {
-    package "Express" {
-        [Routes] as routes
+node "Navegador" {
+    [React SPA\n(pantallas, formularios, Gantt)] as spa
+    [api.js\n(axios, withCredentials,\nbaseURL /api)] as axios
+}
+
+node "Render: servicio único (imagen Docker)" as render {
+    package "Express (src/app.js, en orden)" {
+        [express.json] as mwJson
+        [cors\n(ALLOWED_ORIGINS, credentials)] as mwCors
+        [GET /health] as health
+        [limitePublico\n(límite por IP en /api)] as mwLimite
+        [resolverSesion\n(lee la cookie cav_session,\narma req.actor)] as mwSesion
+        [Rutas Auth\n(/auth/*, /mi/postulaciones,\n/colaboradoras/:id/contactos)] as rAuth
+        [Rutas Portabilidad\n(/mi/exportacion: requiereSesion,\nlimiteExportacion)] as rPortabilidad
+        [autorizar\n(origen, sesión, dueño del recurso)] as mwAutorizar
+        [Rutas de negocio\n(adicionales, denuncias, linkedin, proyectos,\nperfiles, logros, tareas, colectivos,\ncolaboradoras, habilidades, colaboraciones,\nnotificaciones)] as rutas
         [Middleware validar\n(schemas Zod)] as validar
-        [Controllers] as controllers
+        [requiereAdministracion\n(Bearer ADMIN_API_KEY)] as admin
+        [Swagger UI\n(/api-docs, /api-docs.json)] as swagger
+        [Front compilado\n(express.static + index.html)] as estatico
         [Middleware manejarErrores] as errores
     }
 
+    [Controllers] as controllers
+
     package "Services" {
         [ProyectoService\nPerfilesService\nLogroService\nTareaService] as svcProyectos
-        [ColaboradoraService\nColaboracionService\nNotificacionService] as svcPersonas
+        [ColaboradoraService\nPostulacionService\nColaboracionService\nNotificacionService] as svcPersonas
         [ColectivoService\nHabilidadService] as svcCatalogo
+        [AuthService\nPortabilidadService\nLinkedInService] as svcCuentas
+        [TerminosService\nDenunciaService\nRssService] as svcAdicionales
         [Enviadores\n(Email, WhatsApp, SMS)] as enviadores
     }
 
     package "Dominio" {
-        [Entidades y reglas\n(Proyecto, Perfil, Colaboradora, ...)] as dominio
-        [Errores de negocio\n(DomainError, NotFoundError, ConflictError)] as erroresDominio
+        [Entidades y reglas\n(Proyecto, Perfil, Colaboradora,\nPostulacion, ExportacionDatos, ...)] as dominio
+        [Errores de negocio\n(DomainError, NotFoundError, ConflictError,\nForbiddenError, UnavailableError)] as erroresDominio
     }
 
     [Models Mongoose] as models
+    [Job cierre automático\n(jobs/cierreAutomatico.js)] as job
 }
 
-database "MongoDB (Docker)" as mongo
+database "MongoDB Atlas (M0)\n(local: mongo:7 en Docker)" as mongo
+cloud "Servidor SMTP\n(nodemailer)" as smtp
+cloud "LinkedIn\n(OAuth 2.0 + API)" as linkedin
 
-cliente --> routes : JSON
-routes --> validar
+usuario --> spa
+spa --> axios
+axios --> mwJson : JSON + cookie cav_session
+cliente --> mwJson : JSON / RSS
+mwJson --> mwCors
+mwCors --> health : /health
+mwCors --> mwLimite : /api/*
+mwLimite --> mwSesion
+mwSesion --> rAuth
+rAuth --> rPortabilidad
+rPortabilidad --> mwAutorizar
+mwAutorizar --> rutas
+rutas --> validar
+rutas --> admin : /admin/*, POST /habilidades
 validar --> controllers
+rPortabilidad --> controllers
+rAuth --> svcCuentas
+rutas --> svcAdicionales : adicionales (sin controller)
+mwCors --> swagger : /api-docs
+mwCors --> estatico : resto de GET
+estatico ..> spa : sirve el build
 controllers --> svcProyectos
 controllers --> svcPersonas
 controllers --> svcCatalogo
+controllers --> svcCuentas
+controllers --> svcAdicionales
 svcProyectos --> dominio
 svcPersonas --> dominio
 svcCatalogo --> dominio
+svcCuentas --> dominio
 svcPersonas --> enviadores
+enviadores --> smtp : EMAIL
+svcCuentas --> linkedin : OAuth, perfil, publicar logro
 svcProyectos --> models
 svcPersonas --> models
 svcCatalogo --> models
+svcCuentas --> models
+svcAdicionales --> models
 models --> mongo
+job --> svcProyectos : cerrarVencidos() cada 60 s
 dominio ..> erroresDominio : lanza
-erroresDominio ..> errores : se traducen a 400 / 404 / 409
+erroresDominio ..> errores : se traducen a 400 / 403 / 404 / 409 / 503
+
+note right of mwAutorizar
+  Las lecturas públicas pasan sin sesión.
+  Para escribir valida el Origin, exige sesión
+  y que el recurso sea de quien lo pide.
+  /admin/* lo valida requiereAdministracion.
+end note
 
 note right of controllers
-  Solo reciben el request, delegan en el
-  service y responden. No tienen try/catch.
+  Reciben el request, delegan en el service
+  y responden. Los errores los traduce
+  manejarErrores.
 end note
 
 note right of dominio
@@ -61,6 +119,23 @@ end note
 note bottom of models
   Cada service convierte entre documento
   de Mongo y objeto de dominio (aDominio).
+  serializar() da un turno por proyecto
+  en memoria (un solo proceso).
+end note
+
+note bottom of job
+  Arranca en index.js después de conectar Mongo.
+  Finaliza los proyectos con fechaCierre vencida:
+  rechaza postulaciones pendientes y cierra tareas.
+end note
+
+note as NotaDeploy
+  Producción: un solo servicio en Render, construido con
+  packages/backend/Dockerfile. La etapa 1 compila el front
+  (REACT_APP_API_URL=/api) y la etapa 2 corre node index.js.
+  Front y API comparten origen, así la cookie SameSite=Lax
+  viaja sin configuración extra. NODE_ENV=production activa
+  cookie Secure y trust proxy. Local: docker compose (backend + mongo).
 end note
 
 @enduml

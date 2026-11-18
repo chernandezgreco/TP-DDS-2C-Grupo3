@@ -1,8 +1,9 @@
 @startuml
-' Diagrama de clases del dominio - 2da entrega
+' Diagrama de clases del dominio - 3ra entrega
+' Refleja packages/backend/src/domain
 ' https://plantuml.com/class-diagram
 
-title Código a Voluntad - Dominio (2da entrega)
+title Código a Voluntad - Dominio (3ra entrega)
 
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
@@ -15,7 +16,7 @@ package "Colectivos y proyectos" {
         - descripcion: String
         - ubicacion: String [0..1]
         - tipo: TipoColectivo
-        - etiquetas: List<String>
+        - etiquetas: List<String> [0..10]
     }
 
     enum TipoColectivo {
@@ -29,16 +30,29 @@ package "Colectivos y proyectos" {
         - id: String
         - titulo: String
         - descripcion: String
+        - colectivoId: String
         - estado: EstadoProyecto
-        - etiquetas: List<String>
+        - estaBuscando: Boolean
+        - fechaCierre: Date [0..1]
+        - etiquetas: List<String> [0..10]
+        .. agregados por ProyectoService ..
+        - requiereIA: Boolean [0..1]
+        - usosIA: List<{ descripcion, justificacion, grado }>
+        - aceptacionTerminos: { version, fecha }
+        - moderacionTerminos: { suspendido, motivo, version, fecha }
+        __
         + perteneceA(colectivoId): Boolean
         + estaActivo(): Boolean
+        + debeCerrarse(fechaActual): Boolean
+        + validarSePuedeAnotar(): void
         + cerrar(): void
+        + cambiarEstadoBusqueda(estaBuscando): void
         + agregarPerfil(perfil): Perfil
         + obtenerPerfil(perfilId): Perfil
         + actualizarPerfil(perfilId, datos): Perfil
         + eliminarPerfil(perfilId): Perfil
         + perfilesPara(colaboradora): List<Perfil>
+        + esCompatibleCon(colaboradora): Boolean
         + perfilParaAnotar(colaboradora, perfilId?): Perfil
         + agregarLogro(logro): Logro
         + obtenerLogro(logroId): Logro
@@ -54,8 +68,12 @@ package "Colectivos y proyectos" {
     class Perfil {
         - id: String
         - descripcionPerfil: String
+        - fechaLimite: Date [0..1]
+        - cantidadLimite: Integer [0..1]
         - habilidadesRequeridas: List<String> [1..*]
         - habilidadesOpcionales: List<String>
+        + estaAbierto(ocupadas, fechaActual): Boolean
+        + validarPuedeAnotar(ocupadas, fechaActual): void
         + admiteA(colaboradora): Boolean
         + afinidadCon(colaboradora): Integer
         + todasLasHabilidades(): List<String>
@@ -91,16 +109,19 @@ package "Colectivos y proyectos" {
 
     class Tarea {
         - id: String
+        - proyectoId: String
         - nombre: String
         - descripcion: String [0..1]
-        - fechaInicio: Date (día)
-        - fechaFin: Date (día)
+        - fechaInicio: Date [día]
+        - fechaFin: Date [día]
         - responsableId: String [0..1]
         - estado: EstadoTarea
         - fechaCreacion: Date
         + duracionEnDias(): Number
+        + estaFinalizada(): Boolean
         + cambiarEstado(estado): Tarea
         + cerrar(): Boolean
+        + conResponsable(responsableId): Tarea
         + actualizar(datos): Tarea
     }
 
@@ -116,17 +137,23 @@ package "Personas colaboradoras" {
     class Colaboradora {
         - id: String
         - nombreFantasia: String
-        - github: String
+        - github: String [0..1]
         - nombreApellido: String [0..1]
         - habilidades: List<String> [1..*]
         - pronombres: String [0..1]
         - presentacion: String [0..1]
+        - mediosContacto: List<MedioContacto>
         - aceptaMensajeria: Boolean
+        - experienciaHabilidades: List<{ codigo, nivel, anios, descripcion }>
+        - linkedinFoto: String
+        - cuentaEliminadaAt: Date [0..1]
         + agregarHabilidad(codigo): void
         + cumpleAlgunaHabilidad(codigos): Boolean
         + agregarMedioContacto(medio): void
         + cambiarAceptaMensajeria(acepta): void
         + puedeSerContactada(): Boolean
+        + anonimizar(fecha): Colaboradora
+        + toJSON(): Object
     }
 
     class MedioContacto {
@@ -149,23 +176,75 @@ package "Personas colaboradoras" {
     }
 }
 
-package "Colaboraciones y mensajes" {
-    class Colaboracion {
+package "Postulaciones, colaboraciones y mensajes" {
+    class Postulacion {
         - id: String
-        - estado: EstadoColaboracion
+        - proyectoId: String
+        - perfilId: String
+        - colaboradoraId: String
+        - estado: EstadoPostulacion
         - fechaCreacion: Date
+        + aceptar(): void
+        + rechazar(): void
     }
 
-    enum EstadoColaboracion {
+    enum EstadoPostulacion {
         PENDIENTE
         ACEPTADA
         RECHAZADA
     }
 
+    class Colaboracion {
+        - id: String
+        - proyectoId: String
+        - perfilId: String
+        - colaboradoraId: String
+        - estado: EstadoColaboracion
+        - fechaCreacion: Date
+        - fechaBaja: Date [0..1]
+        + estaActiva(): Boolean
+        + darDeBaja(fecha): void
+    }
+
+    enum EstadoColaboracion {
+        ACTIVA
+        TERMINADA
+    }
+
     class Notificacion {
         - id: String
+        - colaboradoraId: String
+        - colectivoId: String
+        - proyectoId: String
         - texto: String
         - fecha: Date
+    }
+}
+
+package "Portabilidad y reglas comunes" {
+    class ExportacionDatos {
+        - tipoTitular: String
+        - perfilId: String
+        - generadoEn: Date
+        - secciones: Object
+        + metadatos(): Object
+        + nombreArchivo(formato): String
+        + filas(): List<Object>
+        + toJSON(): Object
+        + {static} referenciaColaboradora(id, colaboradora): Object
+    }
+
+    enum FormatoExportacion {
+        JSON = "json"
+        CSV = "csv"
+    }
+
+    class Etiquetas <<funciones de etiquetas.js>> {
+        + {static} MIN_LARGO_ETIQUETA = 2
+        + {static} MAX_LARGO_ETIQUETA = 30
+        + {static} MAX_ETIQUETAS = 10
+        + {static} normalizarEtiqueta(texto): String
+        + {static} normalizarEtiquetas(lista): List<String>
     }
 }
 
@@ -184,6 +263,11 @@ Perfil "*" ..> "1..*" Habilidad : requiere / acepta (por código) >
 Colaboradora "*" ..> "1..*" Habilidad : domina (por código) >
 Colaboradora "1" *-- "*" MedioContacto : registra (no públicos) >
 MedioContacto --> TipoMedioContacto
+Postulacion "*" --> "1" Proyecto
+Postulacion "*" --> "1" Perfil
+Postulacion "*" --> "1" Colaboradora
+Postulacion --> EstadoPostulacion
+Postulacion ..> Colaboracion : al aceptarse se crea >
 Colaboracion "*" --> "1" Proyecto
 Colaboracion "*" --> "1" Perfil
 Colaboracion "*" --> "1" Colaboradora
@@ -191,29 +275,65 @@ Colaboracion --> EstadoColaboracion
 Notificacion "*" --> "1" Colaboradora : destinataria >
 Notificacion "*" --> "1" Colectivo : remitente >
 Notificacion "*" --> "1" Proyecto : sobre >
+ExportacionDatos ..> FormatoExportacion
+Colectivo ..> Etiquetas : normaliza con >
+Proyecto ..> Etiquetas : normaliza con >
+
+note right of Proyecto
+  validarSePuedeAnotar: el proyecto tiene que estar
+  ACTIVO, sin la fechaCierre vencida y con estaBuscando.
+  cerrar() lo pasa a FINALIZADO y corta la búsqueda;
+  el job de cierre automático lo llama al vencer fechaCierre.
+  requiereIA, usosIA y los términos los arma el service
+  sobre el objeto: la clase no los valida.
+end note
+
+note right of Perfil
+  admiteA: la colaboradora tiene al menos una
+  habilidad requerida. cantidadLimite cuenta las
+  colaboraciones ACTIVAS del perfil; pasada la
+  fechaLimite no se admiten postulaciones nuevas.
+end note
 
 note right of Tarea
   La duración se calcula a partir de las fechas.
   CERRADA la asigna el sistema al finalizar el
   proyecto con la tarea sin terminar.
+  Hasta 100 tareas por proyecto, fechas entre
+  2020 y 2050, duración máxima 1095 días.
 end note
 
-note "Etiquetas libres, normalizadas al construir
-(minúsculas, sin acentos, guiones; 2 a 30
-caracteres; hasta 10 sin repetir).
-Ver domain/etiquetas.js" as NotaEtiquetas
-NotaEtiquetas .. Colectivo
-NotaEtiquetas .. Proyecto
-
-note right of Perfil
-  Una colaboradora puede anotarse en un perfil
-  si tiene al menos una de sus habilidades requeridas.
+note bottom of Colaboradora
+  anonimizar() se usa al eliminar la cuenta: borra los
+  datos personales y fija cuentaEliminadaAt.
+  Los medios de contacto no salen en el JSON público.
 end note
 
-note bottom of Colaboracion
-  Contribución anónima: hoy se registra con
-  colaboradoraId = "Anonimo" (pendiente de rediseño:
-  guardar la persona real + un indicador de anonimidad).
+note "Postulacion y Colaboracion guardan la
+colaboradora real. El flag anonimidad lo agregan
+los services: oculta la identidad a terceros.
+La baja de una colaboración es permanente
+(TERMINADA, queda como historial)." as NotaAnonimidad
+NotaAnonimidad .. Postulacion
+NotaAnonimidad .. Colaboracion
+
+note bottom of Colectivo
+  cuentaEliminadaAt y moderacionTerminos solo
+  existen en el documento (ColectivoService);
+  la clase no los modela.
+end note
+
+note bottom of ExportacionDatos
+  Copia de los datos de una cuenta (titular:
+  colectivos o colaboradoras). Nunca incluye
+  contraseña, sesiones, tokens de LinkedIn,
+  denuncias recibidas ni contactos de otros.
+end note
+
+note bottom of Etiquetas
+  Minúsculas, sin acentos, separadas con guiones;
+  de 2 a 30 caracteres y hasta 10 sin repetir.
+  Las usan Colectivo y Proyecto al construirse.
 end note
 
 @enduml
