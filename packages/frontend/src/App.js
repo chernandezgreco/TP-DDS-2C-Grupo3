@@ -1161,41 +1161,43 @@ export default function App() {
                             ?.descripcionPerfil
                         }
                       </p>
-                      {isOwner && c.colaboradoraId !== "Anonimo" && (
-                        <button
-                          className="secondary"
-                          onClick={() =>
-                            load(
-                              "contactos",
-                              `/colaboradoras/${c.colaboradoraId}/contactos`,
-                            )
-                          }
-                        >
-                          Consultar contactos
-                        </button>
-                      )}
-                      {(isOwner || actor?.id === c.colaboradoraId) && (
-                        <button
-                          className="danger"
-                          disabled={busy}
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                "Esta baja es permanente y no se puede deshacer. ¿Continuar?",
+                      <div className="toolbar">
+                        {isOwner && c.colaboradoraId !== "Anonimo" && (
+                          <button
+                            className="secondary"
+                            onClick={() =>
+                              load(
+                                "contactos",
+                                `/colaboradoras/${c.colaboradoraId}/contactos`,
                               )
-                            )
-                              run(() =>
-                                api.delete(
-                                  isOwner
-                                    ? "/colectivos/colaboraciones/" + idOf(c)
-                                    : `/colaboradoras/${actor.id}/proyectos/${pid}/baja`,
-                                ),
-                              );
-                          }}
-                        >
-                          Dar de baja permanentemente
-                        </button>
-                      )}
+                            }
+                          >
+                            Consultar contactos
+                          </button>
+                        )}
+                        {(isOwner || actor?.id === c.colaboradoraId) && (
+                          <button
+                            className="danger"
+                            disabled={busy}
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  "Esta baja es permanente y no se puede deshacer. ¿Continuar?",
+                                )
+                              )
+                                run(() =>
+                                  api.delete(
+                                    isOwner
+                                      ? "/colectivos/colaboraciones/" + idOf(c)
+                                      : `/colaboradoras/${actor.id}/proyectos/${pid}/baja`,
+                                  ),
+                                );
+                            }}
+                          >
+                            Dar de baja permanentemente
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
               </section>
@@ -1464,152 +1466,154 @@ export default function App() {
                         Administrá tus datos y seguí tus colaboraciones desde tu
                         cuenta.
                       </p>
-                      {actor && (
-                        <button
-                          className="secondary"
-                          onClick={() =>
-                            edit(
-                              actor.type === "colectivos"
-                                ? "Editar colectivo"
-                                : "Editar mi perfil",
-                              actor.type === "colectivos"
-                                ? collectiveFields
-                                : personFields(data.habilidades),
-                              `/${actor.type}/${actor.id}`,
-                              "patch",
-                              data[actor.type].find(
-                                (x) => idOf(x) === actor.id,
-                              ),
-                            )
-                          }
-                        >
-                          Editar mis datos
-                        </button>
-                      )}
-                      {actor?.type === "colectivos" && (
-                        <button
-                          className="danger"
-                          disabled={busy}
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                "¿Eliminar la cuenta del colectivo? No podrás volver a iniciar sesión. Se conservará el historial, se quitará la ubicación de contacto, se cerrarán las búsquedas y se rechazarán las postulaciones pendientes. Si querés conservar una copia, descargá antes tus datos desde «Tus datos».",
-                              )
-                            )
-                              run(async () => {
-                                await api.delete(`/colectivos/${actor.id}/cuenta`);
-                                setActor(null);
-                                setOwnPosts([]);
-                                setOwnContacts(null);
-                                window.location.hash = "proyectos";
-                              }, "Cuenta eliminada. El historial del colectivo se conserva.");
-                          }}
-                        >
-                          Eliminar cuenta del colectivo
-                        </button>
-                      )}
-                      {actor?.type === "colaboradoras" && (
-                        <button
-                          className="danger"
-                          disabled={busy}
-                          onClick={() => {
-                            if (
-                              !window.confirm(
-                                "¿Eliminar tu cuenta permanentemente? Se borrarán tus datos personales, contactos y credenciales. Tus participaciones conservarán el historial como Persona eliminada y tus postulaciones pendientes serán rechazadas. Esta acción no se puede deshacer. Si querés conservar una copia, descargá antes tus datos desde «Tus datos».",
-                              )
-                            ) {
-                              return;
-                            }
-
-                            run(async () => {
-                              await api.delete(
-                                `/colaboradoras/${actor.id}/cuenta`,
-                              );
-
-                              setActor(null);
-                              setExtras({});
-                              setOwnPosts([]);
-                              setOwnContacts(null);
-                              setPublicProfile(null);
-                              setMatches(null);
-                              setSelected(null);
-                              setForm(null);
-                              setData(initial);
-                              window.location.hash = "proyectos";
-                            }, "Cuenta eliminada. Tus participaciones conservan el historial sin tus datos personales.");
-                          }}
-                        >
-                          Eliminar mi cuenta
-                        </button>
-                      )}
-                      {person && (
-                        <div className="toolbar">
-                          <button
-                            onClick={() =>
-                              edit(
-                                "Agregar habilidad",
-                                [
-                                  {
-                                    name: "codigo",
-                                    label: "Habilidad",
-                                    type: "select",
-                                    options: data.habilidades.map((h) => [
-                                      h.codigo,
-                                      h.titulo,
-                                    ]),
-                                    required: true,
-                                  },
-                                ],
-                                `/colaboradoras/${actor.id}/habilidades`,
-                              )
-                            }
-                          >
-                            Agregar habilidad
-                          </button>
-                          <button
-                            onClick={() =>
-                              edit(
-                                "Agregar contacto privado",
-                                [
-                                  {
-                                    name: "tipo",
-                                    label: "Tipo",
-                                    type: "select",
-                                    options: ["EMAIL", "WHATSAPP", "SMS"],
-                                    required: true,
-                                  },
-                                  {
-                                    name: "valor",
-                                    label: "Contacto",
-                                    type: "text",
-                                    required: true,
-                                  },
-                                ],
-                                `/colaboradoras/${actor.id}/medios-contacto`,
-                              )
-                            }
-                          >
-                            Agregar contacto
-                          </button>
+                      <div className="toolbar">
+                        {actor && (
                           <button
                             className="secondary"
-                            disabled={busy}
                             onClick={() =>
-                              run(() =>
-                                api.patch(
-                                  `/colaboradoras/${actor.id}/preferencias`,
-                                  {
-                                    aceptaMensajeria: !person.aceptaMensajeria,
-                                  },
+                              edit(
+                                actor.type === "colectivos"
+                                  ? "Editar colectivo"
+                                  : "Editar mi perfil",
+                                actor.type === "colectivos"
+                                  ? collectiveFields
+                                  : personFields(data.habilidades),
+                                `/${actor.type}/${actor.id}`,
+                                "patch",
+                                data[actor.type].find(
+                                  (x) => idOf(x) === actor.id,
                                 ),
                               )
                             }
                           >
-                            {person.aceptaMensajeria ? "Desactivar" : "Activar"}{" "}
-                            mensajes de colectivos
+                            Editar mis datos
                           </button>
-                        </div>
-                      )}
+                        )}
+                        {person && (
+                          <>
+                            <button
+                              onClick={() =>
+                                edit(
+                                  "Agregar habilidad",
+                                  [
+                                    {
+                                      name: "codigo",
+                                      label: "Habilidad",
+                                      type: "select",
+                                      options: data.habilidades.map((h) => [
+                                        h.codigo,
+                                        h.titulo,
+                                      ]),
+                                      required: true,
+                                    },
+                                  ],
+                                  `/colaboradoras/${actor.id}/habilidades`,
+                                )
+                              }
+                            >
+                              Agregar habilidad
+                            </button>
+                            <button
+                              onClick={() =>
+                                edit(
+                                  "Agregar contacto privado",
+                                  [
+                                    {
+                                      name: "tipo",
+                                      label: "Tipo",
+                                      type: "select",
+                                      options: ["EMAIL", "WHATSAPP", "SMS"],
+                                      required: true,
+                                    },
+                                    {
+                                      name: "valor",
+                                      label: "Contacto",
+                                      type: "text",
+                                      required: true,
+                                    },
+                                  ],
+                                  `/colaboradoras/${actor.id}/medios-contacto`,
+                                )
+                              }
+                            >
+                              Agregar contacto
+                            </button>
+                            <button
+                              className="secondary"
+                              disabled={busy}
+                              onClick={() =>
+                                run(() =>
+                                  api.patch(
+                                    `/colaboradoras/${actor.id}/preferencias`,
+                                    {
+                                      aceptaMensajeria: !person.aceptaMensajeria,
+                                    },
+                                  ),
+                                )
+                              }
+                            >
+                              {person.aceptaMensajeria ? "Desactivar" : "Activar"}{" "}
+                              mensajes de colectivos
+                            </button>
+                          </>
+                        )}
+                        {actor?.type === "colectivos" && (
+                          <button
+                            className="danger"
+                            disabled={busy}
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  "¿Eliminar la cuenta del colectivo? No podrás volver a iniciar sesión. Se conservará el historial, se quitará la ubicación de contacto, se cerrarán las búsquedas y se rechazarán las postulaciones pendientes. Si querés conservar una copia, descargá antes tus datos desde «Tus datos».",
+                                )
+                              )
+                                run(async () => {
+                                  await api.delete(`/colectivos/${actor.id}/cuenta`);
+                                  setActor(null);
+                                  setOwnPosts([]);
+                                  setOwnContacts(null);
+                                  window.location.hash = "proyectos";
+                                }, "Cuenta eliminada. El historial del colectivo se conserva.");
+                            }}
+                          >
+                            Eliminar cuenta del colectivo
+                          </button>
+                        )}
+                        {actor?.type === "colaboradoras" && (
+                          <button
+                            className="danger"
+                            disabled={busy}
+                            onClick={() => {
+                              if (
+                                !window.confirm(
+                                  "¿Eliminar tu cuenta permanentemente? Se borrarán tus datos personales, contactos y credenciales. Tus participaciones conservarán el historial como Persona eliminada y tus postulaciones pendientes serán rechazadas. Esta acción no se puede deshacer. Si querés conservar una copia, descargá antes tus datos desde «Tus datos».",
+                                )
+                              ) {
+                                return;
+                              }
+  
+                              run(async () => {
+                                await api.delete(
+                                  `/colaboradoras/${actor.id}/cuenta`,
+                                );
+  
+                                setActor(null);
+                                setExtras({});
+                                setOwnPosts([]);
+                                setOwnContacts(null);
+                                setPublicProfile(null);
+                                setMatches(null);
+                                setSelected(null);
+                                setForm(null);
+                                setData(initial);
+                                window.location.hash = "proyectos";
+                              }, "Cuenta eliminada. Tus participaciones conservan el historial sin tus datos personales.");
+                            }}
+                          >
+                            Eliminar mi cuenta
+                          </button>
+                        )}
+                      </div>
                     </section>
                   )}
                   <div className="filters">

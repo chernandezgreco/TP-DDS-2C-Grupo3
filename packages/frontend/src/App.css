@@ -1081,11 +1081,17 @@ button.secondary.vision-toggle[aria-pressed="true"] {
 }
 .skill-experience-row {
   display: grid;
-  grid-template-columns: minmax(140px, 1fr) minmax(150px, 1fr) minmax(160px, 1fr);
-  align-items: end;
-  gap: 14px;
-  padding: 12px 0;
+  grid-template-columns: minmax(140px, 1fr) minmax(140px, 1fr) minmax(220px, 2fr);
+  align-items: start;
+  gap: 8px 14px;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border, #ddd);
+}
+.skill-experience-row:last-of-type {
+  margin-bottom: 16px;
+}
+.skill-experience-name {
+  grid-column: 1 / -1;
 }
 .skill-experience-row label {
   display: grid;

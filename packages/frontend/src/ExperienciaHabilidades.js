@@ -40,7 +40,7 @@ export default function ExperienciaHabilidades({ person, skills, busy, onSave })
       ) : (
         items.map((item) => (
           <div className="skill-experience-row" key={item.codigo}>
-            <b>{skills.find((skill) => skill.codigo === item.codigo)?.titulo || item.codigo}</b>
+            <b className="skill-experience-name">{skills.find((skill) => skill.codigo === item.codigo)?.titulo || item.codigo}</b>
             <label>
               Nivel
               <select
