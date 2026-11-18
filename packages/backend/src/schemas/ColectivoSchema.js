@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { sanitizarTexto } from "../utils/sanitizar.js";
+import { etiquetasSchema } from "./EtiquetasSchema.js";
 
 export const crearColectivoSchema = z.object(
   {
@@ -34,6 +35,8 @@ export const crearColectivoSchema = z.object(
       .transform(sanitizarTexto)
       .pipe(z.string().trim())
       .optional(),
+
+    etiquetas: etiquetasSchema,
   },
   { error: "Los datos del colectivo son obligatorios" },
 );

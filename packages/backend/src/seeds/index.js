@@ -18,6 +18,7 @@ import { Colectivo } from "../domain/Colectivo/Colectivo.js";
 import { Colaboradora } from "../domain/Colaboradora/Colaboradora.js";
 import { MedioContacto } from "../domain/Colaboradora/MedioContacto.js";
 import { Proyecto } from "../domain/Proyecto/Proyecto.js";
+import { EstadoProyecto } from "../domain/Proyecto/EstadoProyecto.js";
 import { Colaboracion } from "../domain/Colaboracion/Colaboracion.js";
 import { Notificacion } from "../domain/Notificacion/Notificacion.js";
 import { Tarea } from "../domain/Tarea/Tarea.js";
@@ -29,7 +30,7 @@ import { COLABORACIONES, COLABORADORAS, COLECTIVOS, HABILIDADES, IDS, NOTIFICACI
 
 const habilidades = HABILIDADES.map((h) => new Habilidad(Habilidad.codigoPara(h.titulo), h.titulo, h.descripcion));
 
-const colectivos = COLECTIVOS.map((c) => new Colectivo(c.id, c.nombre, c.descripcion, c.ubicacion, c.tipo));
+const colectivos = COLECTIVOS.map((c) => new Colectivo(c.id, c.nombre, c.descripcion, c.ubicacion, c.tipo, c.etiquetas));
 
 const colaboradoras = COLABORADORAS.map((c) => new Colaboradora(
     c.id,
@@ -48,7 +49,12 @@ const proyectos = PROYECTOS.map((p) => new Proyecto(
     p.titulo,
     p.descripcion,
     p.colectivoId,
-    p.perfiles.map((perfil) => crearPerfil(nuevoId(), perfil))
+    p.perfiles.map((perfil) => crearPerfil(nuevoId(), perfil)),
+    [],
+    true,
+    EstadoProyecto.ACTIVO,
+    null,
+    p.etiquetas,
 ));
 
 // las colaboraciones se arman con los proyectos activos; recién después se cierran los finalizados
@@ -113,6 +119,7 @@ await ColectivoModel.insertMany(colectivos.map((c) => ({
     descripcion: c.descripcion,
     ubicacion: c.ubicacion,
     tipo: c.tipo,
+    etiquetas: c.etiquetas,
 })));
 
 await ColaboradoraModel.insertMany(colaboradoras.map((c) => ({

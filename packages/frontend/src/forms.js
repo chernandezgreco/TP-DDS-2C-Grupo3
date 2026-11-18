@@ -3,6 +3,8 @@ import Markdown from "./Markdown";
 import HuellaIA from "./HuellaIA";
 import React, { useState } from "react";
 import { estadosPermitidos } from "./tareas";
+import EtiquetasInput from "./EtiquetasInput";
+import { normalizarEtiqueta, problemaEtiqueta } from "./etiquetas";
 
 export const fechaCierreParaFormulario = (valor) => {
   if (!valor) {
@@ -32,6 +34,7 @@ export const projectFields = [
   field("titulo", "Título", "text", { required: true }),
   field("descripcion", "Descripción", "textarea", { required: true }),
   field("fechaCierre", "Cierre automático (hora local, opcional)", "datetime-local"),
+  field("etiquetas", "Etiquetas (opcional)", "etiquetas"),
 ];
 export const collectiveFields = [
   field("nombre", "Nombre", "text", { required: true }),
@@ -41,6 +44,7 @@ export const collectiveFields = [
     required: true,
   }),
   field("ubicacion", "Ubicación"),
+  field("etiquetas", "Etiquetas (opcional)", "etiquetas"),
 ];
 export const personFields = (skills) => [
   field("nombreFantasia", "Nombre público", "text", { required: true }),
@@ -143,6 +147,7 @@ export function ResourceForm({
   terms,
   project = false,
   submitLabel = "Guardar",
+  sugerenciasEtiquetas = [],
 }) {
   const [values, setValues] = useState(() => ({
     ...initial,
@@ -154,6 +159,8 @@ export function ResourceForm({
       : {}),
   }));
   const [error, setError] = useState("");
+  // texto escrito en un campo de etiquetas que todavía no se confirmó con Enter o coma
+  const [pendientes, setPendientes] = useState({});
   const update = (f, e) =>
     setValues((v) => ({
       ...v,
@@ -184,6 +191,20 @@ export function ResourceForm({
         setError("Completá " + f.label.toLowerCase());
         return;
       }
+    }
+    for (const f of fields.filter((campo) => campo.type === "etiquetas")) {
+      const texto = (pendientes[f.name] || "").trim();
+      if (!texto) continue;
+      const actuales = values[f.name] || [];
+      const etiqueta = normalizarEtiqueta(texto);
+      const motivo = problemaEtiqueta(etiqueta, actuales);
+      if (motivo) {
+        setError(motivo);
+        return;
+      }
+      result[f.name] = actuales.includes(etiqueta)
+        ? actuales
+        : [...actuales, etiqueta];
     }
     if (fields.some((f) => f.name === "fechaCierre")) {
       const valor = result.fechaCierre ?? "";
@@ -260,7 +281,7 @@ export function ResourceForm({
         </p>
       )}
       <fieldset disabled={busy} className="form-fields">
-        {fields.map((f) => (
+        {fields.filter((f) => f.type !== "etiquetas").map((f) => (
           <label className={f.type === "checkbox" ? "check" : ""} key={f.name}>
             {f.type !== "checkbox" && f.label}
             {["select", "multi"].includes(f.type) ? (
@@ -328,6 +349,24 @@ export function ResourceForm({
             )}
           </label>
         ))}
+        {/* las etiquetas van al final y fuera de un <label>: tienen varios controles */}
+        {fields
+          .filter((f) => f.type === "etiquetas")
+          .map((f) => (
+            <EtiquetasInput
+              key={f.name}
+              label={f.label}
+              value={values[f.name] || []}
+              pendiente={pendientes[f.name] || ""}
+              sugerencias={sugerenciasEtiquetas}
+              onChange={(lista) =>
+                setValues((v) => ({ ...v, [f.name]: lista }))
+              }
+              onPendienteChange={(texto) =>
+                setPendientes((p) => ({ ...p, [f.name]: texto }))
+              }
+            />
+          ))}
         {fields
           .filter((f) => f.type === "textarea" && values[f.name])
           .map((f) => (
@@ -399,4 +438,5 @@ ResourceForm.propTypes = {
   }),
   project: PropTypes.bool,
   submitLabel: PropTypes.string,
+  sugerenciasEtiquetas: PropTypes.arrayOf(PropTypes.string),
 };

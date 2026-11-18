@@ -27,3 +27,26 @@ export const parametro = (name, description, example) => ({
     description,
     schema: { type: "string", example },
 });
+
+// Etiquetas de proyectos y colectivos (ver domain/etiquetas.js)
+export const esquemaEtiquetas = lista({
+    type: "string",
+    pattern: "^[a-z0-9]+(-[a-z0-9]+)*$",
+    minLength: 2,
+    maxLength: 30,
+    example: "educacion-popular",
+});
+esquemaEtiquetas.maxItems = 10;
+esquemaEtiquetas.description =
+    "Etiquetas libres, normalizadas: minúsculas, sin acentos y con guiones en lugar de espacios " +
+    "(\"Educación Popular\" se guarda como \"educacion-popular\"). Hasta 10, sin repetir.";
+
+export const parametroEtiquetas = {
+    name: "etiquetas",
+    in: "query",
+    required: false,
+    description:
+        "Filtra por etiquetas separadas por coma (o repitiendo el parámetro). " +
+        "Se normalizan igual que al cargarlas y el resultado debe tener todas.",
+    schema: { type: "string", example: "salud,educacion" },
+};

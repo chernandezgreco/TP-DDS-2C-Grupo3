@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { crearPerfilSchema } from "./PerfilSchema.js";
 import { sanitizarTexto } from "../utils/sanitizar.js";
+import { etiquetasSchema } from "./EtiquetasSchema.js";
 
 export const fechaCierreSchema = z.iso
   .datetime({
@@ -33,6 +34,7 @@ export const camposAdicionalesProyecto = {
   requiereIA: z.boolean().nullable().optional(),
   usosIA: z.array(usoIASchema).max(50).optional(),
   fechaCierre: fechaCierreSchema,
+  etiquetas: etiquetasSchema,
   versionTerminosAceptada: z.string().trim().min(1),
 };
 

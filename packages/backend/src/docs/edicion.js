@@ -16,7 +16,12 @@ const update = (tag, schema, resource) => ({
 export const pathsEdicion = {
   "/api/colectivos/{id}": {
     parameters: [parametro("id", "Id del colectivo")],
-    patch: update("Colectivos", actualizarColectivoSchema, "Colectivo"),
+    patch: {
+      ...update("Colectivos", actualizarColectivoSchema, "Colectivo"),
+      description:
+        "Solo cambian los campos enviados. Las etiquetas enviadas reemplazan a las anteriores; " +
+        "omitirlas las conserva y una lista vacía las quita.",
+    },
   },
   "/api/colaboradoras/{id}": {
     patch: update(
@@ -33,7 +38,8 @@ export const pathsEdicion = {
         "Omitirla conserva la programación; null la elimina. " +
         "No se puede reprogramar un proyecto vencido o finalizado. " +
         "El backend revisa vencimientos al arrancar y cada minuto; " +
-        "las postulaciones y aceptaciones se bloquean desde el vencimiento.",
+        "las postulaciones y aceptaciones se bloquean desde el vencimiento. " +
+        "Las etiquetas enviadas reemplazan a las anteriores; omitirlas las conserva y una lista vacía las quita.",
       responses: {
         200: respuesta("Datos actualizados", ref("Proyecto")),
         400: error("Datos inválidos o fecha no futura"),

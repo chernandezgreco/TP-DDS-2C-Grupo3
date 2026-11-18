@@ -21,6 +21,7 @@ entity "colectivos" as colectivos {
     * descripcion: String
     * tipo: TipoColectivo
     ubicacion: String
+    etiquetas: [String] <<index>>
 }
 
 entity "proyectos" as proyectos {
@@ -32,6 +33,7 @@ entity "proyectos" as proyectos {
     * estado: EstadoProyecto
     perfiles: [Perfil]
     logros: [Logro]
+    etiquetas: [String] <<index>>
 }
 
 entity "Perfil (embebido)" as perfil {

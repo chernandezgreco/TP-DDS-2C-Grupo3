@@ -11,7 +11,7 @@ export class ColectivoController {
   }
 
   static async listar(req, res) {
-    res.json(await ColectivoService.listar());
+    res.json(await ColectivoService.listar({ etiquetas: req.query.etiquetas }));
   }
 
   static async eliminarCuenta(req, res, next) {

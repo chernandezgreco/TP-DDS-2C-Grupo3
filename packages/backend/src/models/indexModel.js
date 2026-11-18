@@ -34,8 +34,11 @@ const colectivoSchema = new mongoose.Schema({
   descripcion: { type: String, required: true },
   tipo: { type: String, enum: Object.values(TipoColectivo), required: true },
   ubicacion: { type: String },
+  // normalizadas por el dominio (domain/etiquetas.js)
+  etiquetas: { type: [String], default: [] },
   cuentaEliminadaAt: { type: Date, default: null },
 });
+colectivoSchema.index({ etiquetas: 1 });
 export const ColectivoModel = mongoose.model("Colectivo", colectivoSchema);
 
 // --- 3. PROYECTO ---
@@ -115,8 +118,11 @@ const proyectoSchema = new mongoose.Schema({
   },
   perfiles: { type: [perfilSchema], default: [] },
   logros: { type: [logroSchema], default: [] },
+  // normalizadas por el dominio (domain/etiquetas.js)
+  etiquetas: { type: [String], default: [] },
 });
 proyectoSchema.index({ estado: 1, fechaCierre: 1 });
+proyectoSchema.index({ etiquetas: 1 });
 export const ProyectoModel = mongoose.model("Proyecto", proyectoSchema);
 
 // --- 4. COLABORADORA ---

@@ -1,4 +1,5 @@
 import authRoutes from "./routes/Auth.js";
+import { crearRutasPortabilidad } from "./routes/Portabilidad.js";
 import { resolverSesion } from "./services/AuthService.js";
 import { autorizar } from "./middlewares/autorizar.js";
 import "dotenv/config";
@@ -57,6 +58,7 @@ export function crearApp({
   app.use("/api", crearLimitePublico());
   app.use("/api", resolverSesion);
   app.use("/api", authRoutes);
+  app.use("/api", crearRutasPortabilidad());
   app.use("/api", autorizar);
   app.use("/api", adicionalesRoutes);
   app.use("/api", denunciasRoutes);
