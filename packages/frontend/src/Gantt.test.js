@@ -96,15 +96,28 @@ test("en un rango intermedio la escala marca cada dos días para que las fechas 
   expect(screen.queryByText("03/11")).not.toBeInTheDocument();
 });
 
-test("un plan de dos meses ocupa unos 12 px por día, para que entre en una pantalla de escritorio", () => {
+test("un plan de tres meses ocupa unos 6 px por día, para que entre en una pantalla de escritorio", () => {
   const { container } = render(
     <Gantt
-      tareas={[tarea({ fechaInicio: "2026-11-02", fechaFin: "2026-12-23", duracion: 52 })]}
+      tareas={[tarea({ fechaInicio: "2026-10-01", fechaFin: "2026-12-31", duracion: 92 })]}
       hoy={0}
     />,
   );
-  // 02/11 al 23/12 son 52 días: 52 x 12 px
-  expect(container.querySelector(".gantt-grid").style.getPropertyValue("--gantt-ancho")).toBe("624px");
+  // del 1/10 al 31/12 son 92 días: 92 x 6 px
+  expect(container.querySelector(".gantt-grid").style.getPropertyValue("--gantt-ancho")).toBe("552px");
+});
+
+test("en un plan de tres meses las marcas semanales quedan separadas por al menos 42 px", () => {
+  const { container } = render(
+    <Gantt
+      tareas={[tarea({ fechaInicio: "2026-10-01", fechaFin: "2026-12-31", duracion: 92 })]}
+      hoy={0}
+    />,
+  );
+  const ancho = parseInt(container.querySelector(".gantt-grid").style.getPropertyValue("--gantt-ancho"), 10);
+  // 92 días en 552 px = 6 px por día; una marca cada 7 días
+  expect(ancho / 92 * 7).toBeGreaterThanOrEqual(42);
+  expect(container.querySelectorAll(".gantt-tick").length).toBe(Math.ceil(92 / 7));
 });
 
 test("un plan corto no se achica por debajo del mínimo legible", () => {

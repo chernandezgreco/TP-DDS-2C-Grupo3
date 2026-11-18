@@ -8,8 +8,9 @@ import {
   textoDuracion,
 } from "./tareas";
 
-// Ancho mínimo de un día en la escala: con 12 px un plan de unos dos meses entra en una pantalla de escritorio sin scroll.
-const PX_POR_DIA = 12;
+// Ancho mínimo de un día en la escala: con 6 px un plan de unos tres meses entra en una pantalla de escritorio sin scroll
+// y las marcas semanales siguen separadas por al menos 42 px (las fechas dd/mm no se pisan).
+const PX_POR_DIA = 6;
 // Cada cuántos días se marca la escala para que las etiquetas dd/mm no se pisen.
 const pasoDeEscala = (dias) => (dias <= 14 ? 1 : dias <= 28 ? 2 : dias <= 120 ? 7 : 30);
 
