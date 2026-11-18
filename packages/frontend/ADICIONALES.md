@@ -52,7 +52,7 @@ Los tests HTTP ejercitan aceptación/versionado, credencial administrativa, susp
 
 ## Alcance y coordinación
 
-El login general y la autorización de propietario ya están integrados. La administración de condiciones conserva su credencial propia, separada de las sesiones de cuentas. Los módulos de eliminación, denuncias, experiencia, redes, Gantt, tags, portabilidad, modo daltónico, sanitización general y cierre automático quedan a cargo de los responsables indicados por el grupo.
+El login general y la autorización de propietario ya están integrados. La administración de condiciones conserva su credencial propia, separada de las sesiones de cuentas. Los módulos de eliminación, denuncias, experiencia, redes, Gantt, portabilidad, modo daltónico, sanitización general y cierre automático quedan a cargo de los responsables indicados por el grupo. El etiquetado (adicional 34) está documentado en [ENTREGA3.md](ENTREGA3.md).
 
 La seguridad de Markdown se limita al renderizador: HTML deshabilitado y salida filtrada, sin imágenes remotas. No sustituye la sanitización general de entradas del backend que hará otro integrante.
 

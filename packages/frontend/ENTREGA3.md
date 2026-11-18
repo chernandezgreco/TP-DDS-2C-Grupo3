@@ -53,7 +53,7 @@ No se ejecutaron seeds ni se borró la base de desarrollo. Las pruebas usan una 
 | Registro y edición de organización | Registro con cuenta y Mi espacio                                                     |
 | Registro y edición de colaboradora | Registro con cuenta, edición de perfil, habilidades y contactos                      |
 | CRUD de proyectos                  | Crear, detalle, editar y eliminar sin historial; cierre para conservar historial     |
-| Búsquedas                          | Catálogo textual, proyectos compatibles y candidatas por perfil                      |
+| Búsquedas                          | Catálogo textual, filtro por etiquetas, proyectos compatibles y candidatas por perfil |
 | Detalle y avance                   | Atributos, perfiles, ocupantes, compromisos, modalidades, logros y enlaces           |
 | Contacto interno                   | Envío desde candidatas compatibles, sujeto a preferencia                             |
 | Mensajes                           | Bandeja de la colaboradora autenticada                                               |
@@ -99,6 +99,18 @@ Botón **Modo daltónico** en el encabezado, visible con y sin sesión. Cambia t
 Verificación visual (17/11/2026): capturas en Chrome del build de producción a 1400 y 375 px con el modo apagado y encendido, y con la emulación de protanopía, deuteranopía y tritanopía de DevTools. En la simulación con la paleta normal, los cuadros de éxito y error se ven del mismo beige; con la paleta daltónica, azul y caqui. El foco (borde negro de 3 px) se ve en modo daltónico. En celular el encabezado pasa a dos líneas (el botón arriba y el de sesión abajo), sin desbordes. Falta recorrerlo con datos reales (backend levantado).
 
 Lo que no está verificado: el cierre del modal con Escape, el recorrido completo solo con teclado y el uso con un lector de pantalla, las demás pantallas en celular (detalle, formularios, mensajes), y no se afirma conformidad WCAG completa.
+
+### Etiquetado (adicional 34)
+
+Los proyectos y los colectivos pueden tener etiquetas libres (por ejemplo `#educacion`, `#software-libre`) para encontrarlos más fácil.
+
+- **Carga:** campo **Etiquetas (opcional)** al registrar un colectivo, en **Mi espacio → Editar mis datos** y al crear o editar un proyecto. Se agregan con Enter o coma, se quitan con ✕ o con Backspace, y lo que queda escrito sin confirmar se suma al guardar. Sugiere las etiquetas que ya se usan, para no crear variantes.
+- **Normalización:** se guardan en minúsculas, sin acentos y con guiones en lugar de espacios: "Educación Popular" queda `educacion-popular`, así distintas formas de escribirla son la misma etiqueta. Cada una tiene de 2 a 30 caracteres; hasta 10 por proyecto o colectivo, sin repetir. La regla vive en el dominio del backend (`domain/etiquetas.js`); el front tiene una copia (`etiquetas.js`) sólo para mostrar cómo va a quedar y avisar antes de enviar.
+- **Edición:** como el resto de los campos, si no se envían se conservan; si se envían, la lista reemplaza a la anterior (`[]` las quita). Agregar perfiles o logros no las modifica.
+- **Búsqueda:** las tarjetas, el detalle del proyecto y el perfil del colectivo muestran las etiquetas como botones; al elegir una se filtra el listado con `GET /api/proyectos?etiquetas=a,b` o `GET /api/colectivos?etiquetas=a,b`, que devuelve los que tienen **todas** las etiquetas pedidas. Se pueden sumar varias, quitarlas de a una o limpiar el filtro, y se combina con "Solo búsquedas abiertas" y "Para mis habilidades". El buscador de texto también encuentra por etiqueta e ignora los acentos ("alimentación" encuentra `#alimentacion`). En **Mi espacio** las etiquetas se muestran sin filtro.
+- **Pruebas:** backend `test/domain/Etiquetas.test.js`, `test/services/ConsultaEtiquetas.test.js` y `test/services/EtiquetasHttp.test.js` (normalización, límites, conservar o reemplazar al editar, que agregar un logro no las pise, filtro con todas, parámetro vacío o inválido y que se sigan excluyendo los suspendidos). Frontend `etiquetas.test.js`, `EtiquetasInput.test.js` y `App.etiquetas.test.js`.
+
+Lo que no está verificado: el recorrido visual en el navegador (escritorio y celular) y con lector de pantalla.
 
 ## Validación técnica
 
