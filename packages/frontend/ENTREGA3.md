@@ -1,147 +1,161 @@
-# Entrega 3 — Guía actual del frontend
+# Tercera entrega: guía de uso
 
-El frontend usa autenticación real mediante una cookie de sesión HttpOnly. Se eliminó el selector que permitía elegir cualquier identidad. Las rutas de modificación validan en el servidor que la sesión sea titular del perfil o del colectivo propietario del proyecto.
+Cómo levantar la app, los recorridos de cada tipo de cuenta, qué pantalla cubre cada caso de uso del enunciado y cómo probar los adicionales. La justificación de los lineamientos de UI está en [REQUERIMIENTOS_NO_FUNCIONALES.md](../../REQUERIMIENTOS_NO_FUNCIONALES.md).
 
-## Iniciar
+La app usa login real con una cookie de sesión HttpOnly. Cada cambio se valida en el servidor: solo el titular puede editar su perfil y solo el colectivo dueño puede tocar su proyecto.
+
+## Levantarla en local
 
 1. En la raíz: `npm install`.
 2. MongoDB: `docker compose up -d mongo`.
-3. Si no existe, copiar `packages/backend/.env.example` a `packages/backend/.env`. Usar SERVER_PORT=8000, MONGO_URI=mongodb://localhost:27017/codigo_a_voluntad y ALLOWED_ORIGINS=http://localhost:3000.
-4. `npm run dev:backend` y dejar esa terminal abierta.
-5. En otra terminal, `npm run start:frontend`.
-6. Abrir http://localhost:3000. Usar `localhost` para ambos servicios, sin mezclarlo con `127.0.0.1`, para mantener la cookie y el origen configurado.
+3. Si no existe, copiar `packages/backend/.env.example` a `packages/backend/.env`. Con `SERVER_PORT=8000`, `MONGO_URI=mongodb://localhost:27017/codigo_a_voluntad` y `ALLOWED_ORIGINS=http://localhost:3000` alcanza.
+4. Datos de ejemplo (opcional, borra la base): `npm run seed --workspace=backend`.
+5. `npm run dev` levanta el backend en el puerto 8000 y el front en el 3000.
+6. Abrir http://localhost:3000. Usar siempre `localhost`, sin mezclarlo con `127.0.0.1`, para que la cookie y el origen coincidan.
 
-Para otra API, configurar REACT_APP_API_URL en `packages/frontend/.env.local` y reiniciar CRA. Es una URL pública; no incluir claves ni contraseñas allí. El frontend envía las cookies mediante Axios withCredentials.
-
-No se ejecutaron seeds ni se borró la base de desarrollo. Las pruebas usan una base test\_<PID> separada y la eliminan al terminar.
+Para apuntar el front a otra API, poner `REACT_APP_API_URL` en `packages/frontend/.env.local` y reiniciar. Es una URL pública: no van claves ahí.
 
 ## Primer acceso
 
-- Usar **Iniciar sesión / Registrarme → Crear cuenta**. Elegir colectivo o persona colaboradora.
-- Registrar correo de acceso, contraseña de al menos 10 caracteres y los datos del perfil. El registro inicia la sesión.
-- Los perfiles históricos o creados por seeds no tienen contraseña asociada. No se asignan a una cuenta por conocer su id. Para probar, crear cuentas nuevas; una migración de cuentas históricas necesitaría un procedimiento administrativo que verifique titularidad.
-- Si el catálogo está vacío, la administración puede cargar habilidades desde **Habilidades → Administrar catálogo**, usando ADMIN_API_KEY configurada en el backend. Las personas colaboradoras deben registrar al menos una habilidad existente.
-- El correo de acceso, los hashes de contraseña y las sesiones no se publican en los listados. Los contactos se comparten con colectivos sólo después de una colaboración aceptada.
+- Iniciar sesión / Registrarme → Crear cuenta, y elegir colectivo o persona colaboradora.
+- Se carga el correo de acceso, una contraseña de al menos 10 caracteres y los datos del perfil. Al registrarse ya queda la sesión iniciada.
+- Los colectivos y colaboradoras del seed no tienen contraseña, así que no se puede entrar con ellos: para probar hay que crear cuentas nuevas.
+- Si el catálogo de habilidades está vacío, se cargan desde Habilidades → Administrar catálogo con la `ADMIN_API_KEY` del backend. Una colaboradora necesita al menos una habilidad para registrarse.
+- El correo de acceso, la contraseña y las sesiones no aparecen en ningún listado. Los contactos de una colaboradora solo los ve un colectivo después de aceptarla.
 
 ## Recorrido del colectivo
 
-1. Crear cuenta de colectivo.
-2. Explorar proyectos → Crear proyecto. Completar título, descripción, declaración de IA y aceptar explícitamente los términos vigentes.
-3. Abrir proyecto → Agregar perfil. Elegir habilidades, compromiso y modalidad. Cupo y fecha de búsqueda son opcionales.
-4. Buscar colaboradoras desde cada perfil. Enviar mensaje interno a quien acepte mensajería.
-5. Consultar postulaciones pendientes; aceptar o rechazar. El servidor verifica que la postulación corresponda al proyecto de ese colectivo. El cupo limita colaboraciones aceptadas, no postulaciones pendientes.
-6. Consultar contactos desde una colaboración aceptada. Un colectivo ajeno no tiene acceso aunque conozca el id.
-7. Publicar, editar y eliminar logros; consultar avances y enlaces a repositorio/sistema.
-8. Editar proyecto, pausar/reabrir búsqueda o finalizarlo. Los proyectos con historial se finalizan, no se eliminan; los perfiles con historial tampoco se eliminan.
-9. Mi espacio → Editar mis datos para modificar la organización.
+1. Crear la cuenta de colectivo.
+2. Explorar proyectos → Crear proyecto: título, descripción, declaración de uso de IA y aceptación de los términos vigentes.
+3. En el proyecto, Agregar perfil: habilidades, compromiso y modalidad. El cupo y la fecha límite son opcionales.
+4. Desde cada perfil, Buscar colaboradoras y mandarle un mensaje a quien acepte mensajes.
+5. Ver las postulaciones pendientes y aceptarlas o rechazarlas. El cupo cuenta colaboraciones aceptadas, no postulaciones pendientes.
+6. Consultar los contactos desde una colaboración aceptada. Otro colectivo no puede verlos aunque conozca el id.
+7. Cargar, editar y borrar logros: porcentaje de avance, enlace al sistema y al código.
+8. Cargar tareas y verlas en el Gantt (sección "Planificación y tareas").
+9. Editar el proyecto, pausar o reabrir la búsqueda, o finalizarlo. Un proyecto con historial no se elimina: se finaliza.
+10. Dar de baja a una colaboradora desde "Colaboraciones actuales". La app avisa que es permanente.
+11. Mi espacio → Editar mis datos, para cambiar los datos de la organización.
 
 ## Recorrido de la colaboradora
 
-1. Crear cuenta con habilidades y nombre público. Se admiten nombres de fantasía.
-2. Mi espacio → Editar mis datos para actualizar presentación, pronombres, GitHub/GitLab y habilidades.
-3. Agregar contactos privados, editarlos o quitarlos. Activar/desactivar mensajes de colectivos.
-4. Explorar proyectos; buscar por nombre o habilidad, filtrar búsquedas abiertas y usar Para mis habilidades.
-5. Abrir un proyecto y postularse al perfil compatible. Se exige al menos una habilidad requerida, búsqueda abierta y fecha/cupo vigentes.
-6. Elegir si la contribución será pública como anónima. Se conserva la identidad internamente para permitir seguimiento y baja; los visitantes no la reciben.
-7. Consultar el estado de las postulaciones y proyectos aceptados en Mi espacio; leer notificaciones en Mensajes.
-8. Dar de baja una colaboración. La interfaz advierte que es permanente. Después de la baja el colectivo pierde el acceso concedido por esa colaboración, salvo que exista otra colaboración aceptada entre ambos.
+1. Crear la cuenta con habilidades y un nombre público (puede ser de fantasía).
+2. Mi espacio → Editar mis datos: presentación, pronombres, GitHub o GitLab y habilidades.
+3. Agregar, editar o quitar contactos privados, y activar o desactivar los mensajes de colectivos.
+4. Explorar proyectos: buscar por nombre o habilidad, filtrar las búsquedas abiertas, usar "Para mis habilidades" o filtrar por etiqueta.
+5. Abrir un proyecto y postularse a un perfil. Hace falta al menos una habilidad requerida, la búsqueda abierta y el perfil con fecha y cupo vigentes.
+6. Elegir si la contribución se muestra en público o de forma anónima. El colectivo dueño igual sabe quién es; el resto no.
+7. Seguir el estado de las postulaciones en Mi espacio y leer los mensajes en Mensajes.
+8. Darse de baja de un proyecto. La app avisa que es permanente. Después de la baja, el colectivo deja de ver sus contactos, salvo que tengan otra colaboración aceptada.
 
-## Cobertura de pantallas obligatorias
+## Pantallas obligatorias
 
-| Consigna                           | Implementación                                                                       |
-| ---------------------------------- | ------------------------------------------------------------------------------------ |
-| Registro y edición de organización | Registro con cuenta y Mi espacio                                                     |
-| Registro y edición de colaboradora | Registro con cuenta, edición de perfil, habilidades y contactos                      |
-| CRUD de proyectos                  | Crear, detalle, editar y eliminar sin historial; cierre para conservar historial     |
-| Búsquedas                          | Catálogo textual, filtro por etiquetas, proyectos compatibles y candidatas por perfil |
-| Detalle y avance                   | Atributos, perfiles, ocupantes, compromisos, modalidades, logros y enlaces           |
-| Contacto interno                   | Envío desde candidatas compatibles, sujeto a preferencia                             |
-| Mensajes                           | Bandeja de la colaboradora autenticada                                               |
-| Postulaciones                      | Envío, seguimiento personal, pendientes/procesadas y decisiones del colectivo        |
-| Desanotación                       | Baja permanente por colaboradora o colectivo con advertencia                         |
-| Contactos privados                 | Endpoint y vista autorizada para titular/colectivo con colaboración aceptada         |
-| Login y permisos                   | Registro/login/logout/sesión, cookie HttpOnly, hash scrypt, autorización por recurso |
+| Caso de uso del enunciado | Dónde está |
+|---|---|
+| Registro y edición de organización | Crear cuenta y Mi espacio → Editar mis datos |
+| Registro y edición de colaboradora | Crear cuenta, Mi espacio: datos, habilidades, experiencia y contactos |
+| CRUD de proyectos | Crear, ver, editar, finalizar y eliminar (si no tiene historial). Perfiles, logros y tareas adentro del proyecto |
+| Búsquedas de colaboradoras y proyectos | Buscador y filtros del catálogo, "Para mis habilidades", etiquetas y "Buscar colaboradoras" en cada perfil |
+| Página del proyecto y su avance | Detalle del proyecto: atributos, perfiles abiertos o cerrados con quiénes los ocupan, logros con porcentaje y enlaces, Gantt |
+| Contacto interno con colaboradoras de un perfil | "Enviar mensaje" desde las candidatas de un perfil |
+| Listado de mensajes internos | Sección Mensajes |
+| Realizar, aceptar y rechazar una postulación | "Postularme" en el perfil; pendientes y procesadas en el proyecto, para el colectivo |
+| Desanotación de ambos lados | "Dar de baja permanentemente" en las colaboraciones, con confirmación |
+| Datos de contacto de un perfil | "Consultar contactos". Falla con un mensaje para otra colaboradora o para un colectivo sin colaboración aceptada |
+| Login | Registro, login, logout y sesión vencida |
 
-Los cinco adicionales de este trabajo están explicados en [ADICIONALES.md](ADICIONALES.md). Los otros adicionales asignados a compañeros no se dan por implementados ni integrados: requieren sus módulos y contratos finales.
+## Accesibilidad
 
-## UI y accesibilidad
+Revisamos el código y los estilos el 17/11/2026:
 
-Navegación por hash y enlaces directos de RSS; búsqueda, estados vacíos y errores con reintento. Formularios con etiquetas y controles nativos, validación de datos, prevención de envíos repetidos y vista previa de Markdown. Indicadores de carga y mensajes anunciables por lectores de pantalla. Modal con foco contenido, Escape y devolución de foco. Grillas de tres/dos/una columnas y navegación móvil horizontal. Se admiten errores por permisos y sesión vencida sin mostrar datos privados.
+- Idioma, título y viewport definidos (`lang="es"`).
+- Teclado: enlace "Saltar al contenido", foco visible de 3 px en botones, enlaces y campos. El modal mantiene el foco adentro, se cierra con Escape y lo devuelve al botón que lo abrió.
+- Lectores de pantalla: estados con `role="status"`, errores con `role="alert"`, modal con `aria-modal`, página actual con `aria-current`, imágenes con texto alternativo y decoración con `aria-hidden`. Todos los campos tienen etiqueta.
+- Botones de al menos 44 px de alto.
+- Contraste WCAG AA (mínimo 4.5:1): texto principal 11.5:1, botones 6.4:1, enlaces 6.0:1. Había 15 textos secundarios (migas, contadores, pie, ayudas) entre 3.0:1 y 4.5:1; los oscurecimos hasta pasar 4.5:1.
+- Las etiquetas y metadatos de 10 y 11 px pasaron a 12 px.
+- Cortes de diseño en 1500, 1150 y 760 px.
 
-### Revisión de accesibilidad (17/11/2026)
+También la miramos en Chrome a 1900 px y a 375 px (iPhone SE) en el listado de proyectos: en celular las tarjetas pasan a una columna y el menú se desplaza de costado. De ahí salieron dos arreglos: el botón "Denunciar" aparecía para los colectivos, y las tarjetas decían "1 perfiles". El recorrido completo con Tab funciona.
 
-Revisión del código y de los estilos, sin recorrido visual en el navegador:
+No lo probamos con un lector de pantalla real.
 
-- **Idioma y metadatos:** `lang="es"`, título y viewport definidos.
-- **Teclado y foco:** enlace para saltar al contenido, indicador de foco visible (borde de 3 px) en botones, enlaces y campos; el modal contiene el foco, se cierra con Escape y lo devuelve.
-- **Lectores de pantalla:** estados y errores con `role="status"` / `role="alert"`, modal con `aria-modal`, página actual con `aria-current`, imágenes con texto alternativo, decoración con `aria-hidden`. Todos los campos de formulario tienen su etiqueta.
-- **Tamaño táctil:** botones de al menos 44 px de alto.
-- **Contraste (WCAG AA, mínimo 4.5:1):** texto principal 11.5:1, botones 6.4:1, enlaces 6.0:1. Se encontraron 15 textos secundarios (migas de pan, contadores, pie de página, ayudas) con contraste entre 3.0:1 y 4.5:1; se oscurecieron manteniendo el tono hasta superar 4.5:1. Los elementos decorativos (`aria-hidden`) quedaron como estaban.
-- **Tamaño de texto:** las etiquetas y metadatos de 10 a 11 px pasaron a 12 px.
-- **Diseño adaptable:** cortes en 1500, 1150 y 760 px.
+## Adicionales
 
-Revisión visual (17/11/2026, capturas en Chrome): escritorio a 1900 px y celular a 375 px (modo dispositivo, iPhone SE) en el listado de proyectos. Con los textos secundarios más oscuros y de 12 px, las tarjetas, el encabezado, el pie y el menú se ven sin desbordes; en celular las tarjetas pasan a una columna y el menú de secciones se desplaza horizontalmente. Se detectaron y corrigieron dos defectos: el botón "Denunciar" aparecía para los colectivos (el servidor sólo admite denuncias de colaboradoras) y las tarjetas decían "1 perfiles".
+Términos y condiciones, límite de tasa, Markdown, huella IA y RSS están explicados en [ADICIONALES.md](ADICIONALES.md). El resto, acá.
 
-Recorrido con teclado (17/11/2026): se probó la navegación con la tecla Tab en el navegador y funciona.
+### Modo daltónico (20)
 
-### Modo daltónico (adicional 20)
+Botón "Modo daltónico" en el encabezado, con o sin sesión. Cambia toda la paleta y el navegador recuerda la elección.
 
-Botón **Modo daltónico** en el encabezado, visible con y sin sesión. Cambia toda la app a una paleta distinguible con daltonismo y recuerda la elección en el navegador.
+- Cómo funciona: el botón pone `data-vision="daltonico"` en `<html>`. Los colores de `App.css` son variables, y el bloque `:root[data-vision="daltonico"]` solo las redefine, así que ningún componente sabe de colores. La preferencia se lee y se guarda en `vision.js`, y `index.js` la aplica antes del primer render para que no parpadee. Si el navegador bloquea `localStorage`, queda la paleta normal.
+- Paleta: basada en Okabe-Ito. El verde y el rojo (éxito y error, principal y peligro) pasan a azul y naranja, que se distinguen con los tres tipos de daltonismo. Los verdes de fondo y bordes pasan a un azul grisáceo con la misma luminancia, así los contrastes quedan iguales que en el modo normal.
+- No depende solo del color: los errores llevan ⚠, los éxitos ✓ y los estados de las tareas tienen patrón y texto propios. El botón indica si está activo con `aria-pressed`.
+- Lo probamos con el build de producción a 1400 y 375 px, con el modo apagado y prendido, y con la simulación de protanopía, deuteranopía y tritanopía de Chrome DevTools.
+- Tests: `paleta.test.js` lee `App.css` y verifica los contrastes de las dos paletas; `BotonModoDaltonico.test.js` y `vision.test.js` cubren el botón (también con teclado), la persistencia y el almacenamiento bloqueado.
 
-- **Cómo funciona:** el botón pone `data-vision="daltonico"` en `<html>`. Los colores con significado de `App.css` son variables (acción principal y links, éxito, error, peligro, badges, página actual, estados de tareas, línea "hoy" del Gantt y foco), y el bloque `:root[data-vision="daltonico"]` sólo las redefine: ningún componente conoce los colores. La lógica (leer, guardar y aplicar la preferencia) está en `vision.js`; el botón, en `BotonModoDaltonico.js`. `index.js` aplica la preferencia antes del primer render para que no parpadee la paleta normal. Si el navegador bloquea `localStorage`, la app sigue con la paleta normal.
-- **Paleta:** basada en Okabe-Ito. El par verde/rojo (éxito/error, principal/peligro) pasa a azul/naranja. Estados de tareas: pendiente gris, en curso azul, finalizada ámbar, cerrada naranja quemado; la línea "hoy" pasa a negro. Para que la pantalla quede homogénea, también los 66 tonos verdes de la interfaz (fondos claros, bordes, textos secundarios, ilustración del inicio, sombras) son variables `--ui-*` que en modo daltónico pasan a azul grisáceo **con la misma luminancia**: como el contraste depende sólo de la luminancia, todos los contrastes quedan idénticos a los del modo normal, ya revisados.
-- **Por qué:** con la paleta normal, el verde de éxito y el rojo de error son casi iguales para una persona con protanopía (diferencia de color ΔE 6.9, simulación de Machado 2009). Con la paleta daltónica superan ΔE 70 en protanopía, deuteranopía y tritanopía. Entre los cuatro estados de tareas la diferencia mínima pasa de 10.7 a 18.6 (finalizada/cerrada con deuteranopía); esos dos estados se distinguen además por patrón y borde.
-- **No sólo color (WCAG 1.4.1):** todos los mensajes de error llevan un ícono ⚠ agregado por CSS (`.error::before`, oculto para lectores de pantalla porque el texto alcanza); esto también se ve en el modo normal. El aviso general de éxito lleva ✓ y los estados del Gantt tienen patrón y texto propios. El botón anuncia su estado con `aria-pressed` y lo muestra con una marca ✓.
-- **Contraste:** en la paleta daltónica, los textos con significado (éxito, error, peligro, badges, página actual) y el color principal sobre blanco, el fondo de página, el bloque de inicio y la página actual superan 4.5:1; los bordes de estado superan 3:1. Los tonos `--ui-*` conservan exactamente el contraste del modo normal: algunos textos decorativos del bloque de inicio y de la nota lateral ya estaban entre 3.7 y 4.4:1 en el modo normal y siguen igual (no los introduce este cambio).
-- **Pruebas:** `paleta.test.js` lee `App.css` y comprueba esos pares en las dos paletas, que el modo daltónico sólo redefina variables existentes, que no quede ningún verde y que los tonos `--ui-*` conserven la luminancia. `BotonModoDaltonico.test.js` y `vision.test.js` cubren el botón (también sólo con teclado), la persistencia y el almacenamiento bloqueado.
-- **Modo normal:** no cambia ningún color; lo único nuevo es el ícono ⚠ de los errores.
+### Etiquetas (34)
 
-Verificación visual (17/11/2026): capturas en Chrome del build de producción a 1400 y 375 px con el modo apagado y encendido, y con la emulación de protanopía, deuteranopía y tritanopía de DevTools. En la simulación con la paleta normal, los cuadros de éxito y error se ven del mismo beige; con la paleta daltónica, azul y caqui. El foco (borde negro de 3 px) se ve en modo daltónico. En celular el encabezado pasa a dos líneas (el botón arriba y el de sesión abajo), sin desbordes. Falta recorrerlo con datos reales (backend levantado).
+Proyectos y colectivos pueden tener etiquetas libres (`#educacion`, `#software-libre`) para encontrarlos más fácil.
 
-Lo que no está verificado: el cierre del modal con Escape, el recorrido completo solo con teclado y el uso con un lector de pantalla, las demás pantallas en celular (detalle, formularios, mensajes), y no se afirma conformidad WCAG completa.
+- Se cargan en el registro del colectivo, en Editar mis datos y al crear o editar un proyecto. Se agregan con Enter o coma y se quitan con ✕ o Backspace. El campo sugiere las que ya existen para no crear variantes.
+- Se guardan normalizadas: minúsculas, sin acentos y con guiones ("Educación Popular" queda `educacion-popular`). De 2 a 30 caracteres, hasta 10 por proyecto o colectivo y sin repetir. La regla está en el dominio (`domain/etiquetas.js`); el front tiene una copia solo para mostrar cómo va a quedar.
+- Al editar, si no se mandan se conservan; si se mandan, reemplazan a las anteriores.
+- Tocar una etiqueta filtra el listado (`GET /api/proyectos?etiquetas=a,b` o `/api/colectivos?etiquetas=a,b`), que devuelve los que tienen todas las pedidas. Se combina con los otros filtros, y el buscador de texto también encuentra por etiqueta.
+- Tests: `Etiquetas.test.js`, `ConsultaEtiquetas.test.js` y `EtiquetasHttp.test.js` en el backend; `etiquetas.test.js`, `EtiquetasInput.test.js` y `App.etiquetas.test.js` en el front.
 
-### Etiquetado (adicional 34)
+### Portabilidad de datos (26)
 
-Los proyectos y los colectivos pueden tener etiquetas libres (por ejemplo `#educacion`, `#software-libre`) para encontrarlos más fácil.
+Cualquier cuenta puede descargar una copia de todos sus datos personales en JSON o CSV.
 
-- **Carga:** campo **Etiquetas (opcional)** al registrar un colectivo, en **Mi espacio → Editar mis datos** y al crear o editar un proyecto. Se agregan con Enter o coma, se quitan con ✕ o con Backspace, y lo que queda escrito sin confirmar se suma al guardar. Sugiere las etiquetas que ya se usan, para no crear variantes.
-- **Normalización:** se guardan en minúsculas, sin acentos y con guiones en lugar de espacios: "Educación Popular" queda `educacion-popular`, así distintas formas de escribirla son la misma etiqueta. Cada una tiene de 2 a 30 caracteres; hasta 10 por proyecto o colectivo, sin repetir. La regla vive en el dominio del backend (`domain/etiquetas.js`); el front tiene una copia (`etiquetas.js`) sólo para mostrar cómo va a quedar y avisar antes de enviar.
-- **Edición:** como el resto de los campos, si no se envían se conservan; si se envían, la lista reemplaza a la anterior (`[]` las quita). Agregar perfiles o logros no las modifica.
-- **Búsqueda:** las tarjetas, el detalle del proyecto y el perfil del colectivo muestran las etiquetas como botones; al elegir una se filtra el listado con `GET /api/proyectos?etiquetas=a,b` o `GET /api/colectivos?etiquetas=a,b`, que devuelve los que tienen **todas** las etiquetas pedidas. Se pueden sumar varias, quitarlas de a una o limpiar el filtro, y se combina con "Solo búsquedas abiertas" y "Para mis habilidades". El buscador de texto también encuentra por etiqueta e ignora los acentos ("alimentación" encuentra `#alimentacion`). En **Mi espacio** las etiquetas se muestran sin filtro.
-- **Pruebas:** backend `test/domain/Etiquetas.test.js`, `test/services/ConsultaEtiquetas.test.js` y `test/services/EtiquetasHttp.test.js` (normalización, límites, conservar o reemplazar al editar, que agregar un logro no las pise, filtro con todas, parámetro vacío o inválido y que se sigan excluyendo los suspendidos). Frontend `etiquetas.test.js`, `EtiquetasInput.test.js` y `App.etiquetas.test.js`.
+- Mi espacio → Tus datos, elegir el formato y Descargar mis datos. Los avisos de eliminar cuenta sugieren descargarlos antes, porque después ya no se puede entrar.
+- API: `GET /api/mi/exportacion?formato=json|csv`. Toma la cuenta de la sesión, sin id en la URL, así que no se pueden pedir datos ajenos. Admite 5 descargas por cuenta cada 15 minutos.
+- La colaboradora se lleva su cuenta, su perfil con sus contactos, habilidades, postulaciones, colaboraciones, mensajes, tareas y denuncias. El colectivo se lleva su perfil, sus proyectos completos, tareas, postulaciones y colaboraciones recibidas, mensajes enviados y revisiones de términos.
+- Protección de datos: nunca salen contraseñas, sesiones, tokens de LinkedIn ni denuncias recibidas. En el archivo del colectivo, las colaboradoras aparecen solo con id y nombre de fantasía, sin sus contactos, porque son datos de otra persona.
+- El CSV es un solo archivo con columnas `seccion,registro,campo,valor`. Los valores que empiezan con `=`, `+`, `-` o `@` llevan un apóstrofo adelante para que Excel no los ejecute como fórmula.
+- Tests: `ExportacionDatos.test.js`, `Csv.test.js` y `PortabilidadHttp.test.js` en el backend; `PortabilidadDatos.test.js` en el front.
 
-Lo que no está verificado: el recorrido visual en el navegador (escritorio y celular) y con lector de pantalla.
+### Diagrama de Gantt (33)
 
-### Portabilidad de datos (adicional 26)
+En el detalle del proyecto, la sección "Planificación y tareas" muestra las tareas en un Gantt y en una tabla. El colectivo dueño las crea, edita y borra; cualquiera puede verlas. Cada tarea tiene fechas, estado (pendiente, en curso, finalizada) y, opcionalmente, una colaboradora responsable. Al finalizar el proyecto, las tareas sin terminar pasan a "cerrada".
 
-Cualquier cuenta con sesión, colectivo o colaboradora, puede descargar una copia de todos sus datos personales en JSON o CSV.
+### Cierre automático (10)
 
-- **Cómo probarlo:** iniciar sesión, ir a **Mi espacio → Tus datos**, elegir el formato y tocar **Descargar mis datos**. Baja un archivo `codigo-a-voluntad-datos-colaboradora-AAAA-MM-DD.json` (o `colectivo`, o `.csv`). Los avisos de **Eliminar mi cuenta** y **Eliminar cuenta del colectivo** sugieren descargar los datos antes, porque una cuenta eliminada ya no puede iniciar sesión.
-- **API:** `GET /api/mi/exportacion?formato=json|csv` (`json` por defecto). La identidad sale sólo de la cookie de sesión: no hay id en la URL, así que no se pueden pedir datos de otra cuenta. Responde 401 sin sesión, 400 con un formato inválido y 429 al superar 5 descargas exitosas cada 15 minutos por cuenta (`EXPORT_RATE_LIMIT` y `EXPORT_RATE_WINDOW_MS`). Los pedidos rechazados no consumen cuota. Headers: `Content-Disposition: attachment`, `Cache-Control: no-store` y `nosniff`.
-- **Qué incluye:** una sección `metadatos` (versión del formato, fecha, titular, secciones y lista de lo excluido) y una sección por tipo de dato. La colaboradora recibe su cuenta, su perfil **con sus propios contactos**, habilidades y experiencia, postulaciones, colaboraciones, mensajes recibidos, tareas asignadas, denuncias realizadas y la conexión de LinkedIn. El colectivo recibe su cuenta, su perfil con etiquetas y moderación, sus proyectos completos (perfiles, logros, usos de IA, etiquetas), tareas, postulaciones y colaboraciones recibidas, mensajes enviados, revisiones de términos, denuncias realizadas y LinkedIn.
-- **Protección de datos:** nunca se exportan la contraseña, la sal, las sesiones, los tokens de LinkedIn ni las denuncias recibidas. En el archivo del colectivo, las colaboradoras figuran **sólo con id y nombre de fantasía**, sin contactos aunque la postulación esté aceptada (minimización: los contactos son datos de otra persona y un archivo se puede reenviar o perder). El service elige los campos uno por uno, así un campo nuevo de un modelo no se filtra al export hasta que se decida incluirlo. No se registra quién exporta.
-- **CSV:** un solo archivo en formato largo con las columnas `seccion,registro,campo,valor` (por ejemplo `proyectos,1,perfiles[1].descripcionPerfil,Tester`), con BOM para que Excel muestre los acentos. Los valores que empiezan con `=`, `+`, `-` o `@` llevan un apóstrofo adelante para que la planilla no los ejecute como fórmula; el JSON conserva el valor original.
-- **Capas:** dominio `domain/Exportacion/ExportacionDatos.js` (metadatos, exclusiones, referencia mínima a terceros, nombre del archivo y aplanado a CSV), service `PortabilidadService.js`, controller `PortabilidadController.js`, ruta `routes/Portabilidad.js` con `requiereSesion`, `validarQuery` y `limiteExportacion`, y `utils/csv.js`. En el front, `PortabilidadDatos.js`. Documentado en Swagger bajo el tag "Portabilidad".
-- **Pruebas:** backend `test/domain/ExportacionDatos.test.js`, `test/utils/Csv.test.js` y `test/services/PortabilidadHttp.test.js` (sesión, formato, límite por cuenta, contenido de los dos tipos de cuenta, que ningún secreto aparezca en la respuesta, que una cuenta no reciba datos de otra, que el colectivo no reciba contactos de colaboradoras, CSV y etiquetas). Frontend `PortabilidadDatos.test.js` (descarga en los dos formatos, estado de carga, mensaje del límite y accesibilidad).
+Al crear o editar un proyecto se puede poner una fecha y hora de cierre ("Cierre automático"). Un proceso del backend revisa cada minuto y finaliza los proyectos vencidos, con las mismas consecuencias que el cierre manual: se rechazan las postulaciones pendientes y no se aceptan nuevas.
 
-Lo que no está verificado: la descarga en un navegador real (está probada con tests y con pedidos HTTP reales), en particular en Safari.
+### Sanitización (11)
+
+Todos los campos de texto que carga una persona pasan por `sanitizarTexto` en la validación del backend: se sacan las etiquetas HTML (`<script>`, `<iframe>`, etc.) antes de guardar. Se prueba escribiendo `Hola <b>mundo</b><script>alert(1)</script>` en una descripción: se guarda "Hola mundo". Si después de limpiar un campo obligatorio queda vacío, la API lo rechaza como cualquier campo vacío.
+
+### Denuncias (22)
+
+Una colaboradora que participó en un proyecto puede denunciar ese proyecto o a su colectivo con "Denunciar", eligiendo un motivo y describiendo qué pasó. La administración las revisa en "Administrar denuncias" (con la `ADMIN_API_KEY`) y les cambia el estado: pendiente, en revisión, resuelta o desestimada.
+
+### Eliminación de cuentas (23 y 24)
+
+En Mi espacio. Si un colectivo elimina su cuenta, se conserva su historial, se borra su ubicación, se cierran sus búsquedas y se rechazan las postulaciones pendientes. Si una colaboradora elimina la suya, se borran sus datos personales, contactos y credenciales, y en el historial aparece como "Persona eliminada". En los dos casos no se puede volver a iniciar sesión.
+
+### Experiencia por habilidad (37)
+
+En Mi espacio, la colaboradora puede indicar para cada habilidad el nivel (inicial, intermedio o avanzado), los años de experiencia y una descripción corta. Se muestra en su perfil público.
+
+### LinkedIn (1 y 2)
+
+En Mi espacio → Redes sociales · LinkedIn se conecta la cuenta de LinkedIn. Una vez conectada, la colaboradora puede importar su nombre y foto, y en los logros de un proyecto aparece "Compartir en LinkedIn" para publicarlo. Necesita las variables `LINKEDIN_*` del backend (ver [DEPLOY.md](../../DEPLOY.md)); sin ellas el resto de la app funciona igual.
 
 ## Validación técnica
 
 ```powershell
 npm run lint
-npm test --workspace=frontend -- --watchAll=false --runInBand
+npm test --workspace=frontend -- --watchAll=false
 npm run build --workspace=frontend
-$env:MONGO_URI_TEST='mongodb://127.0.0.1:27017'
 npm test --workspace=backend -- --runInBand
 ```
 
-La suite HTTP comprueba registro, sesión/logout, identidad, autorización entre colectivos, rechazo de orígenes ajenos, contactos antes/después de aceptación y baja, anonimidad y aceptaciones simultáneas con cupo. La serialización de decisiones funciona en el servidor único del TP; si se escala a varios procesos hace falta coordinación/atomicidad compartida.
+Los tests del backend levantan su propio MongoDB en memoria; para usar uno local, definir antes `$env:MONGO_URI_TEST='mongodb://127.0.0.1:27017'`. Usan una base temporal y la borran al terminar.
+
+Los tests HTTP prueban registro, sesión y logout, permisos entre colectivos, rechazo de orígenes ajenos, contactos antes y después de aceptar y de la baja, anonimato y aceptaciones simultáneas con cupo. Al 18/11/2026: 490 tests de backend y 147 de frontend en verde, y el build del front compila sin advertencias.
 
 ## Para desplegar
 
-Configurar el origen real del frontend en ALLOWED_ORIGINS, la URL pública en PUBLIC_APP_URL, MongoDB y ADMIN_API_KEY. En producción las cookies requieren HTTPS (Secure). Usar mismo sitio para frontend/API con SameSite=Lax; una arquitectura entre sitios distintos requiere revisar cookies y CSRF. No habilitar trust proxy indiscriminadamente.
-
-El despliegue del equipo, la integración de los adicionales de compañeros y la prueba manual final siguen fuera del resultado verificado localmente.
-
-Resultado de la revisión (17/11/2026): lint sin errores, 20 pruebas de frontend y 260 de backend aprobadas, y compilación del frontend correcta. Mongoose actualizado a 8.24.9. Las pruebas usan datos temporales; no se borraron ni sembraron datos de desarrollo.
+Está explicado en [DEPLOY.md](../../DEPLOY.md). Lo importante: `ALLOWED_ORIGINS` y `PUBLIC_APP_URL` con la URL real, `MONGO_URI`, `ADMIN_API_KEY` y `NODE_ENV=production`. En producción la cookie es `Secure`, así que hace falta HTTPS, y front y API tienen que estar en el mismo sitio.

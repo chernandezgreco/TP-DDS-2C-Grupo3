@@ -1,61 +1,46 @@
-# Adicionales implementados — entrega 3
+# Adicionales: términos, límite de tasa, Markdown, huella IA y RSS
 
-Los requisitos que no tenían responsable eran Términos y Condiciones (3), límite de tasa (1), Markdown (2), huella hídrica / IA (2) y RSS (2): **10 puntos**. Este avance implementa esos cinco. No implementa ni da por terminados los adicionales asignados a otros integrantes.
+Estos cinco adicionales se hicieron en un mismo avance (10 puntos: términos 3, límite de tasa 1, Markdown 2, huella IA 2 y RSS 2). El resto de los adicionales está en [ENTREGA3.md](ENTREGA3.md#adicionales).
 
-## Qué probar desde el navegador
+## Cómo probarlos
 
-Con MongoDB, backend y frontend encendidos, recargar la aplicación:
+Con MongoDB, el backend y el front levantados:
 
-1. **Términos y condiciones** en el menú: consultar texto y versión vigentes. Al crear o editar un proyecto, abrir las condiciones y aceptar explícitamente. Sin aceptación no se envía el formulario; la API también rechaza aceptación ausente o de una versión anterior.
-2. **Markdown**: registrar o editar descripciones usando `**negrita**`, `# Título`, listas, enlaces y código. El formulario ofrece vista previa. Se renderizan descripciones de proyectos, perfiles, logros, colectivos, presentaciones personales y habilidades. Los campos de título/nombre siguen siendo texto simple.
-3. **Huella hídrica / IA**: al crear/editar proyecto, declarar si requiere IA generativa. Si la requiere, agregar uno o más usos, cada uno con descripción, justificación y grado BAJO/MEDIO/ALTO. Si no la requiere, no puede tener usos. El detalle muestra la declaración; el listado y la búsqueda por habilidades priorizan los proyectos que declaran no requerir IA. Los registros anteriores sin declaración se muestran al final y no se etiquetan como libres de IA.
-4. **RSS**: usar los enlaces del pie o abrir http://localhost:8000/api/rss/proyectos.xml y http://localhost:8000/api/rss/colectivos.xml. Copiar la URL a un lector RSS para suscribirse; no hay que crear cuenta ni compartir contactos. Hay hasta 100 novedades públicas, identificadores estables y fecha de creación (ObjectId para datos históricos). El XML muestra contenido escapado, sin HTML ejecutable ni contactos. Los enlaces abren el proyecto o el colectivo en el frontend.
-5. **Límite de tasa**: por defecto admite 120 solicitudes por IP cada 60 segundos a `/api`, lecturas y escrituras. Al superarlo devuelve 429 y Retry-After. `/health` no se limita. Esperar el reinicio de la ventana si una prueba manual consume la cuota.
+1. Términos y condiciones (21). En el menú, Términos muestra el texto y la versión vigente. Al crear o editar un proyecto hay que abrir las condiciones y aceptarlas; sin eso el formulario no se envía, y la API también rechaza una aceptación que falte o que sea de una versión anterior.
+2. Markdown (38). En cualquier descripción se puede usar `**negrita**`, `# Título`, listas, enlaces y código, con vista previa en el formulario. Se ve en las descripciones de proyectos, perfiles, logros, colectivos, habilidades y en la presentación de las colaboradoras. Títulos y nombres siguen siendo texto simple.
+3. Huella IA (36). Al crear o editar un proyecto se declara si necesita IA generativa. Si la necesita, se cargan uno o más usos con descripción, justificación y grado (bajo, medio o alto); si no, no puede tener usos. El listado y la búsqueda por habilidades muestran primero los proyectos que declaran no usarla. Los proyectos viejos, sin declaración, van al final y no se marcan como libres de IA.
+4. RSS (5). Enlaces en el pie, o directamente http://localhost:8000/api/rss/proyectos.xml y http://localhost:8000/api/rss/colectivos.xml. Se pueden copiar en cualquier lector RSS, sin cuenta. Publican hasta 100 novedades, con el contenido escapado y sin datos de contacto, y los enlaces abren el proyecto o el colectivo en el front.
+5. Límite de tasa (14). Por defecto, 120 pedidos por IP cada 60 segundos a `/api`, contando lecturas y escrituras. Al pasarse responde 429 con el header `Retry-After`. `/health` no tiene límite.
 
-## Administración de condiciones
+## Administración de los términos
 
-Esta función usa una credencial de servidor independiente del selector de perfiles del frontend. El login general usa una sesión de cuenta; esta credencial está reservada a la administración.
+La administración usa una clave propia (`ADMIN_API_KEY`), aparte del login de las cuentas.
 
-1. Generar una clave con `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
-2. Agregarla como `ADMIN_API_KEY=...` en `packages/backend/.env` (archivo ignorado por Git). No ponerla en variables `REACT_APP_`.
+1. Generar una clave: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+2. Ponerla como `ADMIN_API_KEY=...` en `packages/backend/.env`, que no se sube al repo. Nunca en una variable `REACT_APP_`.
 3. Reiniciar el backend si no está en modo watch.
-4. Ir a Términos → Administrar condiciones y cumplimiento e ingresar la credencial. Sólo permanece en memoria mientras está montada esa pantalla; no se guarda en localStorage ni en URLs.
-5. Publicar otra versión: se conserva la anterior. El panel identifica proyectos que todavía no aceptaron la vigente. Al editar el proyecto se exige aceptar la nueva versión. Una actualización de condiciones no suspende automáticamente recursos históricos: la decisión administrativa se registra explícitamente con su motivo.
-6. Evaluar proyecto o colectivo: seleccionar recurso y decisión, explicar el motivo y registrar. Una suspensión retira el recurso de los listados y RSS; si es un colectivo, también sus proyectos. Bloquea nuevas postulaciones y aceptación de postulaciones en sus proyectos. Los datos e historial se conservan. Rehabilitar permite corregir la situación sin recrear el recurso.
+4. Ir a Términos → Administrar condiciones y cumplimiento e ingresar la clave. Queda en memoria mientras esa pantalla está abierta; no se guarda en el navegador ni en la URL.
+5. Publicar una versión nueva: la anterior se conserva. El panel muestra qué proyectos todavía no aceptaron la vigente, y al editarlos se les pide aceptarla. Publicar una versión no suspende nada por sí sola.
+6. Evaluar un proyecto o un colectivo: elegir el recurso, la decisión y escribir el motivo. Una suspensión lo saca de los listados y del RSS (si es un colectivo, también a sus proyectos) y bloquea las postulaciones nuevas y las aceptaciones. Los datos y el historial se conservan, y se puede rehabilitar.
 
-Sin clave configurada o con menos de 32 caracteres, los endpoints administrativos devuelven 503. Una clave incorrecta devuelve 401. Los endpoints públicos de lectura de condiciones y RSS funcionan sin esa clave.
+Sin clave configurada, o con menos de 32 caracteres, las rutas de administración responden 503; con una clave incorrecta, 401. Leer los términos y el RSS no necesita clave.
 
-El texto inicial es una propuesta funcional para este TP, basada en las reglas de la consigna; el equipo puede reemplazarlo desde el panel. No representa asesoramiento legal ni una política final para un servicio comercial.
+El texto inicial de los términos es una propuesta basada en las reglas del enunciado y se puede reemplazar desde el panel. No es asesoramiento legal.
 
-## Contratos nuevos para el equipo
+## Detalles de la API
 
-- GET `/api/terminos/actual`: `{version,titulo,contenido,...}`.
-- Crear/actualizar proyectos exige `versionTerminosAceptada` con la versión vigente. Se persiste como `aceptacionTerminos: {version,fecha}`; el cliente no decide la fecha.
-- `requiereIA`: booleano; `null` sólo para datos previos/sin declarar. `usosIA`: lista de `{descripcion,justificacion,grado}`. No se calculan litros, energía ni emisiones: es una declaración, según la consigna.
-- GET `/api/admin/terminos/estado`, POST `/api/admin/terminos` y POST `/api/admin/terminos/revisiones`: requieren `Authorization: Bearer <ADMIN_API_KEY>`.
-- Revisión: `{recurso:'proyectos'|'colectivos',recursoId,suspendido:boolean,motivo}`.
-- Las suspensiones se almacenan en `moderacionTerminos`, separadas del estado del proyecto y de la eliminación de cuentas que desarrollan los compañeros. Colecciones nuevas: términos versionados y revisiones.
-- Cada publicación tiene una versión nueva inmutable; la aceptación no se reutiliza para otra versión.
-- `PUBLIC_APP_URL` configura los enlaces de los feeds, sobre todo al desplegar. `PUBLIC_RATE_LIMIT` y `PUBLIC_RATE_WINDOW_MS` configuran el límite.
-- El contador se mantiene en memoria por proceso, adecuado al servidor único del TP. Si se escala a varios procesos, hace falta un almacén compartido. No se confía ciegamente en X-Forwarded-For: al desplegar con un proxy, configurar `trust proxy` sólo para el proxy conocido.
-- La API Swagger incluye las rutas, campos nuevos, autenticación administrativa y respuestas 429.
+- `GET /api/terminos/actual` devuelve `{ version, titulo, contenido, ... }`.
+- Crear o editar un proyecto exige `versionTerminosAceptada` con la versión vigente. Se guarda como `aceptacionTerminos: { version, fecha }`, y la fecha la pone el servidor.
+- `requiereIA` es booleano (`null` solo en datos viejos sin declarar) y `usosIA` es una lista de `{ descripcion, justificacion, grado }`. Es una declaración: no se calculan litros, energía ni emisiones, como dice el enunciado.
+- Administración: `GET /api/admin/terminos/estado`, `POST /api/admin/terminos` y `POST /api/admin/terminos/revisiones`, todas con `Authorization: Bearer <ADMIN_API_KEY>`. Una revisión es `{ recurso: "proyectos" | "colectivos", recursoId, suspendido, motivo }`.
+- Las suspensiones se guardan en `moderacionTerminos`, aparte del estado del proyecto y de la eliminación de cuentas. Cada versión de los términos es inmutable, y una aceptación vale solo para su versión.
+- `PUBLIC_APP_URL` define los enlaces de los feeds. `PUBLIC_RATE_LIMIT` y `PUBLIC_RATE_WINDOW_MS`, el límite.
+- El contador del límite vive en la memoria del proceso, que alcanza para el servidor único del TP; con varios procesos haría falta un almacén compartido. En producción `trust proxy` confía en un solo salto (el proxy de Render), para no creerle a cualquier `X-Forwarded-For`.
+- En Markdown, el HTML está deshabilitado y la salida pasa por DOMPurify, sin imágenes remotas. Aparte, el backend sanitiza todos los textos al guardarlos (adicional 11).
 
-## Pruebas
+## Tests
 
-Backend: `npm test --workspace=backend -- --runInBand test/services/AdicionalesHttp.test.js test/services/EdicionHttp.test.js`.
+- Backend: `test/services/AdicionalesHttp.test.js` y `test/services/EdicionHttp.test.js`. Cubren aceptación y versionado, la clave de administración, suspender y rehabilitar con historial, huella IA y su orden, RSS y el 429.
+- Front: `Markdown.test.js` (render seguro) y los tests del formulario de IA con aceptación explícita.
 
-Para usar Mongo local, definir antes `$env:MONGO_URI_TEST='mongodb://127.0.0.1:27017'`. El helper existente usa una base separada `test_<PID>` y la borra al terminar; no escribe en `codigo_a_voluntad`.
-
-Frontend: `npm test --workspace=frontend -- --watchAll=false --runInBand`.
-
-Los tests HTTP ejercitan aceptación/versionado, credencial administrativa, suspensión/restauración e historial, huella y ordenamiento, RSS y 429. Los del frontend incluyen renderizado seguro de Markdown y formulario de IA con aceptación explícita.
-
-## Alcance y coordinación
-
-El login general y la autorización de propietario ya están integrados. La administración de condiciones conserva su credencial propia, separada de las sesiones de cuentas. Los módulos de eliminación, denuncias, experiencia, redes, Gantt, portabilidad, modo daltónico, sanitización general y cierre automático quedan a cargo de los responsables indicados por el grupo. El etiquetado (adicional 34) y la portabilidad de datos personales (adicional 26) están documentados en [ENTREGA3.md](ENTREGA3.md).
-
-La seguridad de Markdown se limita al renderizador: HTML deshabilitado y salida filtrada, sin imágenes remotas. No sustituye la sanitización general de entradas del backend que hará otro integrante.
-
-Referencias de implementación: [markdown-it: seguridad](https://github.com/markdown-it/markdown-it/blob/master/docs/safety.md), [DOMPurify](https://github.com/cure53/DOMPurify), [express-rate-limit](https://github.com/express-rate-limit/express-rate-limit).
-
-Verificación de este avance: 11 pruebas HTTP de backend y 8 de frontend aprobadas. La revisión visual automática no pudo acceder al navegador local; se debe confirmar la disposición de las pantallas en el navegador del equipo. No se modificaron datos de desarrollo ni se ejecutaron seeds.
+Referencias: [markdown-it: seguridad](https://github.com/markdown-it/markdown-it/blob/master/docs/safety.md), [DOMPurify](https://github.com/cure53/DOMPurify), [express-rate-limit](https://github.com/express-rate-limit/express-rate-limit).

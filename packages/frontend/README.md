@@ -1,23 +1,19 @@
-# Frontend — Código a Voluntad
+# Frontend de Código a Voluntad
 
-React con Axios y API Express/MongoDB. La rama de trabajo es `3era-entrega`.
+React (Create React App) con Axios. Habla con la API del backend usando la cookie de sesión.
 
-Consultar [ENTREGA3.md](ENTREGA3.md) para iniciar el proyecto, seguir los recorridos y verificar los requisitos obligatorios. [ADICIONALES.md](ADICIONALES.md) detalla los cinco adicionales implementados.
+- [ENTREGA3.md](ENTREGA3.md): cómo levantarlo, recorridos de cada tipo de cuenta, pantallas y adicionales.
+- [ADICIONALES.md](ADICIONALES.md): términos, límite de tasa, Markdown, huella IA y RSS.
+- [README principal](../../README.md): arquitectura, API y tests.
 
 Desde la raíz del repositorio:
 
-```powershell
+```bash
 npm install
 docker compose up -d mongo
-npm run dev:backend
+npm run dev
 ```
 
-En otra terminal:
+Front en http://localhost:3000, API en http://localhost:8000/api y Swagger en http://localhost:8000/api-docs.
 
-```powershell
-npm run start:frontend
-```
-
-Frontend: http://localhost:3000 · API: http://localhost:8000/api · Swagger: http://localhost:8000/api-docs.
-
-Copiar `packages/backend/.env.example` a `packages/backend/.env` sólo si todavía no existe. No reemplazar un archivo de configuración propio ni ejecutar seeds sobre una base con datos que se quieran conservar.
+Copiar `packages/backend/.env.example` a `packages/backend/.env` solo si todavía no existe, y no correr el seed sobre una base con datos que se quieran conservar: la borra.
