@@ -7,6 +7,7 @@ import DenunciaForm from "./DenunciaForm";
 import DenunciasAdmin from "./DenunciasAdmin";
 import ExperienciaHabilidades from "./ExperienciaHabilidades";
 import LinkedInIntegration from "./LinkedInIntegration";
+import PortabilidadDatos from "./PortabilidadDatos";
 import TareasProyecto from "./TareasProyecto";
 import BotonModoDaltonico from "./BotonModoDaltonico";
 import React, { useEffect, useState } from "react";
@@ -1244,6 +1245,7 @@ export default function App() {
                         actorType={actor?.type}
                         onImported={refresh}
                       />
+                      <PortabilidadDatos actorType={actor?.type} />
                       {person && (
                         <ExperienciaHabilidades
                           person={person}
@@ -1419,7 +1421,7 @@ export default function App() {
                           onClick={() => {
                             if (
                               window.confirm(
-                                "¿Eliminar la cuenta del colectivo? No podrás volver a iniciar sesión. Se conservará el historial, se quitará la ubicación de contacto, se cerrarán las búsquedas y se rechazarán las postulaciones pendientes.",
+                                "¿Eliminar la cuenta del colectivo? No podrás volver a iniciar sesión. Se conservará el historial, se quitará la ubicación de contacto, se cerrarán las búsquedas y se rechazarán las postulaciones pendientes. Si querés conservar una copia, descargá antes tus datos desde «Tus datos».",
                               )
                             )
                               run(async () => {
@@ -1441,7 +1443,7 @@ export default function App() {
                           onClick={() => {
                             if (
                               !window.confirm(
-                                "¿Eliminar tu cuenta permanentemente? Se borrarán tus datos personales, contactos y credenciales. Tus participaciones conservarán el historial como Persona eliminada y tus postulaciones pendientes serán rechazadas. Esta acción no se puede deshacer.",
+                                "¿Eliminar tu cuenta permanentemente? Se borrarán tus datos personales, contactos y credenciales. Tus participaciones conservarán el historial como Persona eliminada y tus postulaciones pendientes serán rechazadas. Esta acción no se puede deshacer. Si querés conservar una copia, descargá antes tus datos desde «Tus datos».",
                               )
                             ) {
                               return;
