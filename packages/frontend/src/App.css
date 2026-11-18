@@ -1281,7 +1281,7 @@ button[aria-disabled="true"] {
     margin-bottom: 12px;
     padding: 10px 12px;
     background: #fff;
-    border: 1px solid #d7e0db;
+    border: 1px solid var(--ui-gantt-scroll-borde);
     border-radius: 8px;
   }
   .tareas-tabla tbody th,
@@ -1292,7 +1292,7 @@ button[aria-disabled="true"] {
   .tareas-tabla tbody td[data-label]::before {
     content: attr(data-label) ": ";
     font-weight: 700;
-    color: #33423b;
+    color: var(--ui-gantt-head-texto);
   }
   .tareas-tabla .toolbar {
     margin-top: 6px;
