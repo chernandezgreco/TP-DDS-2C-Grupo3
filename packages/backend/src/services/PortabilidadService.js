@@ -277,6 +277,7 @@ export class PortabilidadService {
         descripcion: perfil.descripcion,
         tipo: perfil.tipo,
         ubicacion: perfil.ubicacion ?? null,
+        etiquetas: perfil.etiquetas ?? [],
         moderacionTerminos: moderacion(perfil.moderacionTerminos),
       },
       proyectos: proyectos.map((p) => ({
@@ -287,6 +288,7 @@ export class PortabilidadService {
         estaBuscando: p.estaBuscando ?? null,
         fechaCierre: p.fechaCierre ?? null,
         requiereIA: p.requiereIA ?? null,
+        etiquetas: p.etiquetas ?? [],
         usosIA: (p.usosIA ?? []).map((u) => ({
           descripcion: u.descripcion,
           justificacion: u.justificacion,

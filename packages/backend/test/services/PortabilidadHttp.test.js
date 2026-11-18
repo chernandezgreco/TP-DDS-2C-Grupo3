@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, afterAll, describe, test, expect } from "@jest/g
 import { crearApp } from "../../src/app.js";
 import {
     HabilidadModel,
+    ColectivoModel,
     ColaboradoraModel,
     ProyectoModel,
     PostulacionModel,
@@ -332,5 +333,20 @@ describe("colectivo", () => {
         expect(r.texto).not.toContain("luna@example.com");
         expect(r.texto).not.toContain("Luna Apellido");
         expect(r.texto).not.toContain("Proyecto ajeno");
+    });
+
+    test("incluye las etiquetas del colectivo y de sus proyectos, también en CSV", async () => {
+        const colectivo = await registrarColectivo("etiquetas@example.com", "ONG Etiquetada");
+        const { proyectoId } = await crearProyecto(colectivo.id, "Huerta");
+        await ColectivoModel.updateOne({ _id: colectivo.id }, { $set: { etiquetas: ["barrio", "cultura"] } });
+        await ProyectoModel.updateOne({ _id: proyectoId }, { $set: { etiquetas: ["huerta-comunitaria"] } });
+
+        const json = await exportar(colectivo.cookie);
+        const csv = await exportar(colectivo.cookie, "csv");
+
+        expect(json.data.perfil.etiquetas).toEqual(["barrio", "cultura"]);
+        expect(json.data.proyectos[0].etiquetas).toEqual(["huerta-comunitaria"]);
+        expect(csv.texto).toContain("huerta-comunitaria");
+        expect(csv.texto).toContain("cultura");
     });
 });
