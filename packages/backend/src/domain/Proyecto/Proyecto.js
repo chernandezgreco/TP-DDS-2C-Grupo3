@@ -3,6 +3,7 @@ import { esTextoNoVacio } from "../validaciones.js";
 import { Perfil } from "../Perfil/Perfil.js";
 import { Logro } from "../Logro/Logro.js";
 import { ConflictError, DomainError, NotFoundError } from "../errores.js";
+import { normalizarEtiquetas } from "../etiquetas.js";
 
 export class Proyecto {
   constructor(
@@ -15,6 +16,7 @@ export class Proyecto {
     estaBuscando = true,
     estado = EstadoProyecto.ACTIVO,
     fechaCierre = null,
+    etiquetas = [],
   ) {
     if (!esTextoNoVacio(titulo)) {
       throw new DomainError("El título del proyecto es obligatorio", {
@@ -60,6 +62,7 @@ export class Proyecto {
     this.estaBuscando = estaBuscando;
     this.fechaCierre =
       fechaCierre === null ? null : new Date(fechaCierre.getTime());
+    this.etiquetas = normalizarEtiquetas(etiquetas);
   }
   debeCerrarse(fechaActual = new Date()) {
     return (

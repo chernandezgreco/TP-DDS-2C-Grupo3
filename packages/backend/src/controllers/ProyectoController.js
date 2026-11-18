@@ -21,7 +21,7 @@ export class ProyectoController {
   }
 
   static async listar(req, res) {
-    res.json(await ProyectoService.listar());
+    res.json(await ProyectoService.listar({ etiquetas: req.query.etiquetas }));
   }
 
   static async obtener(req, res) {

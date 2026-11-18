@@ -11,6 +11,7 @@ import {
 import { Colectivo } from "../domain/Colectivo/Colectivo.js";
 import { NotFoundError } from "../domain/errores.js";
 import { esIdValido } from "./ids.js";
+import { etiquetasDeConsulta, filtroEtiquetas } from "./consultaEtiquetas.js";
 
 const aDominio = (doc) =>
   new Colectivo(
@@ -19,6 +20,7 @@ const aDominio = (doc) =>
     doc.descripcion,
     doc.ubicacion,
     doc.tipo,
+    [...(doc.etiquetas ?? [])],
   );
 
 export class ColectivoService {
@@ -30,6 +32,7 @@ export class ColectivoService {
       data.descripcion,
       data.ubicacion,
       data.tipo,
+      data.etiquetas,
     );
 
     const nuevoColectivoDoc = await ColectivoModel.create({
@@ -37,6 +40,7 @@ export class ColectivoService {
       descripcion: borrador.descripcion,
       ubicacion: borrador.ubicacion,
       tipo: borrador.tipo,
+      etiquetas: borrador.etiquetas,
     });
 
     return aDominio(nuevoColectivoDoc);
@@ -51,6 +55,7 @@ export class ColectivoService {
       valores.descripcion,
       valores.ubicacion,
       valores.tipo,
+      valores.etiquetas,
     );
     const doc = await ColectivoModel.findByIdAndUpdate(
       id,
@@ -60,6 +65,7 @@ export class ColectivoService {
           descripcion: validado.descripcion,
           ubicacion: validado.ubicacion,
           tipo: validado.tipo,
+          etiquetas: validado.etiquetas,
         },
       },
       { new: true, runValidators: true },
@@ -68,9 +74,12 @@ export class ColectivoService {
     return aDominio(doc);
   }
 
-  static async listar() {
+  // consulta.etiquetas: el valor crudo de ?etiquetas= (si hay varias, deben estar todas)
+  static async listar(consulta = {}) {
+    const etiquetas = etiquetasDeConsulta(consulta.etiquetas);
     const colectivosDocs = await ColectivoModel.find({
       "moderacionTerminos.suspendido": { $ne: true },
+      ...filtroEtiquetas(etiquetas),
     });
 
     return colectivosDocs.map(aDominio);

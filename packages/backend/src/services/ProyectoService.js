@@ -21,6 +21,7 @@ import { PostulacionService } from "./PostulacionService.js";
 import { TareaService } from "./TareaService.js";
 import { DomainError } from "../domain/errores.js";
 import { serializar } from "./serializar.js";
+import { etiquetasDeConsulta, filtroEtiquetas } from "./consultaEtiquetas.js";
 
 // --- Conversión entre Mongo y dominio. Es el único lugar que conoce la forma del documento ---
 
@@ -62,6 +63,7 @@ const aDominio = (doc) =>
       doc.estaBuscando ?? true,
       doc.estado,
       doc.fechaCierre ?? null,
+      [...(doc.etiquetas ?? [])],
     ),
     {
       requiereIA: doc.requiereIA ?? null,
@@ -99,6 +101,7 @@ export const aDocumento = (proyecto) => ({
   estado: proyecto.estado,
   estaBuscando: proyecto.estaBuscando,
   fechaCierre: proyecto.fechaCierre,
+  etiquetas: proyecto.etiquetas,
   perfiles: proyecto.perfiles.map((perfil) => ({
     _id: perfil.id,
     descripcionPerfil: perfil.descripcionPerfil,
@@ -189,6 +192,7 @@ export class ProyectoService {
         datos.fechaCierre === undefined
           ? actual.fechaCierre
           : datos.fechaCierre,
+        datos.etiquetas ?? actual.etiquetas,
       );
 
       const doc = await ProyectoModel.findOneAndUpdate(
@@ -198,6 +202,7 @@ export class ProyectoService {
             titulo: validado.titulo,
             descripcion: validado.descripcion,
             fechaCierre: validado.fechaCierre,
+            etiquetas: validado.etiquetas,
             ...adicionales,
             aceptacionTerminos,
           },
@@ -238,10 +243,13 @@ export class ProyectoService {
     });
   }
 
-  static async listar() {
-    const docs = await ProyectoModel.find(
-      await TerminosService.filtroProyectosPublicos(),
-    );
+  // consulta.etiquetas: el valor crudo de ?etiquetas= (si hay varias, deben estar todas)
+  static async listar(consulta = {}) {
+    const etiquetas = etiquetasDeConsulta(consulta.etiquetas);
+    const docs = await ProyectoModel.find({
+      ...(await TerminosService.filtroProyectosPublicos()),
+      ...filtroEtiquetas(etiquetas),
+    });
 
     return ordenarPorHuellaIA(docs.map(aDominio));
   }
@@ -268,6 +276,9 @@ export class ProyectoService {
     delete datos.estado;
     delete datos.estaBuscando;
     delete datos.fechaCierre;
+    // las etiquetas solo cambian al crear o editar el proyecto (actualizar);
+    // así agregar un perfil o un logro no pisa una edición hecha mientras tanto
+    delete datos.etiquetas;
 
     const resultado = await ProyectoModel.updateOne(
       { _id: proyecto.id },
@@ -307,6 +318,7 @@ export class ProyectoService {
       true,
       EstadoProyecto.ACTIVO,
       data.fechaCierre ?? null,
+      data.etiquetas,
     );
 
     await HabilidadService.validarExistentes(

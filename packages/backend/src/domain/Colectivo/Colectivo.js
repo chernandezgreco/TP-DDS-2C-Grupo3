@@ -1,9 +1,10 @@
 import { TipoColectivo } from "./TipoColectivo.js";
 import { esTextoNoVacio } from "../validaciones.js";
 import { DomainError } from "../errores.js";
+import { normalizarEtiquetas } from "../etiquetas.js";
 
 export class Colectivo {
-    constructor(id, nombre, descripcion, ubicacion, tipo) {
+    constructor(id, nombre, descripcion, ubicacion, tipo, etiquetas = []) {
         if (!esTextoNoVacio(nombre)) {
             throw new DomainError("El nombre del colectivo es obligatorio", { campo: "nombre" });
         }
@@ -23,5 +24,6 @@ export class Colectivo {
         this.descripcion = descripcion;
         this.ubicacion = ubicacion;
         this.tipo = tipo;
+        this.etiquetas = normalizarEtiquetas(etiquetas);
     }
 }
