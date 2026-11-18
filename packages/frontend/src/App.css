@@ -1,11 +1,192 @@
 * {
   box-sizing: border-box;
 }
+
+/* ---- Paleta ----
+   Los colores que transmiten un significado (acción principal, éxito, error, peligro, estados, foco)
+   son variables. El modo daltónico (atributo data-vision="daltonico" en <html>) sólo redefine estas
+   variables; los componentes no cambian. Paleta basada en Okabe-Ito: reemplaza el par verde/rojo,
+   que se confunde con protanopía y deuteranopía, por azul/naranja. Contrastes de texto >= 4.5:1. */
+:root {
+  --color-principal: #236b55;
+  --nav-activo-fondo: #eaf3ed;
+  --nav-activo-texto: #216349;
+  --color-exito-fondo: #e4f2e5;
+  --color-exito-texto: #285834;
+  --color-error-fondo: #fff0eb;
+  --color-error-texto: #883521;
+  --color-peligro-fondo: #fff3f1;
+  --color-peligro-texto: #973829;
+  --color-peligro-borde: #efd2ca;
+  --badge-fondo: #edf5ed;
+  --badge-texto: #326649;
+  --color-foco: #427dce;
+  /* tonos de la interfaz (fondos, bordes, textos secundarios, ilustraciones): en modo daltónico
+     pasan de verde a azul con la misma luminancia, así todos los contrastes quedan iguales */
+  --ui-body-texto: #203a37;
+  --ui-summary-texto: #266548;
+  --ui-body-fondo: #f7f9f8;
+  --ui-button-secondary-texto: #324d47;
+  --ui-button-secondary-borde: #d7e1dc;
+  --ui-aside-borde: #e2e9e4;
+  --ui-brand-texto: #233f35;
+  --ui-eyebrow-texto: #63756b;
+  --ui-nav-a-texto: #61746b;
+  --ui-aside-note-fondo: #f0f5ec;
+  --ui-aside-note-p-texto: #66766a;
+  --ui-aside-small-texto: #68746b;
+  --ui-header-borde: #e3eae5;
+  --ui-header-texto: #6b7671;
+  --ui-breadcrumb-texto: #66736c;
+  --ui-subtitle-texto: #64756c;
+  --ui-hero-fondo: #e7efdf;
+  --ui-hero-borde: #dfe7d7;
+  --ui-hero-h2-texto: #254936;
+  --ui-hero-p-texto: #617562;
+  --ui-hero-badge-fondo: #f4f8ef;
+  --ui-hero-art-span-fondo: #fcfff7;
+  --ui-hero-art-span-borde: #c8d8be;
+  --ui-hero-art-span-sombra: #cfdec2;
+  --ui-hero-art-span-texto: #49734c;
+  --ui-hero-art-i-texto: #90a878;
+  --ui-hero-art-b-fondo: #acc78d;
+  --ui-hero-art-small-texto: #637c54;
+  --ui-search-borde: #dbe3dd;
+  --ui-check-texto: #546d60;
+  --ui-results-span-texto: #69726b;
+  --ui-card-borde: #dee6df;
+  --ui-card-art-fondo: #e9eede;
+  --ui-card-art-texto: #64805b;
+  --ui-card-copy-texto: #697369;
+  --ui-tags-span-fondo: #f3f5f2;
+  --ui-tags-span-texto: #5e7163;
+  --ui-card-footer-borde: #eef0ed;
+  --ui-card-footer-small-texto: #687468;
+  --ui-list-row-borde: #e6ebe6;
+  --ui-description-texto: #607468;
+  --ui-page-footer-borde: #dfe5df;
+  --ui-page-footer-texto: #67746b;
+  --ui-empty-borde: #d7e0d7;
+  --ui-empty-texto: #657467;
+  --ui-loading-texto: #58785e;
+  --ui-count-texto: #657566;
+  --ui-modal-backdrop-fondo: #19312688;
+  --ui-modal-sombra: #182d2844;
+  --ui-textarea-borde: #cfdad2;
+  --ui-textarea-texto: #294035;
+  --ui-label-small-texto: #667569;
+  --ui-markdown-pre-fondo: #f0f3ef;
+  --ui-markdown-blockquote-borde: #86a28b;
+  --ui-markdown-blockquote-texto: #607366;
+  --ui-markdown-help-texto: #607665;
+  --ui-fieldset-borde: #d4dfd7;
+  --ui-ia-fields-p-texto: #637665;
+  --ui-hint-texto: #62756b;
+  --ui-estado-chip-texto: #1d2a24;
+  --ui-gantt-scroll-borde: #d7e0db;
+  --ui-gantt-label-borde: #edf1ef;
+  --ui-gantt-head-fondo: #f4f7f5;
+  --ui-gantt-head-texto: #33423b;
+  --ui-gantt-tick-borde: #b9c7c0;
+  --ui-tareas-tabla-td-borde: #e3eae6;
+  --ui-tareas-tabla-tbody-th-p-texto: #3f4d46;
+}
+:root[data-vision="daltonico"] {
+  --color-principal: #0069a6;
+  --nav-activo-fondo: #e1effa;
+  --nav-activo-texto: #005a8c;
+  --color-exito-fondo: #e1effa;
+  --color-exito-texto: #005a8c;
+  --color-error-fondo: #fdebdd;
+  --color-error-texto: #9a3f00;
+  --color-peligro-fondo: #fff4ec;
+  --color-peligro-texto: #9a3f00;
+  --color-peligro-borde: #f0c7a5;
+  --badge-fondo: #e1effa;
+  --badge-texto: #005a8c;
+  --color-foco: #000000;
+  --estado-pendiente-fondo: #ececec;
+  --estado-pendiente-borde: #5f5f5f;
+  --estado-en-curso-fondo: #d6eaf8;
+  --estado-en-curso-borde: #0072b2;
+  --estado-finalizada-fondo: #fdf0d5;
+  --estado-finalizada-borde: #b07800;
+  --estado-cerrada-fondo: #fbe3d3;
+  --estado-cerrada-borde: #9a3f00;
+  --gantt-hoy: #000000;
+  --ui-body-texto: #263844;
+  --ui-summary-texto: #305e7f;
+  --ui-body-fondo: #f8f9f9;
+  --ui-button-secondary-texto: #384a57;
+  --ui-button-secondary-borde: #dadfe3;
+  --ui-aside-borde: #e4e8ea;
+  --ui-brand-texto: #293c49;
+  --ui-eyebrow-texto: #67727a;
+  --ui-nav-a-texto: #66717a;
+  --ui-aside-note-fondo: #f0f4f7;
+  --ui-aside-note-p-texto: #6a737a;
+  --ui-aside-small-texto: #6b7277;
+  --ui-header-borde: #e5e9eb;
+  --ui-header-texto: #6e7479;
+  --ui-breadcrumb-texto: #697177;
+  --ui-subtitle-texto: #68737a;
+  --ui-hero-fondo: #e6edf3;
+  --ui-hero-borde: #dee5eb;
+  --ui-hero-h2-texto: #2c4556;
+  --ui-hero-p-texto: #65727a;
+  --ui-hero-badge-fondo: #f3f7fa;
+  --ui-hero-art-span-fondo: #fdfeff;
+  --ui-hero-art-span-borde: #c8d5de;
+  --ui-hero-art-span-sombra: #cedbe4;
+  --ui-hero-art-span-texto: #516d80;
+  --ui-hero-art-i-texto: #8ca4b5;
+  --ui-hero-art-b-fondo: #a8c2d4;
+  --ui-hero-art-small-texto: #5e788b;
+  --ui-search-borde: #dde2e5;
+  --ui-check-texto: #5a6a75;
+  --ui-results-span-texto: #6b7074;
+  --ui-card-borde: #e0e5e8;
+  --ui-card-art-fondo: #e6edf2;
+  --ui-card-art-texto: #647c8c;
+  --ui-card-copy-texto: #6b7175;
+  --ui-tags-span-fondo: #f3f5f6;
+  --ui-tags-span-texto: #626e76;
+  --ui-card-footer-borde: #eef0f1;
+  --ui-card-footer-small-texto: #6b7277;
+  --ui-list-row-borde: #e7eaec;
+  --ui-description-texto: #65717a;
+  --ui-page-footer-borde: #e1e4e6;
+  --ui-page-footer-texto: #6a7278;
+  --ui-empty-borde: #d9dee2;
+  --ui-empty-texto: #687178;
+  --ui-loading-texto: #5f7381;
+  --ui-count-texto: #697279;
+  --ui-modal-backdrop-fondo: #1e2e3a88;
+  --ui-modal-sombra: #1c2b3544;
+  --ui-textarea-borde: #d2d8dc;
+  --ui-textarea-texto: #2e3d48;
+  --ui-label-small-texto: #697379;
+  --ui-markdown-pre-fondo: #f0f2f4;
+  --ui-markdown-blockquote-borde: #8e9da8;
+  --ui-markdown-blockquote-texto: #647078;
+  --ui-markdown-help-texto: #65737c;
+  --ui-fieldset-borde: #d7dde1;
+  --ui-ia-fields-p-texto: #67737b;
+  --ui-hint-texto: #67727b;
+  --ui-estado-chip-texto: #20282e;
+  --ui-gantt-scroll-borde: #dadfe2;
+  --ui-gantt-label-borde: #eef0f2;
+  --ui-gantt-head-fondo: #f5f6f8;
+  --ui-gantt-head-texto: #374047;
+  --ui-gantt-tick-borde: #bdc5ca;
+  --ui-tareas-tabla-td-borde: #e5e9ec;
+  --ui-tareas-tabla-tbody-th-p-texto: #424b51;
+}
 body {
   margin: 0;
   font-family: Inter, "Segoe UI", sans-serif;
-  color: #203a37;
-  background: #f7f9f8;
+  color: var(--ui-body-texto);
+  background: var(--ui-body-fondo);
   font-size: 15px;
 }
 button,
@@ -26,7 +207,7 @@ button {
   border: 1px solid transparent;
   border-radius: 8px;
   padding: 11px 17px;
-  background: #236b55;
+  background: var(--color-principal);
   color: white;
   font-weight: 600;
   min-height: 44px;
@@ -39,23 +220,23 @@ button:disabled {
   cursor: wait;
 }
 a {
-  color: #236b55;
+  color: var(--color-principal);
   text-decoration: none;
 }
 button.secondary {
-  color: #324d47;
+  color: var(--ui-button-secondary-texto);
   background: white;
-  border-color: #d7e1dc;
+  border-color: var(--ui-button-secondary-borde);
 }
 .text-button {
   background: transparent;
-  color: #236b55;
+  color: var(--color-principal);
   padding-left: 0;
 }
 .danger {
-  background: #fff3f1;
-  color: #973829;
-  border-color: #efd2ca;
+  background: var(--color-peligro-fondo);
+  color: var(--color-peligro-texto);
+  border-color: var(--color-peligro-borde);
 }
 .shell {
   display: flex;
@@ -65,7 +246,7 @@ aside {
   width: 242px;
   flex-shrink: 0;
   background: #fff;
-  border-right: 1px solid #e2e9e4;
+  border-right: 1px solid var(--ui-aside-borde);
   padding: 38px 24px;
   display: flex;
   flex-direction: column;
@@ -77,13 +258,13 @@ aside {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #233f35;
+  color: var(--ui-brand-texto);
   font-size: 21px;
   line-height: 1.12;
   letter-spacing: -0.5px;
 }
 .brand > span {
-  background: #236b55;
+  background: var(--color-principal);
   color: white;
   border-radius: 12px;
   padding: 12px 8px;
@@ -93,7 +274,7 @@ aside {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.6px;
-  color: #63756b;
+  color: var(--ui-eyebrow-texto);
   margin: 35px 0 17px;
 }
 nav {
@@ -105,13 +286,13 @@ nav a {
   gap: 14px;
   align-items: center;
   padding: 13px 12px;
-  color: #61746b;
+  color: var(--ui-nav-a-texto);
   font-weight: 500;
   border-radius: 8px;
 }
 nav a[aria-current="page"] {
-  background: #eaf3ed;
-  color: #216349;
+  background: var(--nav-activo-fondo);
+  color: var(--nav-activo-texto);
   font-weight: 650;
 }
 nav a > span {
@@ -120,7 +301,7 @@ nav a > span {
 }
 .aside-note {
   margin-top: auto;
-  background: #f0f5ec;
+  background: var(--ui-aside-note-fondo);
   padding: 21px 16px;
   border-radius: 12px;
 }
@@ -131,11 +312,11 @@ nav a > span {
 .aside-note p {
   font-size: 13px;
   line-height: 1.7;
-  color: #66766a;
+  color: var(--ui-aside-note-p-texto);
 }
 aside > small {
   font-size: 12px;
-  color: #68746b;
+  color: var(--ui-aside-small-texto);
   margin-top: 24px;
 }
 .workspace {
@@ -145,12 +326,12 @@ aside > small {
 header {
   height: 83px;
   background: #fff;
-  border-bottom: 1px solid #e3eae5;
+  border-bottom: 1px solid var(--ui-header-borde);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 46px;
-  color: #6b7671;
+  color: var(--ui-header-texto);
   font-size: 13px;
 }
 main {
@@ -160,7 +341,7 @@ main {
 }
 .breadcrumb {
   font-size: 12px;
-  color: #66736c;
+  color: var(--ui-breadcrumb-texto);
   margin-bottom: 30px;
 }
 h1 {
@@ -187,15 +368,15 @@ h3 {
   margin-top: 5px;
 }
 .subtitle {
-  color: #64756c;
+  color: var(--ui-subtitle-texto);
   margin-bottom: 30px;
 }
 .hero {
   display: flex;
   justify-content: space-between;
   overflow: hidden;
-  background: #e7efdf;
-  border: 1px solid #dfe7d7;
+  background: var(--ui-hero-fondo);
+  border: 1px solid var(--ui-hero-borde);
   border-radius: 16px;
   padding: 30px 35px;
   margin: 5px 0 30px;
@@ -204,12 +385,12 @@ h3 {
 .hero h2 {
   font-size: 31px;
   line-height: 1.25;
-  color: #254936;
+  color: var(--ui-hero-h2-texto);
   margin: 18px 0 12px;
 }
 .hero p {
   line-height: 1.7;
-  color: #617562;
+  color: var(--ui-hero-p-texto);
   font-size: 14px;
 }
 .hero a {
@@ -222,13 +403,13 @@ h3 {
   display: inline-block;
   font-size: 12px;
   border-radius: 5px;
-  background: #edf5ed;
-  color: #326649;
+  background: var(--badge-fondo);
+  color: var(--badge-texto);
   padding: 5px 9px;
   font-weight: 600;
 }
 .hero .badge {
-  background: #f4f8ef;
+  background: var(--ui-hero-badge-fondo);
   font-size: 9px;
   letter-spacing: 1px;
 }
@@ -242,30 +423,30 @@ h3 {
 .hero-art > span {
   font-family: monospace;
   font-size: 70px;
-  background: #fcfff7;
-  border: 1px solid #c8d8be;
+  background: var(--ui-hero-art-span-fondo);
+  border: 1px solid var(--ui-hero-art-span-borde);
   border-radius: 24px;
   width: 160px;
   height: 150px;
   display: grid;
   place-items: center;
   transform: rotate(-8deg);
-  box-shadow: 10px 12px 0 #cfdec2;
-  color: #49734c;
+  box-shadow: 10px 12px 0 var(--ui-hero-art-span-sombra);
+  color: var(--ui-hero-art-span-texto);
 }
 .hero-art i {
   position: absolute;
   left: 15px;
   top: 0;
   font-size: 60px;
-  color: #90a878;
+  color: var(--ui-hero-art-i-texto);
 }
 .hero-art b {
   position: absolute;
   right: 0;
   bottom: 35px;
   border-radius: 50%;
-  background: #acc78d;
+  background: var(--ui-hero-art-b-fondo);
   padding: 9px 19px;
   font-size: 35px;
 }
@@ -274,7 +455,7 @@ h3 {
   bottom: 3px;
   font-size: 11px;
   letter-spacing: 2px;
-  color: #637c54;
+  color: var(--ui-hero-art-small-texto);
 }
 .filters {
   display: flex;
@@ -289,7 +470,7 @@ h3 {
   flex: 1;
   margin: 0 !important;
   min-width: 220px;
-  border: 1px solid #dbe3dd;
+  border: 1px solid var(--ui-search-borde);
   border-radius: 8px;
   background: white;
   padding: 0 14px;
@@ -306,12 +487,12 @@ h3 {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #546d60;
+  color: var(--ui-check-texto);
 }
 .check input {
   width: 17px;
   height: 17px;
-  accent-color: #236b55;
+  accent-color: var(--color-principal);
 }
 .results {
   display: flex;
@@ -320,7 +501,7 @@ h3 {
   margin: 26px 0 18px;
 }
 .results span {
-  color: #69726b;
+  color: var(--ui-results-span-texto);
 }
 .grid {
   display: grid;
@@ -330,7 +511,7 @@ h3 {
 }
 .card {
   background: white;
-  border: 1px solid #dee6df;
+  border: 1px solid var(--ui-card-borde);
   border-radius: 12px;
   overflow: hidden;
   min-width: 0;
@@ -343,8 +524,8 @@ h3 {
   position: relative;
   font-family: monospace;
   font-size: 53px;
-  background: #e9eede;
-  color: #64805b;
+  background: var(--ui-card-art-fondo);
+  color: var(--ui-card-art-texto);
 }
 .card-art > span {
   position: absolute;
@@ -379,7 +560,7 @@ h3 {
 .card-copy {
   font-size: 13px;
   line-height: 1.7;
-  color: #697369;
+  color: var(--ui-card-copy-texto);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -393,14 +574,14 @@ h3 {
   margin: 15px 0;
 }
 .tags span {
-  background: #f3f5f2;
+  background: var(--ui-tags-span-fondo);
   padding: 5px 8px;
   font-size: 12px;
   border-radius: 4px;
-  color: #5e7163;
+  color: var(--ui-tags-span-texto);
 }
 .card footer {
-  border-top: 1px solid #eef0ed;
+  border-top: 1px solid var(--ui-card-footer-borde);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -409,7 +590,7 @@ h3 {
   gap: 8px;
 }
 .card footer small {
-  color: #687468;
+  color: var(--ui-card-footer-small-texto);
   font-size: 12px;
 }
 .card footer button {
@@ -418,7 +599,7 @@ h3 {
 }
 .panel {
   background: white;
-  border: 1px solid #dee6df;
+  border: 1px solid var(--ui-card-borde);
   border-radius: 12px;
   padding: 24px;
   margin: 24px 0;
@@ -431,7 +612,7 @@ h3 {
 }
 .list-row {
   padding: 20px 0;
-  border-bottom: 1px solid #e6ebe6;
+  border-bottom: 1px solid var(--ui-list-row-borde);
   overflow-wrap: anywhere;
 }
 .list-row:last-child {
@@ -441,25 +622,25 @@ h3 {
   font-size: 17px;
   line-height: 1.8;
   max-width: 850px;
-  color: #607468;
+  color: var(--ui-description-texto);
   white-space: pre-wrap;
 }
 .page-footer {
-  border-top: 1px solid #dfe5df;
+  border-top: 1px solid var(--ui-page-footer-borde);
   margin-top: 45px;
   padding: 25px 0;
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #67746b;
+  color: var(--ui-page-footer-texto);
 }
 .empty {
   text-align: center;
   padding: 50px;
   background: white;
-  border: 1px dashed #d7e0d7;
+  border: 1px dashed var(--ui-empty-borde);
   border-radius: 12px;
-  color: #657467;
+  color: var(--ui-empty-texto);
 }
 .success,
 .error {
@@ -469,27 +650,36 @@ h3 {
   line-height: 1.6;
 }
 .success {
-  background: #e4f2e5;
-  color: #285834;
+  background: var(--color-exito-fondo);
+  color: var(--color-exito-texto);
 }
 .error {
-  background: #fff0eb;
-  color: #883521;
+  background: var(--color-error-fondo);
+  color: var(--color-error-texto);
+}
+/* el error no depende sólo del color: lleva un ícono, oculto para lectores de pantalla (el texto alcanza) */
+.error::before {
+  content: "⚠ ";
+  content: "⚠ " / "";
+}
+.error > p {
+  display: inline;
+  margin: 0;
 }
 .error button {
   margin-left: 12px;
 }
 .loading {
-  color: #58785e;
+  color: var(--ui-loading-texto);
 }
 .count {
   font-size: 14px;
-  color: #657566;
+  color: var(--ui-count-texto);
 }
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: #19312688;
+  background: var(--ui-modal-backdrop-fondo);
   z-index: 10;
   display: grid;
   place-items: center;
@@ -503,7 +693,7 @@ h3 {
   width: min(580px, 100%);
   max-height: 90vh;
   overflow: auto;
-  box-shadow: 0 20px 80px #182d2844;
+  box-shadow: 0 20px 80px var(--ui-modal-sombra);
 }
 .modal-close {
   position: absolute;
@@ -525,10 +715,10 @@ select,
 textarea {
   width: 100%;
   padding: 11px 12px;
-  border: 1px solid #cfdad2;
+  border: 1px solid var(--ui-textarea-borde);
   border-radius: 7px;
   background: white;
-  color: #294035;
+  color: var(--ui-textarea-texto);
   margin-top: 7px;
 }
 textarea {
@@ -540,7 +730,7 @@ select[multiple] {
 }
 label small {
   display: block;
-  color: #667569;
+  color: var(--ui-label-small-texto);
   margin-top: 6px;
 }
 .check input {
@@ -559,7 +749,7 @@ label small {
   top: 10px;
 }
 progress {
-  accent-color: #236b55;
+  accent-color: var(--color-principal);
   max-width: 100%;
 }
 @media (min-width: 1500px) {
@@ -695,7 +885,7 @@ progress {
   margin-bottom: 0;
 }
 .markdown pre {
-  background: #f0f3ef;
+  background: var(--ui-markdown-pre-fondo);
   padding: 12px;
   border-radius: 6px;
   overflow: auto;
@@ -704,10 +894,10 @@ progress {
   font-family: monospace;
 }
 .markdown blockquote {
-  border-left: 3px solid #86a28b;
+  border-left: 3px solid var(--ui-markdown-blockquote-borde);
   padding-left: 16px;
   margin-left: 0;
-  color: #607366;
+  color: var(--ui-markdown-blockquote-texto);
 }
 .markdown a {
   text-decoration: underline;
@@ -721,11 +911,11 @@ progress {
 .markdown-help {
   display: block;
   font-size: 12px;
-  color: #607665;
+  color: var(--ui-markdown-help-texto);
   margin-top: 5px;
 }
 fieldset {
-  border: 1px solid #d4dfd7;
+  border: 1px solid var(--ui-fieldset-borde);
   border-radius: 8px;
   padding: 16px;
   margin: 20px 0;
@@ -736,7 +926,7 @@ fieldset legend {
 }
 .ia-fields p {
   font-size: 12px;
-  color: #637665;
+  color: var(--ui-ia-fields-p-texto);
 }
 details {
   margin: 18px 0;
@@ -744,7 +934,7 @@ details {
 summary {
   cursor: pointer;
   padding: 10px 0;
-  color: #266548;
+  color: var(--ui-summary-texto);
   font-weight: 600;
 }
 .page-footer {
@@ -766,7 +956,7 @@ summary {
 }
 .hint {
   font-size: 13px;
-  color: #62756b;
+  color: var(--ui-hint-texto);
   line-height: 1.6;
 }
 .toolbar button {
@@ -784,7 +974,7 @@ textarea:focus-visible,
 button:focus-visible,
 a:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #427dce;
+  outline: 3px solid var(--color-foco);
   outline-offset: 3px;
 }
 button:disabled {
@@ -801,6 +991,28 @@ aside {
 }
 header .toolbar {
   justify-content: flex-end;
+}
+/* botón del modo daltónico: el estado se anuncia con aria-pressed y se ve con la marca y el borde */
+.vision-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.vision-toggle-marca {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1;
+}
+button.secondary.vision-toggle[aria-pressed="true"] {
+  background: var(--nav-activo-fondo);
+  color: var(--nav-activo-texto);
+  border-color: var(--color-principal);
 }
 .badge {
   overflow-wrap: anywhere;
@@ -884,7 +1096,7 @@ header .toolbar {
   border-radius: 999px;
   border: 1.5px solid;
   padding: 2px 9px;
-  color: #1d2a24;
+  color: var(--ui-estado-chip-texto);
 }
 .estado-chip.estado-pendiente {
   background: var(--estado-pendiente-fondo);
@@ -908,7 +1120,7 @@ header .toolbar {
 }
 .gantt-scroll {
   overflow-x: auto;
-  border: 1px solid #d7e0db;
+  border: 1px solid var(--ui-gantt-scroll-borde);
   border-radius: 8px;
   background: #fff;
 }
@@ -927,8 +1139,8 @@ header .toolbar {
   min-width: 0;
   padding: 8px 10px;
   background: #fff;
-  border-right: 1px solid #d7e0db;
-  border-bottom: 1px solid #edf1ef;
+  border-right: 1px solid var(--ui-gantt-scroll-borde);
+  border-bottom: 1px solid var(--ui-gantt-label-borde);
 }
 .gantt-nombre {
   font-size: 13px;
@@ -940,14 +1152,14 @@ header .toolbar {
 .gantt-track {
   position: relative;
   min-height: 52px;
-  border-bottom: 1px solid #edf1ef;
+  border-bottom: 1px solid var(--ui-gantt-label-borde);
 }
 .gantt-head {
   min-height: 34px;
-  background: #f4f7f5;
+  background: var(--ui-gantt-head-fondo);
   font-size: 12px;
   font-weight: 700;
-  color: #33423b;
+  color: var(--ui-gantt-head-texto);
 }
 .gantt-head.gantt-label {
   justify-content: center;
@@ -957,7 +1169,7 @@ header .toolbar {
   top: 0;
   bottom: 0;
   padding: 8px 0 0 4px;
-  border-left: 1px solid #b9c7c0;
+  border-left: 1px solid var(--ui-gantt-tick-borde);
   font-size: 11px;
   font-weight: 600;
 }
@@ -1022,10 +1234,10 @@ header .toolbar {
   text-align: left;
   vertical-align: top;
   padding: 8px 10px;
-  border-bottom: 1px solid #e3eae6;
+  border-bottom: 1px solid var(--ui-tareas-tabla-td-borde);
 }
 .tareas-tabla thead th {
-  background: #f4f7f5;
+  background: var(--ui-gantt-head-fondo);
   font-size: 13px;
 }
 .tareas-tabla tbody th {
@@ -1034,7 +1246,7 @@ header .toolbar {
 .tareas-tabla tbody th p {
   margin: 4px 0 0;
   font-weight: 400;
-  color: #3f4d46;
+  color: var(--ui-tareas-tabla-tbody-th-p-texto);
 }
 button[aria-disabled="true"] {
   opacity: 0.55;

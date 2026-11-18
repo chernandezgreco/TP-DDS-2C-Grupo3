@@ -8,6 +8,7 @@ import DenunciasAdmin from "./DenunciasAdmin";
 import ExperienciaHabilidades from "./ExperienciaHabilidades";
 import LinkedInIntegration from "./LinkedInIntegration";
 import TareasProyecto from "./TareasProyecto";
+import BotonModoDaltonico from "./BotonModoDaltonico";
 import React, { useEffect, useState } from "react";
 import { api, idOf } from "./api";
 import {
@@ -399,6 +400,7 @@ export default function App() {
         <header>
           <span>Una comunidad. Muchas posibilidades.</span>
           <div className="toolbar">
+            <BotonModoDaltonico />
             {sessionLoading ? (
               <span role="status">Comprobando sesión…</span>
             ) : actor ? (

@@ -3,6 +3,10 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import { iniciarModoDaltonico } from "./vision";
+
+// antes del primer render: quien ya eligió el modo daltónico no ve la paleta normal ni por un instante
+iniciarModoDaltonico();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
