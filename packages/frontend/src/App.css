@@ -580,6 +580,68 @@ h3 {
   border-radius: 4px;
   color: var(--ui-tags-span-texto);
 }
+/* Etiquetas de proyectos y colectivos (distintas de .tags, que muestra habilidades) */
+.etiquetas {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0 0 15px;
+  padding: 0;
+}
+.etiquetas li {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 999px;
+  background: var(--badge-fondo);
+  color: var(--badge-texto);
+  font-size: 12px;
+}
+.etiquetas li > span {
+  padding: 5px 4px 5px 10px;
+}
+.etiquetas li > span:only-child {
+  padding-right: 10px;
+}
+.etiquetas button {
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--badge-texto);
+  font-size: 12px;
+  font-weight: 600;
+}
+.etiquetas button.etiqueta-quitar {
+  padding: 0 10px 0 4px;
+}
+.etiquetas-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 16px 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+.etiquetas-input small {
+  color: var(--ui-label-small-texto);
+}
+.etiquetas-input .etiquetas {
+  margin: 0;
+}
+.filtro-etiquetas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--ui-check-texto);
+}
+.filtro-etiquetas .etiquetas {
+  margin: 0;
+}
 .card footer {
   border-top: 1px solid var(--ui-card-footer-borde);
   display: flex;

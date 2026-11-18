@@ -9,6 +9,7 @@ import ExperienciaHabilidades from "./ExperienciaHabilidades";
 import LinkedInIntegration from "./LinkedInIntegration";
 import PortabilidadDatos from "./PortabilidadDatos";
 import TareasProyecto from "./TareasProyecto";
+import ListaEtiquetas from "./ListaEtiquetas";
 import BotonModoDaltonico from "./BotonModoDaltonico";
 import React, { useEffect, useState } from "react";
 import { api, idOf } from "./api";
@@ -20,6 +21,12 @@ import {
   personFields,
   achievementFields,
 } from "./forms";
+import {
+  MAX_ETIQUETAS,
+  etiquetasEnUso,
+  sinAcentos,
+  textoDeEtiquetas,
+} from "./etiquetas";
 import "./App.css";
 const sections = {
   proyectos: "Explorar proyectos",
@@ -56,6 +63,9 @@ export default function App() {
   const [query, setQuery] = useState(""),
     [open, setOpen] = useState(false),
     [matches, setMatches] = useState(null),
+    // filtro por etiquetas (proyectos y colectivos): se consulta al backend con ?etiquetas=
+    [filtroEtiquetas, setFiltroEtiquetas] = useState([]),
+    [idsPorEtiquetas, setIdsPorEtiquetas] = useState(null),
     [extras, setExtras] = useState({}),
     [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true),
@@ -105,6 +115,7 @@ export default function App() {
       setExtras({});
       setOwnPosts([]);
       setOwnContacts(null);
+      setFiltroEtiquetas([]);
       setNotice("Tu sesión venció. Iniciá sesión nuevamente.");
       refresh();
     };
@@ -118,6 +129,7 @@ export default function App() {
       setExtras({});
       setQuery("");
       setMatches(null);
+      setFiltroEtiquetas([]);
     };
     window.addEventListener("hashchange", change);
     return () => {
@@ -330,6 +342,39 @@ export default function App() {
       active = false;
     };
   }, [selected]);
+  const filtraPorEtiquetas =
+    ["proyectos", "colectivos"].includes(page) && filtroEtiquetas.length > 0;
+  // el backend devuelve los que tienen todas las etiquetas; se vuelve a pedir si cambian los datos
+  useEffect(() => {
+    setIdsPorEtiquetas(null);
+    if (!filtraPorEtiquetas) return;
+    let active = true;
+    api
+      .get(`/${page}?etiquetas=${encodeURIComponent(filtroEtiquetas.join(","))}`)
+      .then((result) => {
+        if (active) setIdsPorEtiquetas(new Set(result.map(idOf)));
+      })
+      .catch((e) => {
+        if (active) setError(e.message);
+      });
+    return () => {
+      active = false;
+    };
+  }, [
+    filtraPorEtiquetas,
+    filtroEtiquetas,
+    page,
+    data.proyectos,
+    data.colectivos,
+  ]);
+  const filtrarPorEtiqueta = (etiqueta) => {
+    setQuery("");
+    setFiltroEtiquetas((actuales) =>
+      actuales.includes(etiqueta) || actuales.length >= MAX_ETIQUETAS
+        ? actuales
+        : [...actuales, etiqueta],
+    );
+  };
   const person = data.colaboradoras.find((x) => idOf(x) === actor?.id);
   const list = (
     page === "espacio"
@@ -345,10 +390,17 @@ export default function App() {
         ? matches || data.proyectos
         : data[page] || []
   )
+    .filter(
+      (x) =>
+        !filtraPorEtiquetas ||
+        (idsPorEtiquetas
+          ? idsPorEtiquetas.has(idOf(x))
+          : filtroEtiquetas.every((e) => (x.etiquetas || []).includes(e))),
+    )
     .filter((x) =>
-      `${title(x)} ${x.descripcion || ""} ${(x.habilidades || (x.perfiles || []).flatMap((p) => p.habilidadesRequeridas)).map(skill).join(" ")}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
+      sinAcentos(
+        `${title(x)} ${x.descripcion || ""} ${(x.habilidades || (x.perfiles || []).flatMap((p) => p.habilidadesRequeridas)).map(skill).join(" ")} ${textoDeEtiquetas(x.etiquetas)}`,
+      ).includes(sinAcentos(query)),
     )
     .filter(
       (x) =>
@@ -511,6 +563,14 @@ export default function App() {
               type={page}
               skillName={skill}
               onClose={() => setPublicProfile(null)}
+              onEtiqueta={
+                page === "colectivos"
+                  ? (e) => {
+                      setPublicProfile(null);
+                      filtrarPorEtiqueta(e);
+                    }
+                  : undefined
+              }
               onContacts={(profile) =>
                 actor
                   ? load(
@@ -555,6 +615,18 @@ export default function App() {
               <Markdown className="description">
                 {selected.descripcion}
               </Markdown>
+              <ListaEtiquetas
+                etiquetas={selected.etiquetas}
+                alElegir={
+                  page === "proyectos"
+                    ? (e) => {
+                        setSelected(null);
+                        setExtras({});
+                        filtrarPorEtiqueta(e);
+                      }
+                    : undefined
+                }
+              />
               {!isOwner && actor?.type !== "colectivos" && (
                 <button
                   className="secondary"
@@ -1587,6 +1659,41 @@ export default function App() {
                       </>
                     )}
                   </div>
+                  {filtraPorEtiquetas && (
+                    <div
+                      className="filtro-etiquetas"
+                      role="group"
+                      aria-label="Filtro por etiquetas"
+                    >
+                      <span>Con las etiquetas:</span>
+                      <ul className="etiquetas">
+                        {filtroEtiquetas.map((e) => (
+                          <li key={e}>
+                            <span>#{e}</span>
+                            <button
+                              type="button"
+                              className="etiqueta-quitar"
+                              aria-label={`Quitar etiqueta ${e} del filtro`}
+                              onClick={() =>
+                                setFiltroEtiquetas((actuales) =>
+                                  actuales.filter((x) => x !== e),
+                                )
+                              }
+                            >
+                              ✕
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        type="button"
+                        className="text-button"
+                        onClick={() => setFiltroEtiquetas([])}
+                      >
+                        Limpiar etiquetas
+                      </button>
+                    </div>
+                  )}
                   <div className="results">
                     <b>
                       {list.length}{" "}
@@ -1653,6 +1760,14 @@ export default function App() {
                                 <span key={h}>{skill(h)}</span>
                               ))}
                           </div>
+                          <ListaEtiquetas
+                            etiquetas={x.etiquetas}
+                            alElegir={
+                              ["proyectos", "colectivos"].includes(page)
+                                ? filtrarPorEtiqueta
+                                : undefined
+                            }
+                          />
                           <footer>
                             <small>
                               {x.titulo
@@ -1811,6 +1926,13 @@ export default function App() {
                 </p>
                 <ResourceForm
                   {...form}
+                  sugerenciasEtiquetas={
+                    form.fields === projectFields
+                      ? etiquetasEnUso(data.proyectos)
+                      : form.fields === collectiveFields
+                        ? etiquetasEnUso(data.colectivos)
+                        : []
+                  }
                   busy={busy}
                   onCancel={() => setForm(null)}
                   onSubmit={async (values) => {

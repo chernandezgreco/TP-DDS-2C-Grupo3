@@ -1,12 +1,14 @@
 import React from "react";
 import PropTypes from "prop-types";
 import Markdown from "./Markdown";
+import ListaEtiquetas from "./ListaEtiquetas";
 export default function PublicProfile({
   profile,
   type,
   skillName,
   onClose,
   onContacts,
+  onEtiqueta,
 }) {
   const experiencia = new Map(
     (profile.experienciaHabilidades || []).map((item) => [item.codigo, item]),
@@ -36,6 +38,9 @@ export default function PublicProfile({
           "Sin presentación todavía."}
       </Markdown>
       {profile.ubicacion && <p>Ubicación: {profile.ubicacion}</p>}
+      {type === "colectivos" && (
+        <ListaEtiquetas etiquetas={profile.etiquetas} alElegir={onEtiqueta} />
+      )}
       {type === "colaboradoras" && (
         <>
           <h2>Habilidades</h2>
@@ -84,4 +89,5 @@ PublicProfile.propTypes = {
   skillName: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
   onContacts: PropTypes.func.isRequired,
+  onEtiqueta: PropTypes.func,
 };
