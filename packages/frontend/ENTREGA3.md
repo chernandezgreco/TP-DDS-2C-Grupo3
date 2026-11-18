@@ -112,6 +112,20 @@ Los proyectos y los colectivos pueden tener etiquetas libres (por ejemplo `#educ
 
 Lo que no está verificado: el recorrido visual en el navegador (escritorio y celular) y con lector de pantalla.
 
+### Portabilidad de datos (adicional 26)
+
+Cualquier cuenta con sesión, colectivo o colaboradora, puede descargar una copia de todos sus datos personales en JSON o CSV.
+
+- **Cómo probarlo:** iniciar sesión, ir a **Mi espacio → Tus datos**, elegir el formato y tocar **Descargar mis datos**. Baja un archivo `codigo-a-voluntad-datos-colaboradora-AAAA-MM-DD.json` (o `colectivo`, o `.csv`). Los avisos de **Eliminar mi cuenta** y **Eliminar cuenta del colectivo** sugieren descargar los datos antes, porque una cuenta eliminada ya no puede iniciar sesión.
+- **API:** `GET /api/mi/exportacion?formato=json|csv` (`json` por defecto). La identidad sale sólo de la cookie de sesión: no hay id en la URL, así que no se pueden pedir datos de otra cuenta. Responde 401 sin sesión, 400 con un formato inválido y 429 al superar 5 descargas exitosas cada 15 minutos por cuenta (`EXPORT_RATE_LIMIT` y `EXPORT_RATE_WINDOW_MS`). Los pedidos rechazados no consumen cuota. Headers: `Content-Disposition: attachment`, `Cache-Control: no-store` y `nosniff`.
+- **Qué incluye:** una sección `metadatos` (versión del formato, fecha, titular, secciones y lista de lo excluido) y una sección por tipo de dato. La colaboradora recibe su cuenta, su perfil **con sus propios contactos**, habilidades y experiencia, postulaciones, colaboraciones, mensajes recibidos, tareas asignadas, denuncias realizadas y la conexión de LinkedIn. El colectivo recibe su cuenta, su perfil con etiquetas y moderación, sus proyectos completos (perfiles, logros, usos de IA, etiquetas), tareas, postulaciones y colaboraciones recibidas, mensajes enviados, revisiones de términos, denuncias realizadas y LinkedIn.
+- **Protección de datos:** nunca se exportan la contraseña, la sal, las sesiones, los tokens de LinkedIn ni las denuncias recibidas. En el archivo del colectivo, las colaboradoras figuran **sólo con id y nombre de fantasía**, sin contactos aunque la postulación esté aceptada (minimización: los contactos son datos de otra persona y un archivo se puede reenviar o perder). El service elige los campos uno por uno, así un campo nuevo de un modelo no se filtra al export hasta que se decida incluirlo. No se registra quién exporta.
+- **CSV:** un solo archivo en formato largo con las columnas `seccion,registro,campo,valor` (por ejemplo `proyectos,1,perfiles[1].descripcionPerfil,Tester`), con BOM para que Excel muestre los acentos. Los valores que empiezan con `=`, `+`, `-` o `@` llevan un apóstrofo adelante para que la planilla no los ejecute como fórmula; el JSON conserva el valor original.
+- **Capas:** dominio `domain/Exportacion/ExportacionDatos.js` (metadatos, exclusiones, referencia mínima a terceros, nombre del archivo y aplanado a CSV), service `PortabilidadService.js`, controller `PortabilidadController.js`, ruta `routes/Portabilidad.js` con `requiereSesion`, `validarQuery` y `limiteExportacion`, y `utils/csv.js`. En el front, `PortabilidadDatos.js`. Documentado en Swagger bajo el tag "Portabilidad".
+- **Pruebas:** backend `test/domain/ExportacionDatos.test.js`, `test/utils/Csv.test.js` y `test/services/PortabilidadHttp.test.js` (sesión, formato, límite por cuenta, contenido de los dos tipos de cuenta, que ningún secreto aparezca en la respuesta, que una cuenta no reciba datos de otra, que el colectivo no reciba contactos de colaboradoras, CSV y etiquetas). Frontend `PortabilidadDatos.test.js` (descarga en los dos formatos, estado de carga, mensaje del límite y accesibilidad).
+
+Lo que no está verificado: la descarga en un navegador real (está probada con tests y con pedidos HTTP reales), en particular en Safari.
+
 ## Validación técnica
 
 ```powershell
