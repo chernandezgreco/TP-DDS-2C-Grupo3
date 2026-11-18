@@ -100,7 +100,7 @@ export class ColaboracionService {
       );
     }
 
-    // TODO anonimidad: hoy se pierde quién se anotó; pendiente de rediseño
+    // se guarda siempre la persona real; la anonimidad solo la oculta en las vistas públicas
     const colaboradoraRegistrada = colaboradoraId;
 
     // el dominio valida antes de guardar
