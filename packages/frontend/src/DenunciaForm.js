@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
+import Icono from "./Icono";
 
 const motivos = [
   "Contenido inapropiado",
@@ -73,6 +74,7 @@ export default function DenunciaForm({
       {error && <p role="alert" className="error">{error}</p>}
       <div className="toolbar">
         <button type="submit" disabled={busy}>
+          <Icono nombre="enviar" />
           Enviar denuncia
         </button>
         <button

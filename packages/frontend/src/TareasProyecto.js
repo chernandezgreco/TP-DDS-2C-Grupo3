@@ -4,6 +4,7 @@ import { api, idOf } from "./api";
 import { taskFields } from "./forms";
 import Gantt from "./Gantt";
 import Markdown from "./Markdown";
+import Icono from "./Icono";
 import {
   ESTADOS_TAREA,
   MENSAJE_PROYECTO_FINALIZADO,
@@ -124,7 +125,8 @@ export default function TareasProyecto({
         {isOwner && (
           <div className="toolbar">
             <button {...controlBloqueado()} onClick={agregar}>
-              + Agregar tarea
+              <Icono nombre="mas" />
+              Agregar tarea
             </button>
           </div>
         )}
@@ -142,6 +144,7 @@ export default function TareasProyecto({
             className="secondary"
             onClick={() => recargar().catch((e) => setError(e.message))}
           >
+            <Icono nombre="recargar" />
             Reintentar
           </button>
         </div>
@@ -208,6 +211,7 @@ export default function TareasProyecto({
                               aria-label={`Editar la tarea ${t.nombre}`}
                               onClick={() => editar(t)}
                             >
+                              <Icono nombre="editar" />
                               Editar
                             </button>
                             <button
@@ -216,6 +220,7 @@ export default function TareasProyecto({
                               aria-label={`Eliminar la tarea ${t.nombre}`}
                               onClick={() => eliminar(t)}
                             >
+                              <Icono nombre="eliminar" />
                               Eliminar
                             </button>
                           </div>

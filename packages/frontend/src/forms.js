@@ -4,6 +4,7 @@ import HuellaIA from "./HuellaIA";
 import React, { useState } from "react";
 import { estadosPermitidos } from "./tareas";
 import EtiquetasInput from "./EtiquetasInput";
+import Icono from "./Icono";
 import { normalizarEtiqueta, problemaEtiqueta } from "./etiquetas";
 
 export const fechaCierreParaFormulario = (valor) => {
@@ -147,6 +148,7 @@ export function ResourceForm({
   terms,
   project = false,
   submitLabel = "Guardar",
+  submitIcon = "guardar",
   sugerenciasEtiquetas = [],
 }) {
   const [values, setValues] = useState(() => ({
@@ -400,6 +402,7 @@ export function ResourceForm({
       </fieldset>
       <div className="toolbar">
         <button disabled={busy} type="submit">
+          <Icono nombre={submitIcon} />
           {busy ? "Procesando…" : submitLabel}
         </button>
         <button
@@ -438,5 +441,6 @@ ResourceForm.propTypes = {
   }),
   project: PropTypes.bool,
   submitLabel: PropTypes.string,
+  submitIcon: PropTypes.string,
   sugerenciasEtiquetas: PropTypes.arrayOf(PropTypes.string),
 };

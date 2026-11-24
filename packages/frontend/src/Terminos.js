@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "./api";
 import Markdown from "./Markdown";
 import AvisoFlotante from "./AvisoFlotante";
+import Icono from "./Icono";
 export default function Terminos() {
   const [terms, setTerms] = useState(null),
     [error, setError] = useState("");
@@ -84,6 +85,7 @@ function AdministracionTerminos({ onPublish }) {
         />
       </label>
       <button disabled={busy || !key} onClick={() => execute(read)}>
+        <Icono nombre="escudo" />
         Consultar cumplimiento
       </button>
       {error && (
@@ -146,7 +148,10 @@ function AdministracionTerminos({ onPublish }) {
               />
             </label>
             {contenido && <Markdown>{contenido}</Markdown>}
-            <button disabled={busy}>Publicar condiciones</button>
+            <button disabled={busy}>
+              <Icono nombre="documento" />
+              Publicar condiciones
+            </button>
           </form>
           <form
             onSubmit={(e) => {
@@ -219,7 +224,10 @@ function AdministracionTerminos({ onPublish }) {
                 onChange={(e) => setMotivo(e.target.value)}
               />
             </label>
-            <button disabled={busy}>Registrar evaluación</button>
+            <button disabled={busy}>
+              <Icono nombre="guardar" />
+              Registrar evaluación
+            </button>
           </form>
           <h2>Historial de revisiones</h2>
           {state.revisiones.map((r) => (
@@ -238,6 +246,7 @@ function AdministracionTerminos({ onPublish }) {
               setState(null);
             }}
           >
+            <Icono nombre="salir" />
             Cerrar acceso administrativo
           </button>
         </>

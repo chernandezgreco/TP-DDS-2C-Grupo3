@@ -13,6 +13,7 @@ import ListaEtiquetas from "./ListaEtiquetas";
 import BotonModoDaltonico from "./BotonModoDaltonico";
 import EstadoBadge from "./EstadoBadge";
 import AvisoFlotante from "./AvisoFlotante";
+import Icono from "./Icono";
 import React, { useEffect, useRef, useState } from "react";
 import { api, idOf } from "./api";
 import {
@@ -482,7 +483,19 @@ export default function App() {
               aria-current={page === k ? "page" : undefined}
             >
               <span aria-hidden="true">
-                {{ proyectos: "▦", colectivos: "◎", colaboradoras: "♧", espacio: "⌂", mensajes: "✉", habilidades: "✳", denuncias: "⚑" }[k]}
+                <Icono
+                  nombre={
+                    {
+                      proyectos: "proyectos",
+                      colectivos: "colectivos",
+                      colaboradoras: "corazon",
+                      espacio: "inicio",
+                      mensajes: "correo",
+                      habilidades: "codigo",
+                      denuncias: "bandera",
+                    }[k] || "documento"
+                  }
+                />
               </span>
               {v}
             </a>
@@ -496,7 +509,8 @@ export default function App() {
               : "Encontrá proyectos con impacto o sumate con tus habilidades."}
           </p>
           <a className="aside-cta" href={actor ? "#proyectos" : "#colaboradoras"}>
-            {actor ? "Explorar proyectos ↗" : "Conocer la comunidad ↗"}
+            {actor ? "Explorar proyectos" : "Conocer la comunidad"}
+            <Icono nombre="ir" />
           </a>
         </div>
         <small>UTN · Desarrollo de Software · 2026</small>
@@ -505,6 +519,7 @@ export default function App() {
         <header>
           <span>Una comunidad. Muchas posibilidades.</span>
           <div className="toolbar">
+            <BotonModoDaltonico />
             {sessionLoading ? (
               <span role="status">Comprobando sesión…</span>
             ) : actor ? (
@@ -523,7 +538,7 @@ export default function App() {
                     <span className="user-menu-name">
                       {title(data[actor.type].find((x) => idOf(x) === actor.id))}
                     </span>
-                    <span aria-hidden="true">⌄</span>
+                    <Icono nombre="abajo" />
                   </button>
                   {userMenuOpen && (
                     <div className="user-menu-panel">
@@ -531,9 +546,6 @@ export default function App() {
                       <small>{actor.email}</small>
                       <a href="#espacio" onClick={() => setUserMenuOpen(false)}>Mi espacio</a>
                       <a href="#mensajes" onClick={() => setUserMenuOpen(false)}>Mensajes</a>
-                      <div className="user-menu-accessibility">
-                        <BotonModoDaltonico />
-                      </div>
                       <button
                         className="text-button"
                         disabled={busy}
@@ -549,6 +561,7 @@ export default function App() {
                           }, "Sesión cerrada.")
                         }
                       >
+                        <Icono nombre="salir" />
                         Cerrar sesión
                       </button>
                     </div>
@@ -562,6 +575,7 @@ export default function App() {
                   setForm({ name: "Acceder a Código a Voluntad", auth: true })
                 }
               >
+                <Icono nombre="entrar" />
                 Iniciar sesión / Registrarme
               </button>
             )}
@@ -590,6 +604,7 @@ export default function App() {
                   refresh();
                 }}
               >
+                <Icono nombre="recargar" />
                 Reintentar carga
               </button>
             </div>
@@ -612,6 +627,7 @@ export default function App() {
                   setForm({ name: "Iniciar sesión", auth: true })
                 }
               >
+                <Icono nombre="entrar" />
                 Iniciar sesión
               </button>
             </section>
@@ -628,6 +644,7 @@ export default function App() {
                   setForm({ name: "Acceder a Código a Voluntad", auth: true })
                 }
               >
+                <Icono nombre="entrar" />
                 Iniciar sesión
               </button>
             </section>
@@ -666,7 +683,8 @@ export default function App() {
                   setExtras({});
                 }}
               >
-                ← Volver al listado
+                <Icono nombre="volver" />
+                Volver al listado
               </button>
               <p className="eyebrow">PROYECTO DE LA COMUNIDAD</p>
               <h1>{selected.titulo}</h1>
@@ -706,6 +724,7 @@ export default function App() {
                   className="secondary"
                   onClick={() => iniciarDenuncia("proyecto", selected)}
                 >
+                  <Icono nombre="bandera" />
                   Denunciar proyecto
                 </button>
               )}
@@ -745,6 +764,7 @@ export default function App() {
                       )
                     }
                   >
+                    <Icono nombre="editar" />
                     Editar proyecto
                   </button>
                   <button
@@ -763,6 +783,7 @@ export default function App() {
                         }, "Proyecto eliminado.");
                     }}
                   >
+                    <Icono nombre="eliminar" />
                     Eliminar proyecto
                   </button>
                   <button
@@ -774,7 +795,8 @@ export default function App() {
                       )
                     }
                   >
-                    + Agregar perfil
+                    <Icono nombre="mas" />
+                    Agregar perfil
                   </button>
                   <button
                     className="secondary"
@@ -788,6 +810,7 @@ export default function App() {
                       })
                     }
                   >
+                    <Icono nombre={selected.estaBuscando ? "pausa" : "reanudar"} />
                     {selected.estaBuscando
                       ? "Pausar búsqueda"
                       : "Abrir búsqueda"}
@@ -807,6 +830,7 @@ export default function App() {
                         });
                     }}
                   >
+                    <Icono nombre="finalizar" />
                     Finalizar proyecto
                   </button>
                 </div>
@@ -920,13 +944,24 @@ export default function App() {
                           )
                         }
                       >
+                        <Icono
+                          nombre={
+                            ownPosts.some(
+                              (post) =>
+                                post.proyectoId === pid &&
+                                post.perfilId === idOf(p),
+                            )
+                              ? "check"
+                              : "enviar"
+                          }
+                        />
                         {ownPosts.some(
                           (post) =>
                             post.proyectoId === pid &&
                             post.perfilId === idOf(p),
                         )
                           ? "Ya te postulaste"
-                          : "Postularme ↗"}
+                          : "Postularme"}
                       </button>
                     )}
                     {actor?.type === "colaboradoras" &&
@@ -966,6 +1001,7 @@ export default function App() {
                             )
                           }
                         >
+                          <Icono nombre="buscar" />
                           Buscar colaboradoras
                         </button>
                         <button
@@ -980,6 +1016,7 @@ export default function App() {
                             )
                           }
                         >
+                          <Icono nombre="editar" />
                           Editar
                         </button>
                         <button
@@ -995,6 +1032,7 @@ export default function App() {
                               });
                           }}
                         >
+                          <Icono nombre="eliminar" />
                           Eliminar
                         </button>
                       </div>
@@ -1044,6 +1082,7 @@ export default function App() {
                           )
                         }
                       >
+                        <Icono nombre="enviar" />
                         Enviar mensaje
                       </button>
                     </div>
@@ -1058,6 +1097,7 @@ export default function App() {
                       className="secondary"
                       onClick={() => load("logros", `/proyectos/${pid}/logros`)}
                     >
+                      <Icono nombre="ver" />
                       Ver avances
                     </button>
                     {isOwner && (
@@ -1070,7 +1110,8 @@ export default function App() {
                           )
                         }
                       >
-                        + Publicar logro
+                        <Icono nombre="logro" />
+                        Publicar logro
                       </button>
                     )}
                   </div>
@@ -1098,8 +1139,9 @@ export default function App() {
                               rel="noreferrer"
                             >
                               {k === "enlaceSistema"
-                                ? "Ver sistema ↗"
-                                : "Código fuente ↗"}
+                                ? "Ver sistema"
+                                : "Código fuente"}
+                              <Icono nombre="externo" />
                             </a>
                           ),
                       )}
@@ -1117,6 +1159,7 @@ export default function App() {
                               )
                             }
                           >
+                            <Icono nombre="editar" />
                             Editar
                           </button>
                           <button
@@ -1132,6 +1175,7 @@ export default function App() {
                                 });
                             }}
                           >
+                            <Icono nombre="eliminar" />
                             Eliminar
                           </button>
                         </>
@@ -1151,6 +1195,7 @@ export default function App() {
                             )
                           }
                         >
+                          <Icono nombre="compartir" />
                           Compartir en LinkedIn
                         </button>
                       )}
@@ -1182,6 +1227,7 @@ export default function App() {
                         )
                       }
                     >
+                      <Icono nombre="reloj" />
                       Pendientes
                     </button>
                     <button
@@ -1193,6 +1239,7 @@ export default function App() {
                         )
                       }
                     >
+                      <Icono nombre="check-doble" />
                       Procesadas
                     </button>
                   </div>
@@ -1225,6 +1272,7 @@ export default function App() {
                                 })
                               }
                             >
+                              <Icono nombre={estado === "ACEPTADA" ? "check" : "cruz"} />
                               {estado === "ACEPTADA" ? "Aceptar" : "Rechazar"}
                             </button>
                           ))}
@@ -1269,6 +1317,7 @@ export default function App() {
                               )
                             }
                           >
+                            <Icono nombre="correo" />
                             Consultar contactos
                           </button>
                         )}
@@ -1291,6 +1340,7 @@ export default function App() {
                                 );
                             }}
                           >
+                            <Icono nombre="persona-baja" />
                             Dar de baja permanentemente
                           </button>
                         )}
@@ -1321,7 +1371,8 @@ export default function App() {
                       )
                     }
                   >
-                    + Crear proyecto
+                    <Icono nombre="mas" />
+                    Crear proyecto
                   </button>
                 )}
                 {["colectivos", "colaboradoras"].includes(page) && (
@@ -1335,7 +1386,8 @@ export default function App() {
                       })
                     }
                   >
-                    + Registrarme
+                    <Icono nombre="persona-mas" />
+                    Registrarme
                   </button>
                 )}
               </div>
@@ -1353,7 +1405,10 @@ export default function App() {
                       <br />
                       El próximo aporte puede ser el tuyo.
                     </p>
-                    <a href="#colectivos">Conocé a los colectivos ↗</a>
+                    <a href="#colectivos">
+                      Conocé a los colectivos
+                      <Icono nombre="ir" />
+                    </a>
                   </div>
                   <div className="hero-art" aria-hidden="true">
                     <span>{"</>"}</span>
@@ -1382,6 +1437,7 @@ export default function App() {
                           )
                         }
                       >
+                        <Icono nombre="correo" />
                         Cargar mensajes
                       </button>
                       {extras.mensajes?.length === 0 && (
@@ -1491,6 +1547,7 @@ export default function App() {
                                       })
                                     }
                                   >
+                                    <Icono nombre="editar" />
                                     Editar contacto
                                   </button>
                                   <button
@@ -1517,6 +1574,7 @@ export default function App() {
                                         );
                                     }}
                                   >
+                                    <Icono nombre="eliminar" />
                                     Quitar contacto
                                   </button>
                                 </div>
@@ -1556,7 +1614,8 @@ export default function App() {
                                       setExtras({});
                                     }}
                                   >
-                                    Ver proyecto ↗
+                                    Ver proyecto
+                                    <Icono nombre="ir" />
                                   </button>
                                 )}
                               </div>
@@ -1588,6 +1647,7 @@ export default function App() {
                               )
                             }
                           >
+                            <Icono nombre="editar" />
                             Editar mis datos
                           </button>
                         )}
@@ -1613,6 +1673,7 @@ export default function App() {
                                 )
                               }
                             >
+                              <Icono nombre="mas" />
                               Agregar habilidad
                             </button>
                             <button
@@ -1638,6 +1699,7 @@ export default function App() {
                                 )
                               }
                             >
+                              <Icono nombre="mas" />
                               Agregar contacto
                             </button>
                             <button
@@ -1654,6 +1716,7 @@ export default function App() {
                                 )
                               }
                             >
+                              <Icono nombre="correo" />
                               {person.aceptaMensajeria ? "Desactivar" : "Activar"}{" "}
                               mensajes de colectivos
                             </button>
@@ -1678,6 +1741,7 @@ export default function App() {
                                 }, "Cuenta eliminada. El historial del colectivo se conserva.");
                             }}
                           >
+                            <Icono nombre="eliminar" />
                             Eliminar cuenta del colectivo
                           </button>
                         )}
@@ -1712,6 +1776,7 @@ export default function App() {
                               }, "Cuenta eliminada. Tus participaciones conservan el historial sin tus datos personales.");
                             }}
                           >
+                            <Icono nombre="eliminar" />
                             Eliminar mi cuenta
                           </button>
                         )}
@@ -1720,7 +1785,7 @@ export default function App() {
                   )}
                   <div className="filters">
                     <label className="search">
-                      <span aria-hidden="true">⌕</span>
+                      <Icono nombre="buscar" />
                       <input
                         aria-label="Buscar por nombre o habilidad"
                         placeholder="Buscar por nombre, causa o habilidad…"
@@ -1751,6 +1816,7 @@ export default function App() {
                               }, "Mostrando proyectos compatibles.")
                             }
                           >
+                            <Icono nombre="codigo" />
                             Para mis habilidades
                           </button>
                         )}
@@ -1786,7 +1852,7 @@ export default function App() {
                                 )
                               }
                             >
-                              ✕
+                              <Icono nombre="cruz" />
                             </button>
                           </li>
                         ))}
@@ -1796,6 +1862,7 @@ export default function App() {
                         className="text-button"
                         onClick={() => setFiltroEtiquetas([])}
                       >
+                        <Icono nombre="cruz" />
                         Limpiar etiquetas
                       </button>
                     </div>
@@ -1896,7 +1963,8 @@ export default function App() {
                                   setExtras({});
                                 }}
                               >
-                                Ver perfil ↗
+                                Ver perfil
+                                <Icono nombre="ir" />
                               </button>
                             )}
                             {x.titulo && (
@@ -1907,7 +1975,8 @@ export default function App() {
                                   setExtras({});
                                 }}
                               >
-                                Ver proyecto ↗
+                                Ver proyecto
+                                <Icono nombre="ir" />
                               </button>
                             )}
                           </footer>
@@ -1918,6 +1987,7 @@ export default function App() {
                                 className="text-button"
                                 onClick={() => iniciarDenuncia("proyecto", x)}
                               >
+                                <Icono nombre="bandera" />
                                 Denunciar proyecto
                               </button>
                             )}
@@ -1928,6 +1998,7 @@ export default function App() {
                               className="text-button"
                               onClick={() => iniciarDenuncia("colectivo", x)}
                             >
+                              <Icono nombre="bandera" />
                               Denunciar colectivo
                             </button>
                           )}
@@ -1995,7 +2066,7 @@ export default function App() {
               disabled={busy}
               onClick={() => setForm(null)}
             >
-              ×
+              <Icono nombre="cruz" />
             </button>
             <h2>{form.name}</h2>
             {form.auth ? (

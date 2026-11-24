@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
+import Icono from "./Icono";
 export default function HuellaIA({ values, onChange }) {
   const uses = values.usosIA || [];
   const update = (i, key, value) =>
@@ -79,6 +80,7 @@ export default function HuellaIA({ values, onChange }) {
                   })
                 }
               >
+                <Icono nombre="eliminar" />
                 Quitar uso {i + 1}
               </button>
             </fieldset>
@@ -97,7 +99,8 @@ export default function HuellaIA({ values, onChange }) {
               })
             }
           >
-            + Agregar uso de IA
+            <Icono nombre="chispa" />
+            Agregar uso de IA
           </button>
         </>
       )}

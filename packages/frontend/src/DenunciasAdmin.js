@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { api } from "./api";
 import EstadoBadge from "./EstadoBadge";
 import AvisoFlotante from "./AvisoFlotante";
+import Icono from "./Icono";
 
 const estados = ["pendiente", "en_revision", "resuelta", "desestimada"];
 const idOf = (denuncia) => denuncia?._id || denuncia?.id;
@@ -90,6 +91,7 @@ export default function DenunciasAdmin() {
         </div>
         {adminKey && (
           <button className="secondary" onClick={olvidarClave}>
+            <Icono nombre="salir" />
             Cerrar administración
           </button>
         )}
@@ -113,6 +115,7 @@ export default function DenunciasAdmin() {
             </small>
           </label>
           <button type="submit" disabled={busy}>
+            <Icono nombre="escudo" />
             Cargar denuncias
           </button>
         </form>
@@ -176,6 +179,7 @@ export default function DenunciasAdmin() {
                 disabled={busy || estado === denuncia.estado}
                 onClick={() => cambiarEstado(denuncia)}
               >
+                <Icono nombre="guardar" />
                 Guardar estado
               </button>
             </div>

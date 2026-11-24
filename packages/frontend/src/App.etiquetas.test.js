@@ -196,14 +196,14 @@ test("el detalle de un proyecto muestra sus etiquetas y elegir una vuelve al lis
   render(<App />);
   await screen.findByText("Stock del comedor");
   fireEvent.click(screen.getAllByRole("button", { name: /Ver proyecto/ })[0]);
-  await screen.findByText("← Volver al listado");
+  await screen.findByText("Volver al listado");
 
   fireEvent.click(
     screen.getByRole("button", { name: "Filtrar por etiqueta educacion" }),
   );
 
   await waitFor(() =>
-    expect(screen.queryByText("← Volver al listado")).not.toBeInTheDocument(),
+    expect(screen.queryByText("Volver al listado")).not.toBeInTheDocument(),
   );
   await waitFor(() =>
     expect(screen.queryByText("Stock del comedor")).not.toBeInTheDocument(),

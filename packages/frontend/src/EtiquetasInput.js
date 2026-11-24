@@ -1,5 +1,6 @@
 import React, { useId, useState } from "react";
 import PropTypes from "prop-types";
+import Icono from "./Icono";
 import {
   MAX_ETIQUETAS,
   normalizarEtiqueta,
@@ -82,7 +83,7 @@ export default function EtiquetasInput({
                 aria-label={`Quitar etiqueta ${etiqueta}`}
                 onClick={() => quitar(etiqueta)}
               >
-                ✕
+                <Icono nombre="cruz" />
               </button>
             </li>
           ))}

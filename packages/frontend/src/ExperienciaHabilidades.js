@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import Icono from "./Icono";
 
 const niveles = [
   ["INICIAL", "Inicial"],
@@ -80,6 +81,7 @@ export default function ExperienciaHabilidades({ person, skills, busy, onSave })
       )}
       {!!items.length && (
         <button disabled={busy} onClick={() => onSave(items)}>
+          <Icono nombre="guardar" />
           Guardar experiencia
         </button>
       )}

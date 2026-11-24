@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { api } from "./api";
 import AvisoFlotante from "./AvisoFlotante";
+import Icono from "./Icono";
 
 export default function LinkedInIntegration({ actorType, onImported }) {
   const [status, setStatus] = useState(null);
@@ -82,10 +83,12 @@ export default function LinkedInIntegration({ actorType, onImported }) {
           <div className="toolbar">
             {actorType === "colaboradoras" && (
               <button disabled={busy} onClick={importar}>
+                <Icono nombre="subir" />
                 Importar perfil
               </button>
             )}
             <button className="secondary" disabled={busy} onClick={desconectar}>
+              <Icono nombre="cruz" />
               Desconectar LinkedIn
             </button>
           </div>
@@ -96,6 +99,7 @@ export default function LinkedInIntegration({ actorType, onImported }) {
             Conectá tu cuenta para importar datos básicos del perfil o compartir logros.
           </p>
           <button disabled={busy} onClick={conectar}>
+            <Icono nombre="enlace" />
             Conectar LinkedIn
           </button>
         </>

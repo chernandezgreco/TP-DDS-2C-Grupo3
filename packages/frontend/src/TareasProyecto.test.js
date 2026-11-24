@@ -154,7 +154,7 @@ describe("responsables", () => {
   test("al agregar, sólo se ofrece a quienes colaboran en el proyecto, sin repetir ni anónimas", async () => {
     const { edit } = mostrar({ isOwner: true });
     await screen.findByText(/Todavía no hay tareas/);
-    fireEvent.click(screen.getByRole("button", { name: "+ Agregar tarea" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agregar tarea" }));
     expect(edit).toHaveBeenCalledTimes(1);
     const [nombre, campos, ruta, metodo, valores, extra] = edit.mock.calls[0];
     expect(nombre).toBe("Agregar tarea");
@@ -226,7 +226,7 @@ describe("proyecto finalizado", () => {
     const { edit, run } = mostrar({ isOwner: true, proyecto: finalizado });
     await screen.findByRole("table");
     const controles = [
-      screen.getByRole("button", { name: "+ Agregar tarea" }),
+      screen.getByRole("button", { name: "Agregar tarea" }),
       screen.getByRole("button", { name: "Editar la tarea Diseño de pantallas" }),
       screen.getByRole("button", { name: "Eliminar la tarea Diseño de pantallas" }),
     ];
@@ -264,7 +264,7 @@ describe("proyecto finalizado", () => {
     mostrar({ isOwner: true });
     await screen.findByRole("table");
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "+ Agregar tarea" })).not.toHaveAttribute("aria-disabled");
+    expect(screen.getByRole("button", { name: "Agregar tarea" })).not.toHaveAttribute("aria-disabled");
   });
 });
 

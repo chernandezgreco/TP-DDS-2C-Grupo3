@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { api } from "./api";
+import Icono from "./Icono";
 
 export const FORMATOS = {
   json: "JSON (para otros sistemas)",
@@ -90,6 +91,7 @@ export default function PortabilidadDatos({ actorType }) {
       </label>
       <div className="toolbar">
         <button disabled={busy} onClick={descargar}>
+          <Icono nombre="descargar" />
           {busy ? "Preparando archivo…" : "Descargar mis datos"}
         </button>
       </div>

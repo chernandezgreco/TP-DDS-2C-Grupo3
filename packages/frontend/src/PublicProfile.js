@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import Markdown from "./Markdown";
 import ListaEtiquetas from "./ListaEtiquetas";
+import Icono from "./Icono";
 export default function PublicProfile({
   profile,
   type,
@@ -16,7 +17,8 @@ export default function PublicProfile({
   return (
     <section className="panel">
       <button className="text-button" onClick={onClose}>
-        ← Volver al listado
+        <Icono nombre="volver" />
+        Volver al listado
       </button>
       <h1>{profile.nombre || profile.nombreFantasia}</h1>
       {profile.linkedinFoto && /^https:\/\//i.test(profile.linkedinFoto) && (
@@ -72,6 +74,7 @@ export default function PublicProfile({
             </p>
           )}
           <button className="secondary" onClick={() => onContacts(profile)}>
+            <Icono nombre="correo" />
             Consultar contactos
           </button>
           <p className="hint">

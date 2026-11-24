@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { api } from "./api";
 import { ResourceForm, collectiveFields, personFields } from "./forms";
+import Icono from "./Icono";
 export default function AuthPanel({
   skills,
   onSuccess,
@@ -76,6 +77,7 @@ export default function AuthPanel({
             setError("");
           }}
         >
+          <Icono nombre="entrar" />
           Iniciar sesión
         </button>
         <button
@@ -87,6 +89,7 @@ export default function AuthPanel({
             setError("");
           }}
         >
+          <Icono nombre="persona-mas" />
           Crear cuenta
         </button>
       </div>
@@ -124,6 +127,7 @@ export default function AuthPanel({
         key={mode + type}
         fields={fields}
         submitLabel={mode === "login" ? "Ingresar" : "Crear mi cuenta"}
+        submitIcon={mode === "login" ? "entrar" : "persona-mas"}
         busy={busy}
         onSubmit={submit}
         onCancel={onCancel}

@@ -82,7 +82,7 @@ test("el colectivo dueño crea una tarea eligiendo a una colaboradora del proyec
   sesion = { type: "colectivos", id: "o1", email: "org@example.com" };
   render(<App />);
   await abrirProyecto();
-  fireEvent.click(screen.getByRole("button", { name: "+ Agregar tarea" }));
+  fireEvent.click(screen.getByRole("button", { name: "Agregar tarea" }));
   const dialogo = await screen.findByRole("dialog", { name: "Agregar tarea" });
   const responsable = within(dialogo).getByLabelText("Responsable (opcional)");
   expect([...responsable.options].map((o) => o.textContent)).toEqual(["Sin responsable", "Ada", "Cami"]);
@@ -107,7 +107,7 @@ test("crear sin responsable manda null", async () => {
   sesion = { type: "colectivos", id: "o1", email: "org@example.com" };
   render(<App />);
   await abrirProyecto();
-  fireEvent.click(screen.getByRole("button", { name: "+ Agregar tarea" }));
+  fireEvent.click(screen.getByRole("button", { name: "Agregar tarea" }));
   const dialogo = await screen.findByRole("dialog", { name: "Agregar tarea" });
   fireEvent.change(within(dialogo).getByLabelText("Nombre de la tarea"), { target: { value: "Sin dueña" } });
   fireEvent.change(within(dialogo).getByLabelText("Fecha de inicio"), { target: { value: "2026-11-09" } });
@@ -165,7 +165,7 @@ test("con el proyecto finalizado no se abre ningún formulario", async () => {
   render(<App />);
   await abrirProyecto();
   await screen.findByRole("table");
-  for (const nombre of ["+ Agregar tarea", "Editar la tarea Diseño de pantallas"]) {
+  for (const nombre of ["Agregar tarea", "Editar la tarea Diseño de pantallas"]) {
     const boton = screen.getByRole("button", { name: nombre });
     expect(boton).toHaveAttribute("aria-disabled", "true");
     fireEvent.click(boton);

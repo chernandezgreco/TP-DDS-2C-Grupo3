@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
+import Icono from "./Icono";
 
 export const DURACION_AVISO_MS = 15000;
+const MARGEN_SUPERIOR_PX = 16;
 
 // Todos los avisos se apilan en un mismo contenedor fijo, arriba a la derecha, fuera del
 // árbol de la página: así no los recorta ni los desplaza ningún contenedor ni modal.
@@ -29,6 +31,24 @@ function Aviso({ mensaje, onCerrar }) {
     cerrar.current = onCerrar;
   }, [onCerrar]);
 
+  // debajo del header mientras se ve (para no tapar el menú de usuario); al scrollear, pegado arriba
+  useEffect(() => {
+    const contenedor = contenedorAvisos();
+    const ubicar = () => {
+      const header = document.querySelector(".workspace > header");
+      const bordeHeader = header ? header.getBoundingClientRect().bottom : 0;
+      contenedor.style.top = `${Math.max(MARGEN_SUPERIOR_PX, bordeHeader + MARGEN_SUPERIOR_PX)}px`;
+    };
+    ubicar();
+    // capture: también escucha el scroll de contenedores internos, no sólo el de la ventana
+    window.addEventListener("scroll", ubicar, { passive: true, capture: true });
+    window.addEventListener("resize", ubicar);
+    return () => {
+      window.removeEventListener("scroll", ubicar, { capture: true });
+      window.removeEventListener("resize", ubicar);
+    };
+  }, []);
+
   useEffect(() => {
     if (pausado) return undefined;
     const temporizador = window.setTimeout(() => cerrar.current(), DURACION_AVISO_MS);
@@ -43,14 +63,14 @@ function Aviso({ mensaje, onCerrar }) {
       onFocus={() => setPausado(true)}
       onBlur={() => setPausado(false)}
     >
-      <span>✓ {mensaje}</span>
+      <span>{mensaje}</span>
       <button
         type="button"
         className="notice-dismiss"
         aria-label="Cerrar mensaje"
         onClick={() => cerrar.current()}
       >
-        ×
+        <Icono nombre="cruz" />
       </button>
     </div>
   );

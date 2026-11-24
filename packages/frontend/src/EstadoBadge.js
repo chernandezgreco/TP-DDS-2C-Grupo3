@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 
 const ESTADOS = {
   ACTIVO: ["Activo", "✓"],
@@ -29,3 +30,7 @@ export default function EstadoBadge({ estado }) {
     </span>
   );
 }
+
+EstadoBadge.propTypes = {
+  estado: PropTypes.string,
+};
