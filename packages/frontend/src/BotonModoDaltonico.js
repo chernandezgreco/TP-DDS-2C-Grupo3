@@ -1,38 +1,57 @@
 import React, { useEffect, useState } from "react";
 import {
-  aplicarModoDaltonico,
-  guardarModoDaltonico,
-  leerModoDaltonico,
+  aplicarPreferenciaColor,
+  guardarPreferenciaColor,
+  leerPreferenciaColor,
 } from "./vision";
 
-// Interruptor del modo daltónico. El estado se anuncia con aria-pressed (lectores de pantalla)
-// y se ve con la marca ✓ y el borde, no sólo con el color.
+const MODOS = [
+  ["normal", "Paleta estándar"],
+  ["protanopia", "Protanopia · azul y naranja"],
+  ["deuteranopia", "Deuteranopia · violeta y ámbar"],
+  ["tritanopia", "Tritanopia · carmín y verde azulado"],
+];
+
+const PARES = {
+  normal: ["#236b55", "#8a3800"],
+  protanopia: ["#004b87", "#8a3400"],
+  deuteranopia: ["#4b1f73", "#684000"],
+  tritanopia: ["#8a1024", "#005344"],
+};
+
+// Ofrece paletas con pares de alto contraste, no una simulación universal de daltonismo.
 export default function BotonModoDaltonico() {
-  const [activo, setActivo] = useState(leerModoDaltonico);
+  const [modo, setModo] = useState(leerPreferenciaColor);
 
-  // aplicar es idempotente; guardar sólo ocurre cuando la persona cambia el modo
   useEffect(() => {
-    aplicarModoDaltonico(activo);
-  }, [activo]);
+    aplicarPreferenciaColor(modo);
+  }, [modo]);
 
-  const alternar = () => {
-    const nuevo = !activo;
-    setActivo(nuevo);
-    guardarModoDaltonico(nuevo);
+  const cambiar = (event) => {
+    const nuevoModo = event.target.value;
+    setModo(nuevoModo);
+    guardarPreferenciaColor(nuevoModo);
   };
 
   return (
-    <button
-      type="button"
-      className="secondary vision-toggle"
-      aria-pressed={activo}
-      title="Cambia a una paleta de colores distinguible con daltonismo"
-      onClick={alternar}
-    >
-      <span className="vision-toggle-marca" aria-hidden="true">
-        {activo ? "✓" : ""}
-      </span>
-      Modo daltónico
-    </button>
+    <div className="vision-controls">
+      <label htmlFor="vision-mode">Paleta de color</label>
+      <select id="vision-mode" value={modo} onChange={cambiar}>
+        {MODOS.map(([valor, texto]) => (
+          <option key={valor} value={valor}>
+            {texto}
+          </option>
+        ))}
+      </select>
+      <div className="vision-pair" aria-hidden="true">
+        {PARES[modo].map((color) => (
+          <span key={color} style={{ backgroundColor: color }} />
+        ))}
+        <b>Par de alto contraste</b>
+      </div>
+      <small>
+        Es una ayuda visual. Elegí la combinación que te resulte más clara; los estados también usan texto, símbolos y patrones.
+      </small>
+    </div>
   );
 }

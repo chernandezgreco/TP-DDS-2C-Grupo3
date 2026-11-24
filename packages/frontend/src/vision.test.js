@@ -20,11 +20,11 @@ test("sin preferencia guardada el modo daltónico arranca apagado", () => {
   expect(raiz).not.toHaveAttribute("data-vision");
 });
 
-test("guardar y aplicar activan la paleta daltónica en <html>", () => {
+test("guardar y aplicar activan la paleta de protanopia en <html>", () => {
   guardarModoDaltonico(true);
-  expect(window.localStorage.getItem(CLAVE_MODO_DALTONICO)).toBe("1");
+  expect(window.localStorage.getItem(CLAVE_MODO_DALTONICO)).toBe("protanopia");
   iniciarModoDaltonico();
-  expect(raiz).toHaveAttribute("data-vision", "daltonico");
+  expect(raiz).toHaveAttribute("data-vision", "protanopia");
 });
 
 test("al desactivarlo se borra la preferencia y se quita el atributo", () => {

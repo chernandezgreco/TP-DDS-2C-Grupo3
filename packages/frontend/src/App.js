@@ -11,7 +11,8 @@ import PortabilidadDatos from "./PortabilidadDatos";
 import TareasProyecto from "./TareasProyecto";
 import ListaEtiquetas from "./ListaEtiquetas";
 import BotonModoDaltonico from "./BotonModoDaltonico";
-import React, { useEffect, useState } from "react";
+import EstadoBadge from "./EstadoBadge";
+import React, { useEffect, useRef, useState } from "react";
 import { api, idOf } from "./api";
 import {
   ResourceForm,
@@ -40,6 +41,37 @@ const sections = {
 };
 const title = (x) =>
   x?.titulo || x?.nombre || x?.nombreFantasia || "Sin nombre";
+const initials = (label) =>
+  label
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toLocaleUpperCase("es-AR"))
+    .join("") || "U";
+const tiempoRelativo = (valor, ahora = Date.now()) => {
+  const fecha = new Date(valor).getTime();
+  if (!Number.isFinite(fecha)) return "Fecha desconocida";
+  const diferencia = fecha - ahora;
+  const unidades = [
+    [60, "second"],
+    [60, "minute"],
+    [24, "hour"],
+    [30.44, "day"],
+    [12, "month"],
+    [Infinity, "year"],
+  ];
+  let cantidad = diferencia / 1000;
+  let unidad = "second";
+  for (const [limite, siguiente] of unidades) {
+    if (Math.abs(cantidad) < limite) break;
+    cantidad /= limite;
+    unidad = siguiente;
+  }
+  return new Intl.RelativeTimeFormat("es-AR", { numeric: "auto" }).format(
+    Math.round(cantidad),
+    unidad,
+  );
+};
 const initial = {
   proyectos: [],
   colectivos: [],
@@ -73,6 +105,28 @@ export default function App() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [anonymous, setAnonymous] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+  useEffect(() => {
+    if (!notice) return undefined;
+    const timer = window.setTimeout(() => setNotice(""), 6500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+  useEffect(() => {
+    if (!userMenuOpen) return undefined;
+    const cerrarFuera = (event) => {
+      if (!userMenuRef.current?.contains(event.target)) setUserMenuOpen(false);
+    };
+    const cerrarEscape = (event) => {
+      if (event.key === "Escape") setUserMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", cerrarFuera);
+    document.addEventListener("keydown", cerrarEscape);
+    return () => {
+      document.removeEventListener("pointerdown", cerrarFuera);
+      document.removeEventListener("keydown", cerrarEscape);
+    };
+  }, [userMenuOpen]);
   async function refresh() {
     setLoading(true);
     try {
@@ -424,28 +478,30 @@ export default function App() {
         <p className="eyebrow">CONSTRUIR EN COMUNIDAD</p>
         <nav aria-label="Navegación principal">
           {Object.entries(sections)
-            .filter(([k]) => k !== "denuncias" || actor)
-            .map(([k, v], i) => (
+            .filter(([k]) => k !== "terminos" && (k !== "denuncias" || actor))
+            .map(([k, v]) => (
             <a
               href={"#" + k}
               key={k}
               aria-current={page === k ? "page" : undefined}
             >
               <span aria-hidden="true">
-                {["▦", "◎", "♧", "⌂", "✉", "§", "✳"][i]}
+                {{ proyectos: "▦", colectivos: "◎", colaboradoras: "♧", espacio: "⌂", mensajes: "✉", habilidades: "✳", denuncias: "⚑" }[k]}
               </span>
               {v}
             </a>
           ))}
         </nav>
         <div className="aside-note">
-          <b>
-            Tu código puede
-            <br />
-            cambiar las cosas.
-          </b>
-          <p>Conectá tus habilidades con una causa que te importe.</p>
-          <small>Hecho para compartir ↗</small>
+          <b>{actor ? "Seguí construyendo en comunidad" : "Una idea puede cambiar las cosas"}</b>
+          <p>
+            {actor
+              ? "Explorá proyectos y conectá tus habilidades con una causa."
+              : "Encontrá proyectos con impacto o sumate con tus habilidades."}
+          </p>
+          <a className="aside-cta" href={actor ? "#proyectos" : "#colaboradoras"}>
+            {actor ? "Explorar proyectos ↗" : "Conocer la comunidad ↗"}
+          </a>
         </div>
         <small>UTN · Desarrollo de Software · 2026</small>
       </aside>
@@ -453,35 +509,55 @@ export default function App() {
         <header>
           <span>Una comunidad. Muchas posibilidades.</span>
           <div className="toolbar">
-            <BotonModoDaltonico />
             {sessionLoading ? (
               <span role="status">Comprobando sesión…</span>
             ) : actor ? (
               <>
-                <button
-                  className="secondary"
-                  onClick={() => {
-                    window.location.hash = "espacio";
-                  }}
-                >
-                  {title(data[actor.type].find((x) => idOf(x) === actor.id))}
-                </button>
-                <button
-                  className="text-button"
-                  disabled={busy}
-                  onClick={() =>
-                    run(async () => {
-                      await api.post("/auth/logout");
-                      setActor(null);
-                      setExtras({});
-                      setOwnPosts([]);
-                      setOwnContacts(null);
-                      window.location.hash = "proyectos";
-                    }, "Sesión cerrada.")
-                  }
-                >
-                  Cerrar sesión
-                </button>
+                <div className="user-menu" ref={userMenuRef}>
+                  <button
+                    className="user-menu-trigger"
+                    aria-expanded={userMenuOpen}
+                    aria-haspopup="true"
+                    aria-label={`Abrir menú de ${title(data[actor.type].find((x) => idOf(x) === actor.id))}`}
+                    onClick={() => setUserMenuOpen((abierto) => !abierto)}
+                  >
+                    <span className="user-avatar" aria-hidden="true">
+                      {initials(title(data[actor.type].find((x) => idOf(x) === actor.id)))}
+                    </span>
+                    <span className="user-menu-name">
+                      {title(data[actor.type].find((x) => idOf(x) === actor.id))}
+                    </span>
+                    <span aria-hidden="true">⌄</span>
+                  </button>
+                  {userMenuOpen && (
+                    <div className="user-menu-panel">
+                      <b>{title(data[actor.type].find((x) => idOf(x) === actor.id))}</b>
+                      <small>{actor.email}</small>
+                      <a href="#espacio" onClick={() => setUserMenuOpen(false)}>Mi espacio</a>
+                      <a href="#mensajes" onClick={() => setUserMenuOpen(false)}>Mensajes</a>
+                      <div className="user-menu-accessibility">
+                        <BotonModoDaltonico />
+                      </div>
+                      <button
+                        className="text-button"
+                        disabled={busy}
+                        onClick={() =>
+                          run(async () => {
+                            await api.post("/auth/logout");
+                            setActor(null);
+                            setExtras({});
+                            setOwnPosts([]);
+                            setOwnContacts(null);
+                            setUserMenuOpen(false);
+                            window.location.hash = "proyectos";
+                          }, "Sesión cerrada.")
+                        }
+                      >
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <button
@@ -502,9 +578,22 @@ export default function App() {
           </div>
           <div role="status" aria-live="polite">
             {(loading || busy) && (
-              <p className="loading">Cargando información…</p>
+              <p className="loading">
+                {page === "mensajes" ? "Cargando mensajes…" : "Cargando información…"}
+              </p>
             )}
-            {notice && <div className="success">✓ {notice}</div>}
+            {notice && (
+              <div className="success notice-toast">
+                <span>✓ {notice}</span>
+                <button
+                  className="notice-dismiss"
+                  aria-label="Cerrar mensaje"
+                  onClick={() => setNotice("")}
+                >
+                  ×
+                </button>
+              </div>
+            )}
           </div>
           {error && (
             <div role="alert" className="error">
@@ -601,7 +690,7 @@ export default function App() {
                   data.colectivos.find((c) => idOf(c) === selected.colectivoId)
                     ?.nombre
                 }{" "}
-                · <span className="badge">{selected.estado}</span>
+                · <EstadoBadge estado={selected.estado} />
               </p>
               {selected.fechaCierre && (
                 <p className="hint">
@@ -749,11 +838,13 @@ export default function App() {
               <div className="grid">
                 {(selected.perfiles || []).map((p) => (
                   <article className="card padded" key={idOf(p)}>
-                    <span className="badge">
-                      {selected.estaBuscando && selected.estado === "ACTIVO"
-                        ? "Búsqueda abierta"
-                        : "Búsqueda cerrada"}
-                    </span>
+                    <EstadoBadge
+                      estado={
+                        selected.estaBuscando && selected.estado === "ACTIVO"
+                          ? "BUSCANDO"
+                          : "BUSQUEDA_CERRADA"
+                      }
+                    />
                     <Markdown className="profile-description">
                       {p.descripcionPerfil}
                     </Markdown>
@@ -784,7 +875,10 @@ export default function App() {
                       <b>Ocupantes:</b>{" "}
                       {data.colaboraciones
                         .filter(
-                          (c) => c.proyectoId === pid && c.perfilId === idOf(p),
+                          (c) =>
+                            c.proyectoId === pid &&
+                            c.perfilId === idOf(p) &&
+                            c.estado === "ACTIVA",
                         )
                         .map((c) =>
                           c.colaboradoraId === "Anonimo"
@@ -824,7 +918,9 @@ export default function App() {
                           (p.cantidadLimite != null &&
                             data.colaboraciones.filter(
                               (c) =>
-                                c.proyectoId === pid && c.perfilId === idOf(p),
+                                c.proyectoId === pid &&
+                                c.perfilId === idOf(p) &&
+                                c.estado === "ACTIVA",
                             ).length >= p.cantidadLimite)
                         }
                         onClick={() =>
@@ -856,6 +952,20 @@ export default function App() {
                           Necesitás registrar al menos una de las habilidades
                           requeridas para este perfil.
                         </p>
+                      )}
+                    {actor?.type === "colaboradoras" &&
+                      (!selected.estaBuscando || selected.estado !== "ACTIVO") && (
+                        <p className="hint">Este proyecto ya no está recibiendo postulaciones.</p>
+                      )}
+                    {actor?.type === "colaboradoras" &&
+                      p.cantidadLimite != null &&
+                      data.colaboraciones.filter(
+                        (c) =>
+                          c.proyectoId === pid &&
+                          c.perfilId === idOf(p) &&
+                          c.estado === "ACTIVA",
+                      ).length >= p.cantidadLimite && (
+                        <p className="hint">Este perfil ya completó sus vacantes.</p>
                       )}
                     {p.fechaLimite && new Date(p.fechaLimite) < new Date() && (
                       <p className="hint">La fecha de postulación ya venció.</p>
@@ -1106,7 +1216,9 @@ export default function App() {
                   )}
                   {extras.postulaciones?.map((p) => (
                     <div className="list-row" key={idOf(p)}>
-                      <b>Postulación · {p.estado}</b>
+                      <b>
+                        Postulación · <EstadoBadge estado={p.estado} />
+                      </b>
                       <p>
                         Perfil:{" "}
                         {selected.perfiles.find((f) => idOf(f) === p.perfilId)
@@ -1299,7 +1411,12 @@ export default function App() {
                           </b>
                           <p>{m.texto}</p>
                           <small>
-                            {new Date(m.fecha).toLocaleString("es-AR")}
+                            <time
+                              dateTime={m.fecha}
+                              title={new Date(m.fecha).toLocaleString("es-AR")}
+                            >
+                              {tiempoRelativo(m.fecha)}
+                            </time>
                           </small>
                         </div>
                       ))}
@@ -1734,13 +1851,19 @@ export default function App() {
                           <span>COMUNIDAD ABIERTA</span>
                         </div>
                         <div className="card-body">
-                          <span className="badge">
-                            {x.titulo
-                              ? x.estaBuscando && x.estado === "ACTIVO"
-                                ? "● Buscando colaboraciones"
-                                : "Búsqueda cerrada"
-                              : x.tipo?.replaceAll("_", " ") || "Colaboradora"}
-                          </span>
+                          {x.titulo ? (
+                            <EstadoBadge
+                              estado={
+                                x.estaBuscando && x.estado === "ACTIVO"
+                                  ? "BUSCANDO"
+                                  : "BUSQUEDA_CERRADA"
+                              }
+                            />
+                          ) : (
+                            <span className="badge">
+                              {x.tipo?.replaceAll("_", " ") || "Colaboradora"}
+                            </span>
+                          )}
                           <h2>{title(x)}</h2>
                           {x.requiereIA === false && (
                             <span className="badge">Sin IA generativa</span>

@@ -1,35 +1,57 @@
-// Preferencia de visión (modo daltónico). Lógica sin React: leer, guardar y aplicar.
-// La paleta vive en App.css: este módulo sólo pone o saca data-vision="daltonico" en <html>,
-// y el CSS redefine las variables de color. Así ningún componente necesita conocer los colores.
-
+// Preferencias de accesibilidad de color. Las paletas son ayudas visuales, no simulaciones
+// clínicas ni una solución universal; las etiquetas, iconos y patrones siguen visibles.
 export const CLAVE_MODO_DALTONICO = "cav-modo-daltonico";
-const VALOR_DALTONICO = "daltonico";
+const VALOR_DALTONICO_ANTERIOR = "daltonico";
+export const MODOS_COLOR = ["normal", "protanopia", "deuteranopia", "tritanopia"];
 
-// localStorage puede no existir o lanzar (modo privado, almacenamiento bloqueado):
-// en ese caso la app sigue funcionando con la paleta normal.
-export function leerModoDaltonico() {
+export function leerPreferenciaColor() {
   try {
-    return window.localStorage.getItem(CLAVE_MODO_DALTONICO) === "1";
+    const guardada = window.localStorage.getItem(CLAVE_MODO_DALTONICO);
+    // Una preferencia booleana anterior se interpreta como la paleta rojo/verde.
+    const modo =
+      guardada === "1" || guardada === VALOR_DALTONICO_ANTERIOR
+        ? "protanopia"
+        : guardada;
+    return MODOS_COLOR.includes(modo) ? modo : "normal";
   } catch {
-    return false;
+    return "normal";
   }
+}
+
+export function guardarPreferenciaColor(modo) {
+  try {
+    if (!MODOS_COLOR.includes(modo) || modo === "normal") {
+      window.localStorage.removeItem(CLAVE_MODO_DALTONICO);
+    } else {
+      window.localStorage.setItem(CLAVE_MODO_DALTONICO, modo);
+    }
+  } catch {
+    // Sin almacenamiento, la preferencia dura sólo esta visita.
+  }
+}
+
+export function aplicarPreferenciaColor(modo, raiz = document.documentElement) {
+  if (MODOS_COLOR.includes(modo) && modo !== "normal") {
+    raiz.dataset.vision = modo;
+  } else {
+    delete raiz.dataset.vision;
+  }
+}
+
+// Compatibilidad con las funciones booleanas anteriores.
+export function leerModoDaltonico() {
+  return leerPreferenciaColor() !== "normal";
 }
 
 export function guardarModoDaltonico(activo) {
-  try {
-    if (activo) window.localStorage.setItem(CLAVE_MODO_DALTONICO, "1");
-    else window.localStorage.removeItem(CLAVE_MODO_DALTONICO);
-  } catch {
-    // sin almacenamiento la preferencia dura sólo esta visita
-  }
+  guardarPreferenciaColor(activo ? "protanopia" : "normal");
 }
 
 export function aplicarModoDaltonico(activo, raiz = document.documentElement) {
-  if (activo) raiz.dataset.vision = VALOR_DALTONICO;
-  else delete raiz.dataset.vision;
+  aplicarPreferenciaColor(activo ? "protanopia" : "normal", raiz);
 }
 
-// Se llama antes del primer render para que no se vea la paleta normal por un instante.
+// Se llama antes del primer render para restaurar la preferencia elegida.
 export function iniciarModoDaltonico() {
-  aplicarModoDaltonico(leerModoDaltonico());
+  aplicarPreferenciaColor(leerPreferenciaColor());
 }

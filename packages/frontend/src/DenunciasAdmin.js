@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { api } from "./api";
+import EstadoBadge from "./EstadoBadge";
 
 const estados = ["pendiente", "en_revision", "resuelta", "desestimada"];
 const idOf = (denuncia) => denuncia?._id || denuncia?.id;
@@ -134,7 +135,7 @@ export default function DenunciasAdmin() {
           <article className="panel" key={id}>
             <div className="title-row">
               <div>
-                <span className="badge">{denuncia.estado.replaceAll("_", " ")}</span>
+                <EstadoBadge estado={denuncia.estado} />
                 <h2>{denuncia.motivo}</h2>
               </div>
               <small>

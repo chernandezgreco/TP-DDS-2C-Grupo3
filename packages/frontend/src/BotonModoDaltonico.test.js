@@ -5,43 +5,41 @@ import BotonModoDaltonico from "./BotonModoDaltonico";
 import { CLAVE_MODO_DALTONICO } from "./vision";
 
 const raiz = document.documentElement;
-const boton = () => screen.getByRole("button", { name: "Modo daltónico" });
+const selector = () => screen.getByRole("combobox", { name: "Paleta de color" });
 
 beforeEach(() => {
   window.localStorage.clear();
   delete raiz.dataset.vision;
 });
 
-test("activa y desactiva la paleta daltónica anunciando el estado", () => {
+test("permite elegir una paleta y volver a la paleta estándar", () => {
   render(<BotonModoDaltonico />);
-  expect(boton()).toHaveAttribute("aria-pressed", "false");
+  expect(selector()).toHaveValue("normal");
 
-  fireEvent.click(boton());
-  expect(boton()).toHaveAttribute("aria-pressed", "true");
-  expect(raiz).toHaveAttribute("data-vision", "daltonico");
-  expect(window.localStorage.getItem(CLAVE_MODO_DALTONICO)).toBe("1");
+  fireEvent.change(selector(), { target: { value: "protanopia" } });
+  expect(selector()).toHaveValue("protanopia");
+  expect(raiz).toHaveAttribute("data-vision", "protanopia");
+  expect(window.localStorage.getItem(CLAVE_MODO_DALTONICO)).toBe("protanopia");
 
-  fireEvent.click(boton());
-  expect(boton()).toHaveAttribute("aria-pressed", "false");
+  fireEvent.change(selector(), { target: { value: "normal" } });
+  expect(selector()).toHaveValue("normal");
   expect(raiz).not.toHaveAttribute("data-vision");
   expect(window.localStorage.getItem(CLAVE_MODO_DALTONICO)).toBeNull();
 });
 
-test("recuerda la elección al volver a entrar", () => {
-  window.localStorage.setItem(CLAVE_MODO_DALTONICO, "1");
+test.each(["protanopia", "deuteranopia", "tritanopia"])("recuerda el modo %s", (modo) => {
+  window.localStorage.setItem(CLAVE_MODO_DALTONICO, modo);
   render(<BotonModoDaltonico />);
-  expect(boton()).toHaveAttribute("aria-pressed", "true");
-  expect(raiz).toHaveAttribute("data-vision", "daltonico");
+  expect(selector()).toHaveValue(modo);
+  expect(raiz).toHaveAttribute("data-vision", modo);
 });
 
-test("se puede usar sólo con teclado: Tab para llegar, Enter y Espacio para alternar", () => {
+test("se puede usar sólo con teclado", () => {
   render(<BotonModoDaltonico />);
   userEvent.tab();
-  expect(boton()).toHaveFocus();
-  userEvent.keyboard("{Enter}");
-  expect(boton()).toHaveAttribute("aria-pressed", "true");
-  userEvent.keyboard(" ");
-  expect(boton()).toHaveAttribute("aria-pressed", "false");
+  expect(selector()).toHaveFocus();
+  userEvent.selectOptions(selector(), "deuteranopia");
+  expect(selector()).toHaveValue("deuteranopia");
 });
 
 test("al montarse no escribe la preferencia: sólo se guarda cuando la persona la cambia", () => {

@@ -5,7 +5,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { iniciarModoDaltonico } from "./vision";
 
-// antes del primer render: quien ya eligió el modo daltónico no ve la paleta normal ni por un instante
+// antes del primer render: aplicar la paleta elegida evita un cambio de colores al cargar
 iniciarModoDaltonico();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
