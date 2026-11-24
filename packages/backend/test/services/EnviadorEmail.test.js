@@ -24,18 +24,44 @@ describe("EnviadorEmail", () => {
         delete process.env.EMAIL_FROM;
     });
 
-    test("sin SMTP_HOST ni transporte simula el envio por consola", async () => {
+    test("sin SMTP_HOST ni transporte simula el envio sin loguear destinatario ni texto", async () => {
         delete process.env.SMTP_HOST;
-        const consola = jest.spyOn(console, "log").mockImplementation(() => {});
+        const consola = jest.spyOn(console, "info").mockImplementation(() => {});
 
-        await new EnviadorEmail().enviar(medio, notificacion);
+        const resultado = await new EnviadorEmail().enviar(medio, notificacion);
 
-        expect(consola).toHaveBeenCalledWith(expect.stringContaining("[EMAIL] a ana@mail.com"));
+        expect(resultado).toEqual({ simulado: true });
+        expect(consola).toHaveBeenCalledWith(expect.stringContaining("[EMAIL SIMULADO]"));
+        const logueado = consola.mock.calls.flat().join(" ");
+        expect(logueado).not.toContain("ana@mail.com");
+        expect(logueado).not.toContain(notificacion.texto);
+    });
+
+    test("en producción sin SMTP_HOST falla en vez de simular", async () => {
+        delete process.env.SMTP_HOST;
+        const entorno = process.env.NODE_ENV;
+        process.env.NODE_ENV = "production";
+        try {
+            await expect(new EnviadorEmail().enviar(medio, notificacion)).rejects.toMatchObject({ code: "SMTP_CONFIG" });
+        } finally {
+            process.env.NODE_ENV = entorno;
+        }
+    });
+
+    test("con transporte pero sin remitente configurado falla", async () => {
+        delete process.env.EMAIL_FROM;
+        delete process.env.SMTP_USER;
+        const transporte = { sendMail: jest.fn() };
+
+        await expect(new EnviadorEmail(transporte).enviar(medio, notificacion)).rejects.toMatchObject({ code: "SMTP_CONFIG" });
+        expect(transporte.sendMail).not.toHaveBeenCalled();
     });
 
     test("si el servidor de correo falla, el error se propaga a quien llama", async () => {
+        process.env.EMAIL_FROM = "plataforma@codigoavoluntad.org";
         const transporte = { sendMail: jest.fn().mockRejectedValue(new Error("SMTP caido")) };
 
         await expect(new EnviadorEmail(transporte).enviar(medio, notificacion)).rejects.toThrow("SMTP caido");
+        delete process.env.EMAIL_FROM;
     });
 });

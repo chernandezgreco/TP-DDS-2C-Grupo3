@@ -222,7 +222,10 @@ export class LinkedInService {
       if (!participacion)
         throw new ForbiddenError("Sólo podés compartir logros de proyectos en los que colaborás.");
     }
-    const logro = proyecto.logros.find((item) => item.id === logroId);
+    // los logros guardados antes de persistir `id` sólo tienen `_id`
+    const logro = proyecto.logros.find(
+      (item) => (item.id || item._id?.toString()) === logroId,
+    );
     if (!logro) throw new NotFoundError("Logro no encontrado.");
 
     const apiVersion = process.env.LINKEDIN_API_VERSION || "202610";

@@ -1,15 +1,11 @@
-// Controla la paleta definida en App.css: que el modo daltónico sólo redefina variables existentes,
+// Controla las paletas definidas en App.css: que cada modo de color sólo redefina variables existentes,
 // que no quede ninguna variable sin definir y que los textos cumplan contraste AA (WCAG 1.4.3).
 import fs from "fs";
 import path from "path";
+import { MODOS_COLOR } from "./vision";
 
 const css = fs.readFileSync(path.join(__dirname, "App.css"), "utf8");
 
-const bloque = (selector) => {
-  const inicio = css.indexOf(`${selector} {`);
-  if (inicio < 0) throw new Error(`No se encontró ${selector} en App.css`);
-  return css.slice(inicio, css.indexOf("}", inicio));
-};
 const variables = (texto) =>
   Object.fromEntries(
     [...texto.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map(([, n, v]) => [
@@ -23,7 +19,32 @@ const normal = Object.assign(
   {},
   ...[...css.matchAll(/(^|\n):root \{([^}]*)\}/g)].map((m) => variables(m[2])),
 );
-const daltonico = variables(bloque(':root[data-vision="daltonico"]'));
+
+// cada modo junta, en orden, los bloques `:root[data-vision="..."]` que lo nombran:
+// el bloque compartido por todos y después el propio del modo
+const bloquesDeVision = [
+  ...css.matchAll(
+    /(^|\n)((?::root\[data-vision="[\w-]+"\],?\s*)+)\{([^}]*)\}/g,
+  ),
+].map((m) => ({
+  modos: [...m[2].matchAll(/data-vision="([\w-]+)"/g)].map((x) => x[1]),
+  vars: variables(m[3]),
+}));
+const redefinicionesDe = (modo) =>
+  Object.assign(
+    {},
+    ...bloquesDeVision.filter((b) => b.modos.includes(modo)).map((b) => b.vars),
+  );
+
+const modosAlternativos = MODOS_COLOR.filter((m) => m !== "normal");
+// protanopia y deuteranopia no distinguen rojo de verde; tritanopia sí ve el verde
+const modosRojoVerde = ["protanopia", "deuteranopia"];
+
+test("cada modo de color alternativo tiene su paleta en App.css", () => {
+  for (const modo of modosAlternativos) {
+    expect(Object.keys(redefinicionesDe(modo)).length).toBeGreaterThan(0);
+  }
+});
 
 const luminancia = (hex) => {
   const [r, g, b] = [1, 3, 5]
@@ -54,8 +75,8 @@ const esVerde = (hex) => {
   return h !== null && h >= 60 && h <= 175;
 };
 
-test("en modo daltónico no queda ningún verde, ni siquiera los fondos claros", () => {
-  const paleta = { ...normal, ...daltonico };
+test.each(modosRojoVerde)("en modo %s no queda ningún verde, ni siquiera los fondos claros", (modo) => {
+  const paleta = { ...normal, ...redefinicionesDe(modo) };
   const verdes = Object.entries(paleta).filter(
     ([, v]) => /^#[0-9a-f]{6}/i.test(v) && esVerde(v.slice(0, 7)),
   );
@@ -77,17 +98,18 @@ test("fuera de la paleta no hay colores verdes escritos a mano (deben ser variab
   expect(sueltos).toEqual([]);
 });
 
-test("los tonos de la interfaz conservan la luminancia: los contrastes son iguales en ambos modos", () => {
+test.each(modosAlternativos)("en modo %s los tonos de la interfaz conservan la luminancia de la paleta normal", (modo) => {
+  const alternativa = { ...normal, ...redefinicionesDe(modo) };
   const tonos = Object.keys(normal).filter((n) => n.startsWith("--ui-"));
   expect(tonos.length).toBeGreaterThan(0);
   for (const n of tonos) {
-    const [a, b] = [normal[n], daltonico[n]].map((v) => v.slice(0, 7));
+    const [a, b] = [normal[n], alternativa[n]].map((v) => v.slice(0, 7));
     expect(contraste(a, b)).toBeLessThan(1.02);
   }
 });
 
-test("el modo daltónico sólo redefine variables que existen en la paleta normal", () => {
-  const desconocidas = Object.keys(daltonico).filter((n) => !(n in normal));
+test.each(modosAlternativos)("el modo %s sólo redefine variables que existen en la paleta normal", (modo) => {
+  const desconocidas = Object.keys(redefinicionesDe(modo)).filter((n) => !(n in normal));
   expect(desconocidas).toEqual([]);
 });
 
@@ -109,7 +131,7 @@ const paresDeTexto = [
 
 describe.each([
   ["normal", normal],
-  ["daltónica", { ...normal, ...daltonico }],
+  ...modosAlternativos.map((modo) => [modo, { ...normal, ...redefinicionesDe(modo) }]),
 ])("paleta %s", (_, paleta) => {
   test.each(paresDeTexto)("%s sobre %s cumple AA (4.5:1)", (texto, fondo) => {
     expect(contraste(paleta[texto], paleta[fondo])).toBeGreaterThanOrEqual(4.5);

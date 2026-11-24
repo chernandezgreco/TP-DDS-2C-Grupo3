@@ -59,7 +59,7 @@ describe("NotificacionService", () => {
         });
 
         datos = { colaboradoraId: colaboradora.id, colectivoId: colectivo.id, proyectoId: proyecto.id, texto: "Te necesitamos" };
-        consola = jest.spyOn(console, "log").mockImplementation(() => {});
+        consola = jest.spyOn(console, "info").mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -74,12 +74,19 @@ describe("NotificacionService", () => {
     });
 
     test("la replica por cada medio de contacto", async () => {
-        const { mediosUsados } = await NotificacionService.crear(datos);
+        const { mediosUsados, mediosSimulados } = await NotificacionService.crear(datos);
 
         expect(mediosUsados).toEqual([TipoMedioContacto.EMAIL, TipoMedioContacto.SMS]);
+        // sin SMTP ni Twilio, fuera de producción los dos envíos se simulan
+        expect(mediosSimulados).toEqual([TipoMedioContacto.EMAIL, TipoMedioContacto.SMS]);
         expect(consola).toHaveBeenCalledTimes(2);
-        expect(consola).toHaveBeenCalledWith(expect.stringContaining("[EMAIL] a ana@mail.com"));
-        expect(consola).toHaveBeenCalledWith(expect.stringContaining("[SMS] a 1157612305"));
+        expect(consola).toHaveBeenCalledWith(expect.stringContaining("[EMAIL SIMULADO]"));
+        expect(consola).toHaveBeenCalledWith(expect.stringContaining("[SMS SIMULADO]"));
+        // los logs no exponen el contenido ni los datos de contacto completos
+        const logueado = consola.mock.calls.flat().join(" ");
+        expect(logueado).not.toContain("ana@mail.com");
+        expect(logueado).not.toContain("1157612305");
+        expect(logueado).not.toContain("Te necesitamos");
     });
 
     test("si no tiene medios igual crea la interna y no envía nada", async () => {
@@ -93,7 +100,8 @@ describe("NotificacionService", () => {
     });
 
     test("si falla el email la interna queda guardada y el otro medio igual se envía", async () => {
-        const envio = jest.spyOn(EnviadorEmail.prototype, "enviar").mockRejectedValue(new Error("SMTP caido"));
+        const caido = Object.assign(new Error("SMTP caido para ana@mail.com"), { code: "ECONNREFUSED" });
+        const envio = jest.spyOn(EnviadorEmail.prototype, "enviar").mockRejectedValue(caido);
         const errores = jest.spyOn(console, "error").mockImplementation(() => {});
 
         const { notificacion, mediosUsados, mediosFallidos } = await NotificacionService.crear(datos);
@@ -102,8 +110,9 @@ describe("NotificacionService", () => {
         expect(await NotificacionModel.countDocuments()).toBe(1);
         expect(mediosUsados).toEqual([TipoMedioContacto.SMS]);
         expect(mediosFallidos).toEqual([TipoMedioContacto.EMAIL]);
-        // el log incluye el motivo, para poder diagnosticarlo en el servidor
-        expect(errores).toHaveBeenCalledWith(expect.stringContaining("SMTP caido"));
+        // el log incluye el código del error para diagnosticarlo, pero no el mensaje (puede traer datos personales)
+        expect(errores).toHaveBeenCalledWith(expect.stringContaining("ECONNREFUSED"));
+        expect(errores).not.toHaveBeenCalledWith(expect.stringContaining("ana@mail.com"));
         envio.mockRestore();
         errores.mockRestore();
     });

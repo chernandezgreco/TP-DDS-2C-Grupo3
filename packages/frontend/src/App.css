@@ -72,6 +72,8 @@
   --ui-count-texto: #657566;
   --ui-modal-backdrop-fondo: #19312688;
   --ui-modal-sombra: #182d2844;
+  --ui-toast-sombra: #102b1c18;
+  --ui-menu-sombra: #102b1c24;
   --ui-textarea-borde: #cfdad2;
   --ui-textarea-texto: #294035;
   --ui-label-small-texto: #667569;
@@ -168,6 +170,8 @@
   --ui-count-texto: #697279;
   --ui-modal-backdrop-fondo: #1e2e3a88;
   --ui-modal-sombra: #1c2b3544;
+  --ui-toast-sombra: #1a263b18;
+  --ui-menu-sombra: #1a263b24;
   --ui-textarea-borde: #d2d8dc;
   --ui-textarea-texto: #2e3d48;
   --ui-label-small-texto: #697379;
@@ -893,7 +897,7 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  box-shadow: 0 5px 18px #102b1c18;
+  box-shadow: 0 5px 18px var(--ui-toast-sombra);
   animation: aparecer 180ms ease-out;
 }
 .notice-dismiss {
@@ -952,7 +956,7 @@ h3 {
   background: #fff;
   border: 1px solid var(--ui-button-secondary-borde);
   border-radius: 12px;
-  box-shadow: 0 12px 32px #102b1c24;
+  box-shadow: 0 12px 32px var(--ui-menu-sombra);
 }
 .user-menu-panel > b,
 .user-menu-panel > small {
