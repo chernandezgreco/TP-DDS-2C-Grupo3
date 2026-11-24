@@ -45,6 +45,8 @@ export const ColectivoModel = mongoose.model("Colectivo", colectivoSchema);
 // perfiles y logros usan el _id de Mongo (ObjectId); el dominio lo ve como "id" (texto)
 const perfilSchema = new mongoose.Schema(
   {
+    // Mantiene la clave de perfiles creados por la versión anterior, que guardaba `id`.
+    id: { type: String, default: undefined },
     descripcionPerfil: { type: String, required: true },
     fechaLimite: { type: Date, default: null },
     cantidadLimite: { type: Number, min: 1, default: null },
@@ -65,10 +67,13 @@ const perfilSchema = new mongoose.Schema(
       contratacionEventual: { type: Boolean, required: true },
     },
   },
+  { id: false },
 );
 
 const logroSchema = new mongoose.Schema(
   {
+    // Compatibilidad con logros históricos que usaban `id` en vez de `_id`.
+    id: { type: String, default: undefined },
     descripcion: { type: String, required: true, trim: true },
     porcentajeCompletitud: {
       type: Number,
@@ -80,6 +85,7 @@ const logroSchema = new mongoose.Schema(
     enlaceFuentePublica: { type: String, default: null },
     fechaCreacion: { type: Date, default: Date.now },
   },
+  { id: false },
 );
 
 const proyectoSchema = new mongoose.Schema({
@@ -187,6 +193,8 @@ const colaboracionSchema = new mongoose.Schema({
   // se completa al dar de baja; una colaboración dada de baja queda como historial
   fechaBaja: { type: Date, default: null },
 });
+colaboracionSchema.index({ proyectoId: 1, estado: 1, perfilId: 1 });
+colaboracionSchema.index({ colaboradoraId: 1, estado: 1 });
 export const ColaboracionModel = mongoose.model(
   "Colaboracion",
   colaboracionSchema,
@@ -200,6 +208,7 @@ const notificacionSchema = new mongoose.Schema({
   texto: { type: String, required: true },
   fecha: { type: Date, default: Date.now },
 });
+notificacionSchema.index({ colaboradoraId: 1, fecha: -1 });
 export const NotificacionModel = mongoose.model(
   "Notificacion",
   notificacionSchema,
@@ -218,6 +227,8 @@ const postulacionSchema = new mongoose.Schema({
   },
   fechaCreacion: { type: Date, default: Date.now },
 });
+postulacionSchema.index({ proyectoId: 1, estado: 1, fechaCreacion: -1 });
+postulacionSchema.index({ colaboradoraId: 1, fechaCreacion: -1 });
 export const PostulacionModel = mongoose.model(
   "Postulacion",
   postulacionSchema,
@@ -269,6 +280,7 @@ const denunciaSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+denunciaSchema.index({ estado: 1, fechaCreacion: -1 });
 export const DenunciaModel = mongoose.model(
   "Denuncia",
   denunciaSchema,

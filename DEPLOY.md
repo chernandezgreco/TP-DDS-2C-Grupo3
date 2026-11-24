@@ -32,7 +32,9 @@ Se cargan en Dashboard → Environment del servicio. Las claves van solo ahí, n
 | `ALLOWED_ORIGINS` | `https://codigo-a-voluntad-g3.onrender.com` |
 | `PUBLIC_APP_URL` | `https://codigo-a-voluntad-g3.onrender.com` (enlaces de RSS y vuelta de LinkedIn) |
 | `ADMIN_API_KEY` | texto aleatorio de 32 caracteres o más |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | la cuenta de correo del grupo. Sin `SMTP_HOST` el email se simula por consola |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | la cuenta de correo del grupo. En desarrollo, sin SMTP se simula; en producción se informa el canal como fallido |
+| `TWILIO_SEND_REAL` | `true` solo cuando quieran enviar SMS/WhatsApp reales; el valor predeterminado evita envíos accidentales |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | credenciales y remitentes Twilio. Nunca subirlos al repositorio. Números en formato E.164; WhatsApp usa `whatsapp:+...` |
 | `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` | los de la app de LinkedIn del grupo |
 | `LINKEDIN_REDIRECT_URI` | `https://codigo-a-voluntad-g3.onrender.com/api/integraciones/linkedin/callback` |
 | `LINKEDIN_TOKEN_ENCRYPTION_KEY` | 32 bytes en Base64 (ver `.env.example`) |
@@ -40,7 +42,9 @@ Se cargan en Dashboard → Environment del servicio. Las claves van solo ahí, n
 
 `PORT` lo pone Render. Sin las variables de LinkedIn la app funciona igual y solo esa integración responde 503.
 
-La URL de `LINKEDIN_REDIRECT_URI` tiene que estar cargada tal cual en la app de LinkedIn (https://www.linkedin.com/developers → la app → Auth → Authorized redirect URLs). Para probar LinkedIn en local se puede registrar también una segunda URL: `http://localhost:8000/api/integraciones/linkedin/callback`, o la de un túnel HTTPS (por ejemplo `cloudflared tunnel --url http://localhost:8000`). El túnel gratuito cambia de URL cada vez que se levanta, así que hay que actualizarla en LinkedIn y en el `.env`.
+La URL de `LINKEDIN_REDIRECT_URI` tiene que estar cargada tal cual en la app de LinkedIn (https://www.linkedin.com/developers → la app → Auth → Authorized redirect URLs). Para probar LinkedIn en local, usar un túnel HTTPS (por ejemplo `cloudflared tunnel --url http://localhost:8000`) y registrar su callback en LinkedIn y en el `.env`. El túnel gratuito cambia de URL cada vez que se levanta, así que hay que actualizarla en ambos lugares.
+
+Los canales SMS y WhatsApp implementan el patrón Strategy con el mismo método `enviar()`. Para enviar con Twilio, habilitar `TWILIO_SEND_REAL=true` y completar credenciales/remitentes. En desarrollo, por defecto solo simula y nunca imprime el teléfono completo ni el contenido. En producción, los canales sin configurar se devuelven como fallidos; la notificación interna queda guardada. Twilio usa la API HTTPS de mensajes con autenticación Basic; los errores devueltos al cliente/log omiten el contenido y los datos del destinatario.
 
 ### 3. Deploy y verificación
 

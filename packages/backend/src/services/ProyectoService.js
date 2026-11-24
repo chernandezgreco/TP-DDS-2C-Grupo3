@@ -48,11 +48,13 @@ const aDominio = (doc) =>
       doc.titulo,
       doc.descripcion,
       doc.colectivoId,
-      doc.perfiles.map((perfil) => crearPerfil(perfil._id.toString(), perfil)),
+      doc.perfiles.map((perfil) =>
+        crearPerfil(perfil.id || perfil._id.toString(), perfil),
+      ),
       doc.logros.map(
         (logro) =>
           new Logro(
-            logro._id.toString(),
+            logro.id || logro._id.toString(),
             logro.descripcion,
             logro.porcentajeCompletitud,
             logro.enlaceSistema,
@@ -103,7 +105,8 @@ export const aDocumento = (proyecto) => ({
   fechaCierre: proyecto.fechaCierre,
   etiquetas: proyecto.etiquetas,
   perfiles: proyecto.perfiles.map((perfil) => ({
-    _id: perfil.id,
+    _id: esIdValido(perfil.id) ? perfil.id : undefined,
+    id: perfil.id,
     descripcionPerfil: perfil.descripcionPerfil,
     fechaLimite: perfil.fechaLimite,
     cantidadLimite: perfil.cantidadLimite,
@@ -120,7 +123,8 @@ export const aDocumento = (proyecto) => ({
     },
   })),
   logros: proyecto.logros.map((logro) => ({
-    _id: logro.id,
+    _id: esIdValido(logro.id) ? logro.id : undefined,
+    id: logro.id,
     descripcion: logro.descripcion,
     porcentajeCompletitud: logro.porcentajeCompletitud,
     enlaceSistema: logro.enlaceSistema,

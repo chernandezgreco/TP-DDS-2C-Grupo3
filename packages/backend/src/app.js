@@ -7,6 +7,7 @@ import adicionalesRoutes from "./routes/Adicionales.js";
 import { crearLimitePublico } from "./middlewares/limitePublico.js";
 import express from "express";
 import cors from "cors";
+import mongoose from "mongoose";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -53,6 +54,14 @@ export function crearApp({
 
   app.get("/health", (req, res) => {
     res.status(200).json({ status: "OK", timestamp: new Date() });
+  });
+
+  app.get("/ready", (req, res) => {
+    const disponible = mongoose.connection.readyState === 1;
+    res.status(disponible ? 200 : 503).json({
+      status: disponible ? "READY" : "NOT_READY",
+      database: disponible ? "connected" : "disconnected",
+    });
   });
 
   app.use("/api", crearLimitePublico());

@@ -42,15 +42,27 @@ export class EnviadorEmail {
     async enviar(medio, notificacion) {
         const transporte = this.obtenerTransporte();
         if (!transporte) {
-            console.log(`[EMAIL] a ${medio.valor}: ${notificacion.texto}`);
-            return;
+            if (process.env.NODE_ENV === "production") {
+                const error = new Error("El envío de email no está configurado en producción.");
+                error.code = "SMTP_CONFIG";
+                throw error;
+            }
+            console.info("[EMAIL SIMULADO] envío real desactivado.");
+            return { simulado: true };
+        }
+        const remitente = process.env.EMAIL_FROM || process.env.SMTP_USER;
+        if (!remitente) {
+            const error = new Error("Falta configurar EMAIL_FROM o SMTP_USER para enviar correo.");
+            error.code = "SMTP_CONFIG";
+            throw error;
         }
         // solo "text": el contenido nunca se interpreta como HTML
         await transporte.sendMail({
-            from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+            from: remitente,
             to: medio.valor,
             subject: ASUNTO,
             text: notificacion.texto,
         });
+        return { simulado: false };
     }
 }

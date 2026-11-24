@@ -56,19 +56,24 @@ export class NotificacionService {
         const mediosUsados = colaboradora.mediosContacto
             .filter((medio, indice) => resultados[indice].status === "fulfilled")
             .map((medio) => medio.tipo);
+        const mediosSimulados = colaboradora.mediosContacto
+            .filter((medio, indice) =>
+                resultados[indice].status === "fulfilled" && resultados[indice].value?.simulado,
+            )
+            .map((medio) => medio.tipo);
         const mediosFallidos = colaboradora.mediosContacto
             .filter((medio, indice) => resultados[indice].status === "rejected")
             .map((medio) => medio.tipo);
-        // se registra el motivo (codigo o mensaje del error) para poder diagnosticarlo en los logs
+        // No se registran texto, teléfono, email ni mensajes de proveedores en los logs.
         resultados.forEach(
             (resultado, indice) =>
                 resultado.status === "rejected" &&
                 console.error(
-                    `No se pudo enviar la notificación por ${colaboradora.mediosContacto[indice].tipo}: ${resultado.reason?.code ?? resultado.reason?.message}`,
+                    `No se pudo enviar la notificación por ${colaboradora.mediosContacto[indice].tipo}: ${resultado.reason?.code ?? "FALLO_DE_ENVIO"}`,
                 ),
         );
 
-        return { notificacion, mediosUsados, mediosFallidos };
+        return { notificacion, mediosUsados, mediosSimulados, mediosFallidos };
     }
 
     static async listarDeColaboradora(colaboradoraId) {
