@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { api } from "./api";
+import AvisoFlotante from "./AvisoFlotante";
 
 export default function LinkedInIntegration({ actorType, onImported }) {
   const [status, setStatus] = useState(null);
@@ -100,7 +101,7 @@ export default function LinkedInIntegration({ actorType, onImported }) {
         </>
       )}
       {error && <p role="alert" className="error">{error}</p>}
-      {notice && <p role="status" className="success">{notice}</p>}
+      <AvisoFlotante mensaje={notice} onCerrar={() => setNotice("")} />
     </section>
   );
 }

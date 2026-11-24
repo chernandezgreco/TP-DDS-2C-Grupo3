@@ -892,13 +892,32 @@ h3 {
 @keyframes giro {
   to { transform: rotate(360deg); }
 }
+/* avisos de confirmación: arriba a la derecha, debajo del header para no tapar el menú de usuario,
+   y por encima de los modales. El contenedor no captura clics; sólo los avisos. */
+.toast-stack {
+  position: fixed;
+  top: 96px;
+  right: 24px;
+  z-index: 200;
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
 .notice-toast {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  margin: 0 0 10px;
+  pointer-events: auto;
+  border: 1px solid currentColor;
   box-shadow: 0 5px 18px var(--ui-toast-sombra);
   animation: aparecer 180ms ease-out;
+}
+@media (max-width: 760px) {
+  .toast-stack {
+    top: 80px;
+    right: 16px;
+  }
 }
 .notice-dismiss {
   min-width: 36px;

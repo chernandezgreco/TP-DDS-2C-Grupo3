@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
 import Markdown from "./Markdown";
+import AvisoFlotante from "./AvisoFlotante";
 export default function Terminos() {
   const [terms, setTerms] = useState(null),
     [error, setError] = useState("");
@@ -90,11 +91,7 @@ function AdministracionTerminos({ onPublish }) {
           {error}
         </p>
       )}
-      {notice && (
-        <p role="status" className="success">
-          {notice}
-        </p>
-      )}
+      <AvisoFlotante mensaje={notice} onCerrar={() => setNotice("")} />
       {state && (
         <>
           <h2>Evaluación de proyectos</h2>

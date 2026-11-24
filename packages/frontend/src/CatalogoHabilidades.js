@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import Markdown from "./Markdown";
 import { ResourceForm } from "./forms";
 import { api } from "./api";
+import AvisoFlotante from "./AvisoFlotante";
 export default function CatalogoHabilidades({ skills, onSaved }) {
   const [key, setKey] = useState(""),
     [busy, setBusy] = useState(false),
@@ -41,11 +42,7 @@ export default function CatalogoHabilidades({ skills, onSaved }) {
             {error}
           </p>
         )}
-        {notice && (
-          <p role="status" className="success">
-            {notice}
-          </p>
-        )}
+        <AvisoFlotante mensaje={notice} onCerrar={() => setNotice("")} />
         <ResourceForm
           fields={[
             {

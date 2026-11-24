@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { api } from "./api";
 import EstadoBadge from "./EstadoBadge";
+import AvisoFlotante from "./AvisoFlotante";
 
 const estados = ["pendiente", "en_revision", "resuelta", "desestimada"];
 const idOf = (denuncia) => denuncia?._id || denuncia?.id;
@@ -118,7 +119,7 @@ export default function DenunciasAdmin() {
       )}
 
       {error && <p role="alert" className="error">{error}</p>}
-      {notice && <p role="status" className="success">{notice}</p>}
+      <AvisoFlotante mensaje={notice} onCerrar={() => setNotice("")} />
 
       {adminKey && !denuncias.length && !busy && !error && (
         <div className="empty">

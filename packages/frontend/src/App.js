@@ -12,6 +12,7 @@ import TareasProyecto from "./TareasProyecto";
 import ListaEtiquetas from "./ListaEtiquetas";
 import BotonModoDaltonico from "./BotonModoDaltonico";
 import EstadoBadge from "./EstadoBadge";
+import AvisoFlotante from "./AvisoFlotante";
 import React, { useEffect, useRef, useState } from "react";
 import { api, idOf } from "./api";
 import {
@@ -107,11 +108,6 @@ export default function App() {
     [anonymous, setAnonymous] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
-  useEffect(() => {
-    if (!notice) return undefined;
-    const timer = window.setTimeout(() => setNotice(""), 6500);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
   useEffect(() => {
     if (!userMenuOpen) return undefined;
     const cerrarFuera = (event) => {
@@ -582,19 +578,8 @@ export default function App() {
                 {page === "mensajes" ? "Cargando mensajes…" : "Cargando información…"}
               </p>
             )}
-            {notice && (
-              <div className="success notice-toast">
-                <span>✓ {notice}</span>
-                <button
-                  className="notice-dismiss"
-                  aria-label="Cerrar mensaje"
-                  onClick={() => setNotice("")}
-                >
-                  ×
-                </button>
-              </div>
-            )}
           </div>
+          <AvisoFlotante mensaje={notice} onCerrar={() => setNotice("")} />
           {error && (
             <div role="alert" className="error">
               {error}
