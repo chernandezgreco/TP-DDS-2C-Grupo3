@@ -116,7 +116,7 @@ Están todas en [`.env.example`](packages/backend/.env.example) con su explicaci
 | `ADMIN_API_KEY` | Clave de administración (habilidades, términos, denuncias). Mínimo 32 caracteres |
 | `PUBLIC_RATE_LIMIT` / `PUBLIC_RATE_WINDOW_MS` | Límite de pedidos por IP (120 por minuto por defecto) |
 | `EXPORT_RATE_LIMIT` / `EXPORT_RATE_WINDOW_MS` | Límite de descargas de "Mis datos" por cuenta |
-| `SMTP_*` / `EMAIL_FROM` | Envío real de emails. Sin `SMTP_HOST` se simula por consola |
+| `SENDGRID_API_KEY` / `EMAIL_FROM` | Envío real de emails con la API de SendGrid. Sin la clave se simula por consola |
 | `LINKEDIN_*` | Integración con LinkedIn. Sin estas variables esa función responde 503 y el resto anda igual |
 
 Las claves reales van solo en el `.env` local o en el panel de Render, nunca en el repo.

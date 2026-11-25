@@ -52,7 +52,7 @@ node "Render: servicio único (imagen Docker)" as render {
 }
 
 database "MongoDB Atlas (M0)\n(local: mongo:7 en Docker)" as mongo
-cloud "Servidor SMTP\n(nodemailer)" as smtp
+cloud "SendGrid\n(API HTTPS)" as smtp
 cloud "LinkedIn\n(OAuth 2.0 + API)" as linkedin
 
 usuario --> spa

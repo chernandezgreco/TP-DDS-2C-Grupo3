@@ -24,10 +24,7 @@ services:
       SERVER_PORT: 3000
       ALLOWED_ORIGINS: http://localhost:3000
       MONGO_URI: mongodb://mongo:27017/codigo_a_voluntad
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
       EMAIL_FROM: ${EMAIL_FROM:-}
     depends_on:
       mongo:
