@@ -12,12 +12,8 @@ const enmascarar = (telefono) =>
 
 function cargarConfiguracion(tipo) {
   const { TWILIO_SEND_REAL, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } = process.env;
+  // sin el flag queda simulado a proposito, tambien en produccion (el front lo muestra como simulado)
   if (TWILIO_SEND_REAL !== "true") {
-    if (process.env.NODE_ENV === "production") {
-      throw errorConfiguracion(
-        "Los envíos SMS/WhatsApp reales no están habilitados en producción.",
-      );
-    }
     return null;
   }
 
