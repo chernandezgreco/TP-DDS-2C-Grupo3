@@ -158,7 +158,7 @@ export const pathsAuth = {
               type: "object",
               required: ["tipo", "valor"],
               properties: {
-                tipo: { type: "string", enum: ["EMAIL", "WHATSAPP", "SMS"] },
+                tipo: { type: "string", enum: ["EMAIL", "WHATSAPP", "SMS", "TELEGRAM"] },
                 valor: { type: "string" },
               },
             },

@@ -4,6 +4,14 @@ import { TipoMedioContacto } from "./TipoMedioContacto.js";
 
 const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FORMATO_TELEFONO = /^\+?\d{8,15}$/;
+// en Telegram se guarda el chat id numerico, no el usuario
+const FORMATO_TELEGRAM = /^\d{5,15}$/;
+const FORMATOS = {
+    [TipoMedioContacto.EMAIL]: FORMATO_EMAIL,
+    [TipoMedioContacto.WHATSAPP]: FORMATO_TELEFONO,
+    [TipoMedioContacto.SMS]: FORMATO_TELEFONO,
+    [TipoMedioContacto.TELEGRAM]: FORMATO_TELEGRAM,
+};
 
 export class MedioContacto {
     constructor(tipo, valor) {
@@ -18,8 +26,7 @@ export class MedioContacto {
         const esEmail = tipo === TipoMedioContacto.EMAIL;
         // en telefonos se aceptan espacios y guiones
         const limpio = esEmail ? valor.trim() : valor.replace(/[\s-]/g, "");
-        const formato = esEmail ? FORMATO_EMAIL : FORMATO_TELEFONO;
-        if (!formato.test(limpio)) {
+        if (!FORMATOS[tipo].test(limpio)) {
             throw new DomainError(`El valor no tiene un formato válido para ${tipo}`, { campo: "valor" });
         }
 

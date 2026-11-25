@@ -166,6 +166,7 @@ package "Personas colaboradoras" {
         EMAIL
         WHATSAPP
         SMS
+        TELEGRAM
     }
 
     class Habilidad {

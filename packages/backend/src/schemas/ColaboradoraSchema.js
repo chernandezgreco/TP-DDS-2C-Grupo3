@@ -78,7 +78,7 @@ export const agregarHabilidadSchema = z.object(
 export const medioContactoSchema = z.object(
   {
     tipo: z.enum(Object.values(TipoMedioContacto), {
-      error: "El tipo debe ser EMAIL, WHATSAPP o SMS",
+      error: "El tipo debe ser EMAIL, WHATSAPP, SMS o TELEGRAM",
     }),
     valor: z.string({ error: "El valor del medio de contacto es obligatorio" }),
   },

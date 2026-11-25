@@ -33,6 +33,7 @@ Se cargan en Dashboard → Environment del servicio. Las claves van solo ahí, n
 | `PUBLIC_APP_URL` | `https://codigo-a-voluntad-g3.onrender.com` (enlaces de RSS y vuelta de LinkedIn) |
 | `ADMIN_API_KEY` | texto aleatorio de 32 caracteres o más |
 | `SENDGRID_API_KEY`, `EMAIL_FROM` | clave de API de SendGrid y remitente verificado. El email va por HTTPS porque Render gratis bloquea los puertos SMTP (25, 465 y 587). En desarrollo, sin clave se simula; en producción se informa el canal como fallido |
+| `TELEGRAM_BOT_TOKEN` | token del bot de Telegram del grupo (se crea con @BotFather). Va por HTTPS, Render no lo bloquea |
 | `TWILIO_SEND_REAL` | `true` solo cuando quieran enviar SMS/WhatsApp reales; sin cargarla, SMS y WhatsApp quedan simulados |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM` | credenciales y remitentes Twilio. Nunca subirlos al repositorio. Números en formato E.164; WhatsApp usa `whatsapp:+...` |
 | `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` | los de la app de LinkedIn del grupo |
@@ -40,7 +41,7 @@ Se cargan en Dashboard → Environment del servicio. Las claves van solo ahí, n
 | `LINKEDIN_TOKEN_ENCRYPTION_KEY` | 32 bytes en Base64 (ver `.env.example`) |
 | `LINKEDIN_API_VERSION` | `202610` |
 
-`PORT` lo pone Render. Sin las variables de LinkedIn la app funciona igual y solo esa integración responde 503.
+`PORT` y `RENDER_EXTERNAL_URL` los pone Render. Con `RENDER_EXTERNAL_URL` el backend se pinguea a sí mismo (`/health`) cada 10 minutos, porque el plan gratis apaga el servicio a los 15 minutos sin pedidos y el primer pedido después tarda casi un minuto. Sin las variables de LinkedIn la app funciona igual y solo esa integración responde 503.
 
 La URL de `LINKEDIN_REDIRECT_URI` tiene que estar cargada tal cual en la app de LinkedIn (https://www.linkedin.com/developers → la app → Auth → Authorized redirect URLs). Para probar LinkedIn en local, usar un túnel HTTPS (por ejemplo `cloudflared tunnel --url http://localhost:8000`) y registrar su callback en LinkedIn y en el `.env`. El túnel gratuito cambia de URL cada vez que se levanta, así que hay que actualizarla en ambos lugares.
 

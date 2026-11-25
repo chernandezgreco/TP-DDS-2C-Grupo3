@@ -8,12 +8,14 @@ import { ProyectoService } from "./ProyectoService.js";
 import { EnviadorEmail } from "./enviadores/EnviadorEmail.js";
 import { EnviadorWhatsapp } from "./enviadores/EnviadorWhatsapp.js";
 import { EnviadorSms } from "./enviadores/EnviadorSms.js";
+import { EnviadorTelegram } from "./enviadores/EnviadorTelegram.js";
 
 // un enviador por tipo de medio, todos con el mismo metodo enviar()
 const ENVIADORES = {
     [TipoMedioContacto.EMAIL]: new EnviadorEmail(),
     [TipoMedioContacto.WHATSAPP]: new EnviadorWhatsapp(),
     [TipoMedioContacto.SMS]: new EnviadorSms(),
+    [TipoMedioContacto.TELEGRAM]: new EnviadorTelegram(),
 };
 
 const aDominio = (doc) =>
