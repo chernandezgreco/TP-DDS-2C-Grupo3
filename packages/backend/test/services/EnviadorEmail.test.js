@@ -1,67 +1,83 @@
-import { describe, test, expect, jest, afterEach } from "@jest/globals";
+import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { EnviadorEmail } from "../../src/services/enviadores/EnviadorEmail.js";
 
 const medio = { valor: "ana@mail.com" };
 const notificacion = { texto: "Te necesitamos en el proyecto Plazas" };
+const respuestaOk = { ok: true, status: 202 };
 
 describe("EnviadorEmail", () => {
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
+    let entorno;
 
-    test("con un transporte configurado manda el mail como texto plano", async () => {
-        const transporte = { sendMail: jest.fn().mockResolvedValue({}) };
-        process.env.EMAIL_FROM = "plataforma@codigoavoluntad.org";
-
-        await new EnviadorEmail(transporte).enviar(medio, notificacion);
-
-        expect(transporte.sendMail).toHaveBeenCalledTimes(1);
-        const enviado = transporte.sendMail.mock.calls[0][0];
-        expect(enviado.to).toBe("ana@mail.com");
-        expect(enviado.from).toBe("plataforma@codigoavoluntad.org");
-        expect(enviado.text).toBe(notificacion.texto);
-        expect(enviado.html).toBeUndefined();
+    beforeEach(() => {
+        entorno = { ...process.env };
+        delete process.env.SENDGRID_API_KEY;
         delete process.env.EMAIL_FROM;
     });
 
-    test("sin SMTP_HOST ni transporte simula el envio sin loguear destinatario ni texto", async () => {
-        delete process.env.SMTP_HOST;
+    afterEach(() => {
+        process.env = entorno;
+        jest.restoreAllMocks();
+    });
+
+    test("con la clave configurada manda el mail a SendGrid como texto plano", async () => {
+        process.env.SENDGRID_API_KEY = "clave-de-prueba";
+        process.env.EMAIL_FROM = "plataforma@codigoavoluntad.org";
+        const hacerPedido = jest.fn().mockResolvedValue(respuestaOk);
+
+        const resultado = await new EnviadorEmail(hacerPedido).enviar(medio, notificacion);
+
+        expect(resultado).toEqual({ simulado: false });
+        expect(hacerPedido).toHaveBeenCalledTimes(1);
+        const [url, opciones] = hacerPedido.mock.calls[0];
+        expect(url).toBe("https://api.sendgrid.com/v3/mail/send");
+        expect(opciones.headers.Authorization).toBe("Bearer clave-de-prueba");
+        const cuerpo = JSON.parse(opciones.body);
+        expect(cuerpo.personalizations[0].to[0].email).toBe("ana@mail.com");
+        expect(cuerpo.from.email).toBe("plataforma@codigoavoluntad.org");
+        expect(cuerpo.content).toEqual([{ type: "text/plain", value: notificacion.texto }]);
+    });
+
+    test("sin clave simula el envio sin loguear destinatario ni texto", async () => {
+        const hacerPedido = jest.fn();
         const consola = jest.spyOn(console, "info").mockImplementation(() => {});
 
-        const resultado = await new EnviadorEmail().enviar(medio, notificacion);
+        const resultado = await new EnviadorEmail(hacerPedido).enviar(medio, notificacion);
 
         expect(resultado).toEqual({ simulado: true });
+        expect(hacerPedido).not.toHaveBeenCalled();
         expect(consola).toHaveBeenCalledWith(expect.stringContaining("[EMAIL SIMULADO]"));
         const logueado = consola.mock.calls.flat().join(" ");
         expect(logueado).not.toContain("ana@mail.com");
         expect(logueado).not.toContain(notificacion.texto);
     });
 
-    test("en producción sin SMTP_HOST falla en vez de simular", async () => {
-        delete process.env.SMTP_HOST;
-        const entorno = process.env.NODE_ENV;
+    test("en produccion sin clave falla en vez de simular", async () => {
         process.env.NODE_ENV = "production";
-        try {
-            await expect(new EnviadorEmail().enviar(medio, notificacion)).rejects.toMatchObject({ code: "SMTP_CONFIG" });
-        } finally {
-            process.env.NODE_ENV = entorno;
-        }
+
+        await expect(new EnviadorEmail(jest.fn()).enviar(medio, notificacion)).rejects.toMatchObject({ code: "EMAIL_CONFIG" });
     });
 
-    test("con transporte pero sin remitente configurado falla", async () => {
-        delete process.env.EMAIL_FROM;
-        delete process.env.SMTP_USER;
-        const transporte = { sendMail: jest.fn() };
+    test("con clave pero sin remitente falla y no llama a SendGrid", async () => {
+        process.env.SENDGRID_API_KEY = "clave-de-prueba";
+        const hacerPedido = jest.fn();
 
-        await expect(new EnviadorEmail(transporte).enviar(medio, notificacion)).rejects.toMatchObject({ code: "SMTP_CONFIG" });
-        expect(transporte.sendMail).not.toHaveBeenCalled();
+        await expect(new EnviadorEmail(hacerPedido).enviar(medio, notificacion)).rejects.toMatchObject({ code: "EMAIL_CONFIG" });
+        expect(hacerPedido).not.toHaveBeenCalled();
     });
 
-    test("si el servidor de correo falla, el error se propaga a quien llama", async () => {
+    test("si SendGrid rechaza el mail se propaga el error con el codigo HTTP", async () => {
+        process.env.SENDGRID_API_KEY = "clave-de-prueba";
         process.env.EMAIL_FROM = "plataforma@codigoavoluntad.org";
-        const transporte = { sendMail: jest.fn().mockRejectedValue(new Error("SMTP caido")) };
+        const hacerPedido = jest.fn().mockResolvedValue({ ok: false, status: 403 });
 
-        await expect(new EnviadorEmail(transporte).enviar(medio, notificacion)).rejects.toThrow("SMTP caido");
-        delete process.env.EMAIL_FROM;
+        await expect(new EnviadorEmail(hacerPedido).enviar(medio, notificacion)).rejects.toMatchObject({ code: "EMAIL_HTTP_403" });
+    });
+
+    test("si no hay conexion se propaga un error de red", async () => {
+        process.env.SENDGRID_API_KEY = "clave-de-prueba";
+        process.env.EMAIL_FROM = "plataforma@codigoavoluntad.org";
+        const hacerPedido = jest.fn().mockRejectedValue(new TypeError("fetch failed"));
+
+        await expect(new EnviadorEmail(hacerPedido).enviar(medio, notificacion)).rejects.toMatchObject({ code: "EMAIL_RED" });
     });
 });

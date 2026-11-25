@@ -77,7 +77,7 @@ describe("NotificacionService", () => {
         const { mediosUsados, mediosSimulados } = await NotificacionService.crear(datos);
 
         expect(mediosUsados).toEqual([TipoMedioContacto.EMAIL, TipoMedioContacto.SMS]);
-        // sin SMTP ni Twilio, fuera de producción los dos envíos se simulan
+        // sin SendGrid ni Twilio, fuera de produccion los dos envios se simulan
         expect(mediosSimulados).toEqual([TipoMedioContacto.EMAIL, TipoMedioContacto.SMS]);
         expect(consola).toHaveBeenCalledTimes(2);
         expect(consola).toHaveBeenCalledWith(expect.stringContaining("[EMAIL SIMULADO]"));

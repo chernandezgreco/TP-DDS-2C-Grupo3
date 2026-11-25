@@ -1,68 +1,52 @@
-import nodemailer from "nodemailer";
-
 const ASUNTO = "Nueva notificación de Código a Voluntad";
+const URL_SENDGRID = "https://api.sendgrid.com/v3/mail/send";
 const TIEMPO_MAXIMO_MS = 8000;
 
-// arma el transporte SMTP con las variables de entorno; sin SMTP_HOST devuelve null (envio simulado)
-const crearTransporteDesdeEntorno = () => {
-    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-    if (!SMTP_HOST) {
-        return null;
-    }
-    const puerto = Number(SMTP_PORT) || 587;
-    return nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: puerto,
-        secure: puerto === 465,
-        auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
-        // topes cortos: si el hosting bloquea el puerto SMTP, el envio falla rapido
-        // en vez de dejar colgado el pedido (por defecto nodemailer espera 2 minutos)
-        connectionTimeout: TIEMPO_MAXIMO_MS,
-        greetingTimeout: TIEMPO_MAXIMO_MS,
-        socketTimeout: TIEMPO_MAXIMO_MS,
-    });
-};
+const errorEmail = (mensaje, code) => Object.assign(new Error(mensaje), { code });
 
-// Strategy del medio EMAIL: mismo metodo enviar() que SMS y WhatsApp, pero este manda el mail de verdad
+// Strategy del medio EMAIL: mismo metodo enviar() que SMS y WhatsApp
+// va por la API HTTPS de SendGrid (Twilio) y no por SMTP, porque Render gratis bloquea esos puertos
 export class EnviadorEmail {
-    // el transporte se puede inyectar (tests); si no, se crea la primera vez que se envia
-    constructor(transporte) {
-        this.transporte = transporte;
-        this.transporteResuelto = transporte !== undefined;
-    }
-
-    obtenerTransporte() {
-        if (!this.transporteResuelto) {
-            this.transporte = crearTransporteDesdeEntorno();
-            this.transporteResuelto = true;
-        }
-        return this.transporte;
+    // en los tests se le pasa un fetch falso
+    constructor(hacerPedido = fetch) {
+        this.hacerPedido = hacerPedido;
     }
 
     async enviar(medio, notificacion) {
-        const transporte = this.obtenerTransporte();
-        if (!transporte) {
+        const { SENDGRID_API_KEY, EMAIL_FROM } = process.env;
+        if (!SENDGRID_API_KEY) {
             if (process.env.NODE_ENV === "production") {
-                const error = new Error("El envío de email no está configurado en producción.");
-                error.code = "SMTP_CONFIG";
-                throw error;
+                throw errorEmail("El envío de email no está configurado en producción.", "EMAIL_CONFIG");
             }
             console.info("[EMAIL SIMULADO] envío real desactivado.");
             return { simulado: true };
         }
-        const remitente = process.env.EMAIL_FROM || process.env.SMTP_USER;
-        if (!remitente) {
-            const error = new Error("Falta configurar EMAIL_FROM o SMTP_USER para enviar correo.");
-            error.code = "SMTP_CONFIG";
-            throw error;
+        if (!EMAIL_FROM) {
+            throw errorEmail("Falta configurar EMAIL_FROM para enviar correo.", "EMAIL_CONFIG");
         }
-        // solo "text": el contenido nunca se interpreta como HTML
-        await transporte.sendMail({
-            from: remitente,
-            to: medio.valor,
-            subject: ASUNTO,
-            text: notificacion.texto,
-        });
+
+        let respuesta;
+        try {
+            respuesta = await this.hacerPedido(URL_SENDGRID, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${SENDGRID_API_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    personalizations: [{ to: [{ email: medio.valor }] }],
+                    from: { email: EMAIL_FROM, name: "Código a Voluntad" },
+                    subject: ASUNTO,
+                    // solo texto plano: el contenido nunca se interpreta como HTML
+                    content: [{ type: "text/plain", value: notificacion.texto }],
+                }),
+                signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
+            });
+        } catch (causa) {
+            const code = causa?.name === "TimeoutError" ? "EMAIL_TIMEOUT" : "EMAIL_RED";
+            throw errorEmail("No se pudo conectar con SendGrid.", code);
+        }
+        // SendGrid contesta 202 cuando acepta el mail
+        if (!respuesta.ok) {
+            throw errorEmail(`SendGrid rechazó el envío (HTTP ${respuesta.status}).`, `EMAIL_HTTP_${respuesta.status}`);
+        }
         return { simulado: false };
     }
 }
