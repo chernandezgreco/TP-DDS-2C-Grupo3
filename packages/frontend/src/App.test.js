@@ -247,3 +247,90 @@ test("un colectivo no consulta mensajes sin leer", async () => {
   await screen.findByRole("button", { name: "Abrir menú de Biblioteca Sur" });
   expect(api.get).not.toHaveBeenCalledWith("/mi/mensajes/no-leidos");
 });
+
+test("el formulario para contactar a una colaboradora dice Enviar y confirma el envío", async () => {
+  sessionActor = { type: "colectivos", id: "o1", email: "biblio@example.com" };
+  const respuestas = api.get.getMockImplementation();
+  api.get.mockImplementation(async (path) =>
+    path === "/proyectos/p1/perfiles/f1/colaboradoras-potenciales"
+      ? [{ id: "c1", nombreFantasia: "Cami", presentacion: "Hola" }]
+      : respuestas(path),
+  );
+
+  render(<App />);
+  await screen.findByText("Biblioteca comunitaria");
+  fireEvent.click(screen.getByRole("button", { name: /Ver proyecto/ }));
+  fireEvent.click(await screen.findByRole("button", { name: "Buscar colaboradoras" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Enviar mensaje" }));
+  fireEvent.change(await screen.findByLabelText(/Mensaje/), { target: { value: "¿Te sumás?" } });
+
+  expect(screen.queryByRole("button", { name: "Guardar" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+
+  await waitFor(() =>
+    expect(api.post).toHaveBeenCalledWith("/notificaciones", {
+      colaboradoraId: "c1",
+      colectivoId: "o1",
+      proyectoId: "p1",
+      texto: "¿Te sumás?",
+    }),
+  );
+  expect(await screen.findByText("Mensaje enviado.")).toBeInTheDocument();
+});
+
+describe("enviar mensaje desde la card de una colaboradora", () => {
+  const conColaboradoras = (colaboradoras) => {
+    const respuestas = api.get.getMockImplementation();
+    api.get.mockImplementation(async (path) =>
+      path === "/colaboradoras" ? colaboradoras : respuestas(path),
+    );
+  };
+  const cami = { id: "c1", nombreFantasia: "Cami", habilidades: ["react"], aceptaMensajeria: true };
+
+  test("un colectivo le escribe eligiendo uno de sus proyectos compatibles", async () => {
+    sessionActor = { type: "colectivos", id: "o1", email: "biblio@example.com" };
+    conColaboradoras([cami]);
+    window.location.hash = "colaboradoras";
+
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "Enviar mensaje a Cami" }));
+
+    // con un único proyecto compatible ya viene elegido
+    expect(await screen.findByLabelText("Proyecto")).toHaveValue("p1");
+    fireEvent.change(screen.getByLabelText(/Mensaje/), { target: { value: "¿Te sumás a la biblioteca?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+
+    await waitFor(() =>
+      expect(api.post).toHaveBeenCalledWith("/notificaciones", {
+        colaboradoraId: "c1",
+        colectivoId: "o1",
+        proyectoId: "p1",
+        texto: "¿Te sumás a la biblioteca?",
+      }),
+    );
+    expect(await screen.findByText("Mensaje enviado.")).toBeInTheDocument();
+  });
+
+  test("no aparece si la colaboradora no acepta mensajes o ningún proyecto busca sus habilidades", async () => {
+    sessionActor = { type: "colectivos", id: "o1", email: "biblio@example.com" };
+    conColaboradoras([
+      { ...cami, aceptaMensajeria: false },
+      { id: "c2", nombreFantasia: "Lu", habilidades: ["diseno-ux"], aceptaMensajeria: true },
+    ]);
+    window.location.hash = "colaboradoras";
+
+    render(<App />);
+    await screen.findByText("Lu");
+    expect(screen.queryByRole("button", { name: /Enviar mensaje/ })).not.toBeInTheDocument();
+  });
+
+  test("una colaboradora no ve la opción", async () => {
+    sessionActor = { type: "colaboradoras", id: "c9", email: "otra@example.com" };
+    conColaboradoras([cami]);
+    window.location.hash = "colaboradoras";
+
+    render(<App />);
+    await screen.findByText("Cami");
+    expect(screen.queryByRole("button", { name: /Enviar mensaje/ })).not.toBeInTheDocument();
+  });
+});

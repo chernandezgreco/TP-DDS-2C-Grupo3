@@ -886,6 +886,14 @@ h3 {
   font-size: 12px;
   padding-right: 0;
 }
+/* "Enviar mensaje" y "Ver perfil" van juntos a la derecha; en una card angosta bajan de renglón */
+.card-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px 16px;
+}
 .panel {
   background: var(--superficie);
   border: 1px solid var(--borde-suave);

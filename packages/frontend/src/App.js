@@ -287,6 +287,44 @@ export default function App() {
     } else
       setForm({ name, fields, path, method, initial: initialValues, ...extra });
   }
+  // proyectos activos del colectivo de la sesión desde los que puede escribirle a una colaboradora:
+  // el back exige que tenga alguna habilidad requerida por un perfil del proyecto
+  const proyectosParaContactar = (colaboradora) =>
+    actor?.type === "colectivos"
+      ? data.proyectos.filter(
+          (p) =>
+            p.colectivoId === actor.id &&
+            p.estado === "ACTIVO" &&
+            (p.perfiles || []).some((perfil) =>
+              (perfil.habilidadesRequeridas || []).some((h) =>
+                (colaboradora.habilidades || []).includes(h),
+              ),
+            ),
+        )
+      : [];
+  const contactarColaboradora = (colaboradora, proyectos) =>
+    edit(
+      `Enviar mensaje a ${title(colaboradora)}`,
+      [
+        {
+          name: "proyectoId",
+          label: "Proyecto",
+          type: "select",
+          required: true,
+          options: proyectos.map((p) => [idOf(p), p.titulo]),
+        },
+        { name: "texto", label: "Mensaje", type: "textarea", required: true },
+      ],
+      "/notificaciones",
+      "post",
+      {
+        colaboradoraId: idOf(colaboradora),
+        colectivoId: actor.id,
+        // con un solo proyecto posible ya viene elegido
+        proyectoId: proyectos.length === 1 ? idOf(proyectos[0]) : "",
+      },
+      { submitLabel: "Enviar", submitIcon: "enviar", mensajeExito: "Mensaje enviado." },
+    );
   const pid = idOf(selected),
     isOwner =
       actor?.type === "colectivos" && selected?.colectivoId === actor.id;
@@ -1070,6 +1108,11 @@ export default function App() {
                               colaboradoraId: idOf(c),
                               colectivoId: actor.id,
                               proyectoId: pid,
+                            },
+                            {
+                              submitLabel: "Enviar",
+                              submitIcon: "enviar",
+                              mensajeExito: "Mensaje enviado.",
                             },
                           )
                         }
@@ -1921,16 +1964,32 @@ export default function App() {
                                   "Código a Voluntad"}
                             </small>
                             {!x.titulo && (
-                              <button
-                                className="text-button"
-                                onClick={() => {
-                                  setPublicProfile(x);
-                                  setExtras({});
-                                }}
-                              >
-                                Ver perfil
-                                <Icono nombre="ir" />
-                              </button>
+                              <span className="card-acciones">
+                                {page === "colaboradoras" &&
+                                  x.aceptaMensajeria &&
+                                  proyectosParaContactar(x).length > 0 && (
+                                    <button
+                                      className="text-button"
+                                      aria-label={`Enviar mensaje a ${title(x)}`}
+                                      onClick={() =>
+                                        contactarColaboradora(x, proyectosParaContactar(x))
+                                      }
+                                    >
+                                      <Icono nombre="enviar" />
+                                      Enviar mensaje
+                                    </button>
+                                  )}
+                                <button
+                                  className="text-button"
+                                  onClick={() => {
+                                    setPublicProfile(x);
+                                    setExtras({});
+                                  }}
+                                >
+                                  Ver perfil
+                                  <Icono nombre="ir" />
+                                </button>
+                              </span>
                             )}
                             {x.titulo && (
                               <button
@@ -2090,7 +2149,7 @@ export default function App() {
                         form.transform ? form.transform(values) : values,
                       );
                       if (pid) await updateSelected();
-                    });
+                    }, form.mensajeExito);
                     if (ok) setForm(null);
                   }}
                 />
