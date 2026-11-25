@@ -3,13 +3,13 @@ export const tiempoRelativo = (valor, ahora = Date.now()) => {
   const fecha = new Date(valor).getTime();
   if (!Number.isFinite(fecha)) return "Fecha desconocida";
   const diferencia = fecha - ahora;
+  // Cada divisor convierte la cantidad a la unidad indicada, empezando en segundos.
   const unidades = [
-    [60, "second"],
     [60, "minute"],
-    [24, "hour"],
-    [30.44, "day"],
-    [12, "month"],
-    [Infinity, "year"],
+    [60, "hour"],
+    [24, "day"],
+    [30.44, "month"],
+    [12, "year"],
   ];
   let cantidad = diferencia / 1000;
   let unidad = "second";
