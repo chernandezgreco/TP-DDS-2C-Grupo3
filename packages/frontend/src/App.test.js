@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import App from "./App";
 import { api } from "./api";
 jest.mock("./api", () => ({
@@ -376,5 +376,47 @@ describe("enviar mensaje desde la card de una colaboradora", () => {
     render(<App />);
     await screen.findByText("Cami");
     expect(screen.queryByRole("button", { name: /Enviar mensaje/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("carga inicial", () => {
+  // deja /auth/sesion pendiente hasta llamar a responderSesion
+  const sesionPendiente = () => {
+    let responderSesion;
+    const respuestas = api.get.getMockImplementation();
+    api.get.mockImplementation((path) =>
+      path === "/auth/sesion"
+        ? new Promise((resolve) => {
+            responderSesion = (actor) => resolve({ actor });
+          })
+        : respuestas(path),
+    );
+    return (actor) => responderSesion(actor);
+  };
+
+  test("pide la sesión y los datos a la vez, sin esperar la respuesta de la sesión", async () => {
+    sesionPendiente();
+
+    render(<App />);
+
+    await waitFor(() => expect(api.get).toHaveBeenCalledWith("/proyectos"));
+    expect(api.get).toHaveBeenCalledWith("/auth/sesion");
+    expect(api.get).toHaveBeenCalledWith("/colectivos");
+  });
+
+  test("mientras comprueba la sesión no pide iniciarla; si no hay sesión, recién ahí lo pide", async () => {
+    const responderSesion = sesionPendiente();
+    window.location.hash = "mensajes";
+
+    render(<App />);
+
+    expect(await screen.findByText("Comprobando tu sesión…")).toBeInTheDocument();
+    expect(screen.queryByText(/Iniciá sesión para ver/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Cargando mensajes…")).not.toBeInTheDocument();
+
+    act(() => responderSesion(null));
+
+    expect(await screen.findByText(/Iniciá sesión para ver/)).toBeInTheDocument();
+    expect(screen.queryByText("Comprobando tu sesión…")).not.toBeInTheDocument();
   });
 });

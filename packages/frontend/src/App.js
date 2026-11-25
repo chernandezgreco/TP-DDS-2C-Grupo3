@@ -141,16 +141,15 @@ export default function App() {
     }
   }
   useEffect(() => {
+    // la sesión y los datos públicos se piden a la vez: la sesión viaja en la cookie,
+    // así que el back sabe quién pide aunque el front todavía no lo sepa
     async function initialize() {
-      try {
-        const session = await api.get("/auth/sesion");
-        setActor(session.actor || null);
-      } catch (e) {
-        setError(e.message);
-      } finally {
-        setSessionLoading(false);
-      }
-      await refresh();
+      const sesion = api
+        .get("/auth/sesion")
+        .then((session) => setActor(session.actor || null))
+        .catch((e) => setError(e.message))
+        .finally(() => setSessionLoading(false));
+      await Promise.all([sesion, refresh()]);
     }
     initialize();
     const expired = () => {
@@ -619,9 +618,7 @@ export default function App() {
           </div>
           <div role="status" aria-live="polite">
             {(loading || busy) && (
-              <p className="loading">
-                {page === "mensajes" ? "Cargando mensajes…" : "Cargando información…"}
-              </p>
+              <p className="loading">Cargando información…</p>
             )}
           </div>
           <AvisoFlotante
@@ -653,6 +650,12 @@ export default function App() {
             <Terminos />
           ) : page === "habilidades" ? (
             <CatalogoHabilidades skills={data.habilidades} onSaved={refresh} />
+          ) : ["espacio", "mensajes", "denuncias"].includes(page) && sessionLoading ? (
+            // mientras no se sabe si hay sesión no se pide iniciarla: puede que ya la tenga
+            <section className="empty" aria-busy="true">
+              <h1>{sections[page]}</h1>
+              <p className="loading">Comprobando tu sesión…</p>
+            </section>
           ) : page === "denuncias" && !actor ? (
             <section className="empty">
               <h1>Administrar denuncias</h1>
