@@ -43,6 +43,21 @@ const sections = {
   habilidades: "Habilidades",
   denuncias: "Administrar denuncias",
 };
+// grupos del menú lateral, en orden; "terminos" no va en el menú (está en el pie de página)
+const gruposMenu = [
+  { id: "explorar", titulo: "Explorar", secciones: ["proyectos", "colectivos", "colaboradoras", "habilidades"] },
+  { id: "cuenta", titulo: "Tu cuenta", secciones: ["espacio", "mensajes"] },
+  { id: "administracion", titulo: "Administración", secciones: ["denuncias"], soloConSesion: true },
+];
+const iconosMenu = {
+  proyectos: "proyectos",
+  colectivos: "colectivos",
+  colaboradoras: "corazon",
+  espacio: "inicio",
+  mensajes: "correo",
+  habilidades: "codigo",
+  denuncias: "bandera",
+};
 const title = (x) =>
   x?.titulo || x?.nombre || x?.nombreFantasia || "Sin nombre";
 const initials = (label) =>
@@ -436,54 +451,45 @@ export default function App() {
             Voluntad
           </strong>
         </a>
-        <p className="eyebrow">CONSTRUIR EN COMUNIDAD</p>
         <nav aria-label="Navegación principal">
-          {Object.entries(sections)
-            .filter(([k]) => k !== "terminos" && (k !== "denuncias" || actor))
-            .map(([k, v]) => (
-            <a
-              href={"#" + k}
-              key={k}
-              aria-current={page === k ? "page" : undefined}
-            >
-              <span aria-hidden="true">
-                <Icono
-                  nombre={
-                    {
-                      proyectos: "proyectos",
-                      colectivos: "colectivos",
-                      colaboradoras: "corazon",
-                      espacio: "inicio",
-                      mensajes: "correo",
-                      habilidades: "codigo",
-                      denuncias: "bandera",
-                    }[k] || "documento"
-                  }
-                />
-              </span>
-              {v}
-              {k === "mensajes" && noLeidos > 0 && (
-                <span className="contador-mensajes">
-                  <span aria-hidden="true">{textoContador(noLeidos)}</span>
-                  <span className="visually-hidden">{descripcionNoLeidos(noLeidos)}</span>
-                </span>
-              )}
-            </a>
-          ))}
+          {gruposMenu
+            .filter((grupo) => !grupo.soloConSesion || actor)
+            .map((grupo) => (
+              <div
+                className="nav-grupo"
+                role="group"
+                aria-labelledby={`nav-${grupo.id}`}
+                key={grupo.id}
+              >
+                <p className="nav-titulo" id={`nav-${grupo.id}`}>
+                  {grupo.titulo}
+                </p>
+                {grupo.secciones.map((k) => (
+                  <a
+                    href={"#" + k}
+                    key={k}
+                    aria-current={page === k ? "page" : undefined}
+                  >
+                    <span aria-hidden="true">
+                      <Icono nombre={iconosMenu[k] || "documento"} />
+                    </span>
+                    {sections[k]}
+                    {k === "mensajes" && noLeidos > 0 && (
+                      <span className="contador-mensajes">
+                        <span aria-hidden="true">{textoContador(noLeidos)}</span>
+                        <span className="visually-hidden">{descripcionNoLeidos(noLeidos)}</span>
+                      </span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            ))}
         </nav>
-        <div className="aside-note">
-          <b>{actor ? "Seguí construyendo en comunidad" : "Una idea puede cambiar las cosas"}</b>
-          <p>
-            {actor
-              ? "Explorá proyectos y conectá tus habilidades con una causa."
-              : "Encontrá proyectos con impacto o sumate con tus habilidades."}
-          </p>
-          <a className="aside-cta" href={actor ? "#proyectos" : "#colaboradoras"}>
-            {actor ? "Explorar proyectos" : "Conocer la comunidad"}
-            <Icono nombre="ir" />
-          </a>
-        </div>
-        <small>UTN · Desarrollo de Software · 2026</small>
+        <footer className="aside-pie">
+          <b>Código a Voluntad</b>
+          <small>UTN · Desarrollo de Software</small>
+          <small>2026</small>
+        </footer>
       </aside>
       <div className="workspace">
         <header>

@@ -254,7 +254,6 @@ a:hover {
 nav a,
 .brand,
 .skip,
-.aside-cta,
 .hero a,
 .user-menu-panel > a {
   text-decoration: none;
@@ -341,7 +340,22 @@ aside {
 }
 nav {
   display: grid;
-  gap: 4px;
+  gap: 22px;
+  margin-top: 36px;
+}
+/* cada grupo del menú: un título chico y sus secciones */
+.nav-grupo {
+  display: grid;
+  gap: 2px;
+}
+.nav-titulo {
+  margin: 0 0 6px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--texto-secundario);
 }
 nav a {
   display: flex;
@@ -382,44 +396,22 @@ nav a > span .icono {
   width: 17px;
   height: 17px;
 }
-/* la nota del lateral es el único bloque con acento: ámbar suave con texto oscuro */
-.aside-note {
+/* pie del lateral: queda abajo de todo, separado del menú por una línea */
+.aside-pie {
   margin-top: auto;
-  background: var(--color-acento-suave);
-  border: 1px solid var(--color-acento-fondo);
-  padding: 20px 16px;
-  border-radius: 12px;
+  padding: 18px 12px 0;
+  border-top: 1px solid var(--borde-suave);
+  display: grid;
+  gap: 2px;
 }
-.aside-note b {
-  font-size: 18px;
-  line-height: 1.35;
+.aside-pie b {
+  font-size: 13px;
   color: var(--texto-titulo);
 }
-.aside-note p {
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--texto);
-}
-.aside-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-acento);
-  background: var(--color-acento-fondo);
-}
-.aside-cta:hover {
-  color: var(--color-acento);
-  box-shadow: 0 2px 6px var(--sombra-media);
-}
-aside > small {
+.aside-pie small {
   font-size: 12px;
+  line-height: 1.5;
   color: var(--texto-secundario);
-  margin-top: 24px;
 }
 .workspace {
   flex: 1;
@@ -1423,10 +1415,13 @@ progress {
     font-size: 18px;
     padding: 9px;
   }
-  .aside-note,
-  aside > .eyebrow,
-  aside > small {
+  .aside-pie,
+  .nav-titulo {
     display: none;
+  }
+  /* en el celular el menú es una sola fila que se desliza: los grupos no se notan */
+  .nav-grupo {
+    display: contents;
   }
   nav {
     display: flex;
@@ -1607,9 +1602,6 @@ fieldset:disabled {
 }
 aside {
   overflow-y: auto;
-}
-.aside-note {
-  margin-top: auto;
 }
 header .toolbar {
   justify-content: flex-end;
