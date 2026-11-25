@@ -20,6 +20,7 @@ import colaboracionesRoutes from "./routes/Colaboracion.js";
 import logrosRoutes from "./routes/Logros.js";
 import tareasRoutes from "./routes/Tareas.js";
 import notificacionesRoutes from "./routes/Notificaciones.js";
+import mensajesRoutes from "./routes/Mensajes.js";
 import perfilesRoutes from "./routes/Perfiles.js";
 import denunciasRoutes from "./routes/Denuncias.js";
 import linkedinRoutes from "./routes/LinkedIn.js";
@@ -69,6 +70,7 @@ export function crearApp({
   app.use("/api", authRoutes);
   app.use("/api", crearRutasPortabilidad());
   app.use("/api", autorizar);
+  app.use("/api", mensajesRoutes);
   app.use("/api", adicionalesRoutes);
   app.use("/api", denunciasRoutes);
   app.use("/api", linkedinRoutes);

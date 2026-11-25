@@ -14,6 +14,8 @@ import BotonModoDaltonico from "./BotonModoDaltonico";
 import EstadoBadge from "./EstadoBadge";
 import AvisoFlotante from "./AvisoFlotante";
 import Icono from "./Icono";
+import BandejaMensajes from "./BandejaMensajes";
+import useMensajesNoLeidos, { descripcionNoLeidos, textoContador } from "./useMensajesNoLeidos";
 import React, { useEffect, useRef, useState } from "react";
 import { api, idOf } from "./api";
 import {
@@ -50,30 +52,6 @@ const initials = (label) =>
     .slice(0, 2)
     .map((part) => part[0].toLocaleUpperCase("es-AR"))
     .join("") || "U";
-const tiempoRelativo = (valor, ahora = Date.now()) => {
-  const fecha = new Date(valor).getTime();
-  if (!Number.isFinite(fecha)) return "Fecha desconocida";
-  const diferencia = fecha - ahora;
-  const unidades = [
-    [60, "second"],
-    [60, "minute"],
-    [24, "hour"],
-    [30.44, "day"],
-    [12, "month"],
-    [Infinity, "year"],
-  ];
-  let cantidad = diferencia / 1000;
-  let unidad = "second";
-  for (const [limite, siguiente] of unidades) {
-    if (Math.abs(cantidad) < limite) break;
-    cantidad /= limite;
-    unidad = siguiente;
-  }
-  return new Intl.RelativeTimeFormat("es-AR", { numeric: "auto" }).format(
-    Math.round(cantidad),
-    unidad,
-  );
-};
 const initial = {
   proyectos: [],
   colectivos: [],
@@ -109,6 +87,7 @@ export default function App() {
     [anonymous, setAnonymous] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
+  const { cantidad: noLeidos, marcarLeidos } = useMensajesNoLeidos(actor, page);
   useEffect(() => {
     if (!userMenuOpen) return undefined;
     const cerrarFuera = (event) => {
@@ -364,21 +343,6 @@ export default function App() {
     };
   }, [actor, page, data.proyectos, data.colaboraciones]);
   useEffect(() => {
-    if (page !== "mensajes" || actor?.type !== "colaboradoras") return;
-    let active = true;
-    api
-      .get(`/colaboradoras/${actor.id}/notificaciones`)
-      .then((messages) => {
-        if (active) setExtras((old) => ({ ...old, mensajes: messages }));
-      })
-      .catch((e) => {
-        if (active) setError(e.message);
-      });
-    return () => {
-      active = false;
-    };
-  }, [page, actor]);
-  useEffect(() => {
     if (!selected) return;
     let active = true;
     api
@@ -498,6 +462,12 @@ export default function App() {
                 />
               </span>
               {v}
+              {k === "mensajes" && noLeidos > 0 && (
+                <span className="contador-mensajes">
+                  <span aria-hidden="true">{textoContador(noLeidos)}</span>
+                  <span className="visually-hidden">{descripcionNoLeidos(noLeidos)}</span>
+                </span>
+              )}
             </a>
           ))}
         </nav>
@@ -529,11 +499,19 @@ export default function App() {
                     className="user-menu-trigger"
                     aria-expanded={userMenuOpen}
                     aria-haspopup="true"
-                    aria-label={`Abrir menú de ${title(data[actor.type].find((x) => idOf(x) === actor.id))}`}
+                    aria-label={
+                      `Abrir menú de ${title(data[actor.type].find((x) => idOf(x) === actor.id))}` +
+                      (noLeidos > 0 ? ` (${descripcionNoLeidos(noLeidos)})` : "")
+                    }
                     onClick={() => setUserMenuOpen((abierto) => !abierto)}
                   >
                     <span className="user-avatar" aria-hidden="true">
                       {initials(title(data[actor.type].find((x) => idOf(x) === actor.id)))}
+                      {noLeidos > 0 && (
+                        <span className="contador-mensajes contador-avatar">
+                          {textoContador(noLeidos)}
+                        </span>
+                      )}
                     </span>
                     <span className="user-menu-name">
                       {title(data[actor.type].find((x) => idOf(x) === actor.id))}
@@ -545,7 +523,15 @@ export default function App() {
                       <b>{title(data[actor.type].find((x) => idOf(x) === actor.id))}</b>
                       <small>{actor.email}</small>
                       <a href="#espacio" onClick={() => setUserMenuOpen(false)}>Mi espacio</a>
-                      <a href="#mensajes" onClick={() => setUserMenuOpen(false)}>Mensajes</a>
+                      <a href="#mensajes" onClick={() => setUserMenuOpen(false)}>
+                        Mensajes
+                        {noLeidos > 0 && (
+                          <span className="contador-mensajes">
+                            <span aria-hidden="true">{textoContador(noLeidos)}</span>
+                            <span className="visually-hidden">{descripcionNoLeidos(noLeidos)}</span>
+                          </span>
+                        )}
+                      </a>
                       <button
                         className="text-button"
                         disabled={busy}
@@ -1419,51 +1405,24 @@ export default function App() {
                 </section>
               )}
               {page === "mensajes" ? (
-                <section className="panel">
-                  <h2>Tu bandeja de entrada</h2>
-                  {actor?.type !== "colaboradoras" ? (
+                actor?.type === "colaboradoras" ? (
+                  <BandejaMensajes
+                    actorId={actor.id}
+                    cantidadNoLeidos={noLeidos}
+                    onLeidos={marcarLeidos}
+                    colectivos={data.colectivos}
+                    proyectos={data.proyectos}
+                  />
+                ) : (
+                  <section className="panel">
+                    <h2>Tu bandeja de entrada</h2>
                     <p>
                       Las cuentas de colectivos envían mensajes desde la
                       búsqueda de colaboradoras de cada perfil. La bandeja de
                       recepción corresponde a las cuentas colaboradoras.
                     </p>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() =>
-                          load(
-                            "mensajes",
-                            `/colaboradoras/${actor.id}/notificaciones`,
-                          )
-                        }
-                      >
-                        <Icono nombre="correo" />
-                        Cargar mensajes
-                      </button>
-                      {extras.mensajes?.length === 0 && (
-                        <p>No tenés mensajes.</p>
-                      )}
-                      {extras.mensajes?.map((m) => (
-                        <div className="list-row" key={idOf(m)}>
-                          <b>
-                            {data.colectivos.find(
-                              (c) => idOf(c) === m.colectivoId,
-                            )?.nombre || "Colectivo"}
-                          </b>
-                          <p>{m.texto}</p>
-                          <small>
-                            <time
-                              dateTime={m.fecha}
-                              title={new Date(m.fecha).toLocaleString("es-AR")}
-                            >
-                              {tiempoRelativo(m.fecha)}
-                            </time>
-                          </small>
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </section>
+                  </section>
+                )
               ) : (
                 <>
                   {page === "espacio" && (

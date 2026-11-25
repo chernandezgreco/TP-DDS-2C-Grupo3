@@ -19,3 +19,13 @@ export const crearNotificacionSchema = z.object(
     },
     { error: "Los datos de la notificación son obligatorios" }
 );
+
+// hasta = fecha (ISO 8601) del mensaje más nuevo que se mostró en la bandeja
+export const marcarMensajesVistosSchema = z.object(
+    {
+        hasta: z.iso
+            .datetime({ offset: true, error: "hasta debe ser una fecha ISO 8601" })
+            .transform((fecha) => new Date(fecha)),
+    },
+    { error: "Indicá hasta qué mensaje viste" },
+);

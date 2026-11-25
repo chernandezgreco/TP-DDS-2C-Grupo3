@@ -1,7 +1,7 @@
 import { Notificacion } from "../domain/Notificacion/Notificacion.js";
 import { TipoMedioContacto } from "../domain/Colaboradora/TipoMedioContacto.js";
 import { ConflictError, DomainError } from "../domain/errores.js";
-import { NotificacionModel } from "../models/indexModel.js";
+import { ColaboradoraModel, NotificacionModel } from "../models/indexModel.js";
 import { ColaboradoraService } from "./ColaboradoraService.js";
 import { ColectivoService } from "./ColectivosService.js";
 import { ProyectoService } from "./ProyectoService.js";
@@ -78,7 +78,40 @@ export class NotificacionService {
 
     static async listarDeColaboradora(colaboradoraId) {
         const colaboradora = await ColaboradoraService.obtenerPorId(colaboradoraId);
-        const docs = await NotificacionModel.find({ colaboradoraId: colaboradora.id });
+        const docs = await NotificacionModel.find({ colaboradoraId: colaboradora.id }).sort({ fecha: -1 });
         return docs.map(aDominio);
+    }
+
+    // sólo el número: el front lo consulta seguido para el contador de no leídos
+    static async contarNoLeidas(colaboradoraId) {
+        const colaboradora = await ColaboradoraService.obtenerPorId(colaboradoraId);
+        const filtro = { colaboradoraId: colaboradora.id };
+        if (colaboradora.mensajesVistosHasta) {
+            filtro.fecha = { $gt: colaboradora.mensajesVistosHasta };
+        }
+        return NotificacionModel.countDocuments(filtro);
+    }
+
+    // hasta = fecha del mensaje más nuevo que el front mostró, no la hora actual:
+    // así un mensaje que llega mientras la bandeja está abierta no queda marcado sin haberse visto
+    static async marcarVistas(colaboradoraId, hasta) {
+        const colaboradora = await ColaboradoraService.obtenerPorId(colaboradoraId);
+        colaboradora.marcarMensajesVistos(hasta);
+        // $max deja la marca sólo si avanza, aunque lleguen dos avisos a la vez
+        await ColaboradoraModel.updateOne(
+            { _id: colaboradora.id },
+            { $max: { mensajesVistosHasta: colaboradora.mensajesVistosHasta } },
+        );
+        return { mensajesVistosHasta: colaboradora.mensajesVistosHasta };
+    }
+
+    // migración de arranque: las colaboradoras anteriores a la marca empiezan con todo leído.
+    // Es idempotente: sólo toca documentos que todavía no tienen el campo.
+    static async inicializarMensajesVistos(ahora = new Date()) {
+        const { modifiedCount } = await ColaboradoraModel.updateMany(
+            { mensajesVistosHasta: { $exists: false } },
+            { $set: { mensajesVistosHasta: ahora } },
+        );
+        return modifiedCount;
     }
 }

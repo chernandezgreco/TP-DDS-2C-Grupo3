@@ -2576,7 +2576,7 @@
         "tags": [
           "Contacto y notificaciones"
         ],
-        "summary": "Lista las notificaciones internas de la colaboradora",
+        "summary": "Lista las notificaciones internas de la colaboradora, de la más nueva a la más vieja",
         "parameters": [
           {
             "name": "id",
@@ -2617,6 +2617,162 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/mi/mensajes/no-leidos": {
+      "get": {
+        "tags": [
+          "Contacto y notificaciones"
+        ],
+        "summary": "Cuenta los mensajes no leídos de la colaboradora de la sesión",
+        "description": "No leídos son las notificaciones con fecha posterior a la última marca de lectura. Devuelve sólo el número para que el front pueda consultarlo seguido (contador del menú).",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cantidad de mensajes no leídos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cantidad": {
+                      "type": "integer",
+                      "example": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La cuenta de la sesión no es de una colaboradora",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Se excedió la cuota de solicitudes por IP",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Segundos hasta el reinicio de cuota"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mi/mensajes/vistos": {
+      "post": {
+        "tags": [
+          "Contacto y notificaciones"
+        ],
+        "summary": "Marca como leídos los mensajes hasta una fecha",
+        "description": "hasta es la fecha del mensaje más nuevo que se mostró en la bandeja (no la hora actual), para no marcar uno que llegó mientras estaba abierta. La marca sólo avanza: una fecha anterior a la guardada no la cambia. No acepta fechas futuras.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "hasta": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  }
+                },
+                "required": [
+                  "hasta"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Marca de lectura vigente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensajesVistosHasta": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "hasta falta, no es una fecha ISO 8601 o es futura",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Se requiere sesión válida"
+          },
+          "403": {
+            "description": "La cuenta no tiene permiso para esta operación"
           },
           "429": {
             "description": "Se excedió la cuota de solicitudes por IP",

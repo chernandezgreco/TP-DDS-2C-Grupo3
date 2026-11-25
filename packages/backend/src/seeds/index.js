@@ -132,6 +132,8 @@ await ColaboradoraModel.insertMany(colaboradoras.map((c) => ({
     presentacion: c.presentacion,
     aceptaMensajeria: c.aceptaMensajeria,
     mediosContacto: c.mediosContacto.map((m) => ({ tipo: m.tipo, valor: m.valor })),
+    // las notificaciones semilla ya se crearon arriba: todas arrancan como leídas
+    mensajesVistosHasta: new Date(),
 })));
 
 await ProyectoModel.insertMany(proyectos.map((p) => ({ _id: p.id, ...aDocumento(p) })));

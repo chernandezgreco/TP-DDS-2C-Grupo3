@@ -1,5 +1,5 @@
 import { medioContactoSchema, preferenciasSchema } from "../schemas/ColaboradoraSchema.js";
-import { crearNotificacionSchema } from "../schemas/NotificacionSchema.js";
+import { crearNotificacionSchema, marcarMensajesVistosSchema } from "../schemas/NotificacionSchema.js";
 import { cuerpo } from "./comun.js";
 
 const idColaboradora = {
@@ -78,7 +78,7 @@ export const pathsContacto = {
     "/api/colaboradoras/{id}/notificaciones": {
         get: {
             tags: ["Contacto y notificaciones"],
-            summary: "Lista las notificaciones internas de la colaboradora",
+            summary: "Lista las notificaciones internas de la colaboradora, de la más nueva a la más vieja",
             parameters: [idColaboradora],
             responses: {
                 200: {
@@ -90,6 +90,53 @@ export const pathsContacto = {
                     },
                 },
                 404: respuestaError("Colaboradora no encontrada"),
+            },
+        },
+    },
+    "/api/mi/mensajes/no-leidos": {
+        get: {
+            tags: ["Contacto y notificaciones"],
+            summary: "Cuenta los mensajes no leídos de la colaboradora de la sesión",
+            description:
+                "No leídos son las notificaciones con fecha posterior a la última marca de lectura. " +
+                "Devuelve sólo el número para que el front pueda consultarlo seguido (contador del menú).",
+            security: [{ SessionCookie: [] }],
+            responses: {
+                200: {
+                    description: "Cantidad de mensajes no leídos",
+                    content: {
+                        "application/json": {
+                            schema: { type: "object", properties: { cantidad: { type: "integer", example: 2 } } },
+                        },
+                    },
+                },
+                401: respuestaError("Se requiere sesión válida"),
+                403: respuestaError("La cuenta de la sesión no es de una colaboradora"),
+            },
+        },
+    },
+    "/api/mi/mensajes/vistos": {
+        post: {
+            tags: ["Contacto y notificaciones"],
+            summary: "Marca como leídos los mensajes hasta una fecha",
+            description:
+                "hasta es la fecha del mensaje más nuevo que se mostró en la bandeja (no la hora actual), " +
+                "para no marcar uno que llegó mientras estaba abierta. La marca sólo avanza: " +
+                "una fecha anterior a la guardada no la cambia. No acepta fechas futuras.",
+            requestBody: cuerpo(marcarMensajesVistosSchema),
+            responses: {
+                200: {
+                    description: "Marca de lectura vigente",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: { mensajesVistosHasta: { type: "string", format: "date-time" } },
+                            },
+                        },
+                    },
+                },
+                400: respuestaError("hasta falta, no es una fecha ISO 8601 o es futura"),
             },
         },
     },

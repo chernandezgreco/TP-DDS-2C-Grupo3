@@ -60,3 +60,52 @@ describe("Colaboradora: medios de contacto y mensajería", () => {
         expect(json.nombreFantasia).toBe("Ana");
     });
 });
+
+describe("Colaboradora: marca de mensajes vistos", () => {
+    const ahora = new Date("2026-11-24T15:00:00.000Z");
+    const antes = new Date("2026-11-24T12:00:00.000Z");
+    const despues = new Date("2026-11-24T14:00:00.000Z");
+    let colaboradora;
+
+    beforeEach(() => {
+        colaboradora = new Colaboradora("c1", "Ana", "github.com/ana", "Ana Pérez", ["react"], "ella", "hola");
+    });
+
+    test("arranca sin marca", () => {
+        expect(colaboradora.mensajesVistosHasta).toBeNull();
+    });
+
+    test("guarda la primera marca", () => {
+        colaboradora.marcarMensajesVistos(antes, ahora);
+
+        expect(colaboradora.mensajesVistosHasta).toEqual(antes);
+    });
+
+    test("la marca avanza con una fecha posterior", () => {
+        colaboradora.marcarMensajesVistos(antes, ahora);
+        colaboradora.marcarMensajesVistos(despues, ahora);
+
+        expect(colaboradora.mensajesVistosHasta).toEqual(despues);
+    });
+
+    test("una fecha anterior no hace retroceder la marca", () => {
+        colaboradora.marcarMensajesVistos(despues, ahora);
+        colaboradora.marcarMensajesVistos(antes, ahora);
+
+        expect(colaboradora.mensajesVistosHasta).toEqual(despues);
+    });
+
+    test("rechaza fechas futuras o inválidas", () => {
+        expect(() => colaboradora.marcarMensajesVistos(new Date("2026-11-25T00:00:00.000Z"), ahora)).toThrow(DomainError);
+        expect(() => colaboradora.marcarMensajesVistos(new Date("no es fecha"), ahora)).toThrow(DomainError);
+        expect(() => colaboradora.marcarMensajesVistos("2026-11-24", ahora)).toThrow(DomainError);
+        expect(colaboradora.mensajesVistosHasta).toBeNull();
+    });
+
+    test("la marca no sale en el JSON y se borra al anonimizar", () => {
+        colaboradora.marcarMensajesVistos(antes, ahora);
+
+        expect(JSON.parse(JSON.stringify(colaboradora)).mensajesVistosHasta).toBeUndefined();
+        expect(colaboradora.anonimizar(ahora).mensajesVistosHasta).toBeNull();
+    });
+});

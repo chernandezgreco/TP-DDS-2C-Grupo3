@@ -161,6 +161,9 @@ const colaboradoraSchema = new mongoose.Schema({
   pronombres: { type: String },
   presentacion: { type: String },
   aceptaMensajeria: { type: Boolean, default: false },
+  // sin default a propósito: un default de Mongoose se aplicaría también al leer documentos viejos
+  // y la marca cambiaría en cada lectura. La migración de arranque completa los que no la tienen.
+  mensajesVistosHasta: { type: Date },
   mediosContacto: [
     {
       _id: false,

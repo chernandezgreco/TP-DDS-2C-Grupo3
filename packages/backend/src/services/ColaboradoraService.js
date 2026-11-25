@@ -31,6 +31,7 @@ const aDominio = (doc) =>
     doc.experienciaHabilidades || [],
     doc.linkedinFoto || "",
     doc.cuentaEliminadaAt ?? null,
+    doc.mensajesVistosHasta ?? null,
   );
 
 export class ColaboradoraService {
@@ -58,6 +59,8 @@ export class ColaboradoraService {
       experienciaHabilidades: borrador.experienciaHabilidades,
       pronombres: borrador.pronombres,
       presentacion: borrador.presentacion,
+      // una cuenta nueva no tiene mensajes anteriores a su alta
+      mensajesVistosHasta: new Date(),
     });
 
     return aDominio(nuevaColaboradoraDoc);
@@ -224,6 +227,7 @@ export class ColaboradoraService {
       aceptaMensajeria: colaboradora.aceptaMensajeria,
       experienciaHabilidades: colaboradora.experienciaHabilidades,
       linkedinFoto: colaboradora.linkedinFoto,
+      mensajesVistosHasta: colaboradora.mensajesVistosHasta,
       cuentaEliminadaAt: colaboradora.cuentaEliminadaAt,
     });
 

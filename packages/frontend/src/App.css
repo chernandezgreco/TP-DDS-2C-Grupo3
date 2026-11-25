@@ -1920,3 +1920,138 @@ button[aria-disabled="true"] {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---- Mensajes: contador de no leídos y bandeja agrupada por colectivo ---- */
+/* texto sólo para lectores de pantalla */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* el círculo con el número: relleno de acento con texto oscuro; la señal es el número, no el color */
+.contador-mensajes {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: auto;
+  border-radius: 999px;
+  color: var(--color-acento);
+  background: var(--color-acento-fondo);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+/* sobre el avatar va en la esquina, con un anillo del color de la superficie para despegarlo */
+.user-avatar {
+  position: relative;
+}
+.contador-avatar {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  margin: 0;
+  box-shadow: 0 0 0 2px var(--superficie);
+}
+.bandeja-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.bandeja-encabezado h2 {
+  margin: 0;
+}
+.bandeja-grupos {
+  display: grid;
+  gap: 16px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.bandeja-grupo {
+  padding: 16px 18px;
+  border: 1px solid var(--borde-suave);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+.bandeja-remitente {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.bandeja-remitente h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.bandeja-remitente small {
+  color: var(--texto-secundario);
+}
+.bandeja-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--color-principal-activo);
+  background: var(--color-principal-suave);
+  font-size: 13px;
+  font-weight: 750;
+}
+/* los mensajes de un mismo remitente cuelgan de una línea, como un hilo */
+.bandeja-mensajes {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 0 18px;
+  padding: 0 0 0 20px;
+  list-style: none;
+  border-left: 2px solid var(--borde-suave);
+}
+.bandeja-mensaje {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--superficie-suave);
+  overflow-wrap: anywhere;
+}
+.bandeja-mensaje p {
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+  color: var(--texto-titulo);
+}
+/* un mensaje nuevo lleva la etiqueta "Nuevo" además del borde: el color no es la única señal */
+.bandeja-mensaje.es-nuevo {
+  background: var(--color-principal-suave);
+  box-shadow: inset 3px 0 0 var(--color-principal);
+}
+.bandeja-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 12px;
+  color: var(--texto-secundario);
+}
+.badge-nuevo {
+  padding: 2px 8px;
+  color: var(--color-acento);
+  background: var(--color-acento-fondo);
+}
+@media (max-width: 640px) {
+  .bandeja-grupo {
+    padding: 14px;
+  }
+  .bandeja-mensajes {
+    margin-left: 8px;
+    padding-left: 12px;
+  }
+}

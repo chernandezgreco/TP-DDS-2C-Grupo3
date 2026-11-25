@@ -219,3 +219,31 @@ test("si la eliminación falla muestra el error y conserva la sesión", async ()
     screen.getByRole("button", { name: "Eliminar mi cuenta" }),
   ).toBeInTheDocument();
 });
+
+test("muestra los mensajes sin leer en el avatar, el menú y la navegación", async () => {
+  sessionActor = { type: "colaboradoras", id: "c1", email: "cami@example.com" };
+  const respuestas = api.get.getMockImplementation();
+  api.get.mockImplementation(async (path) =>
+    path === "/mi/mensajes/no-leidos" ? { cantidad: 3 } : respuestas(path),
+  );
+
+  render(<App />);
+
+  const menu = await screen.findByRole("button", {
+    name: "Abrir menú de Cami (3 mensajes sin leer)",
+  });
+  expect(screen.getByRole("link", { name: /Mensajes 3 mensajes sin leer/ })).toBeInTheDocument();
+  fireEvent.click(menu);
+  expect(
+    screen.getAllByRole("link", { name: /Mensajes 3 mensajes sin leer/ }),
+  ).toHaveLength(2);
+});
+
+test("un colectivo no consulta mensajes sin leer", async () => {
+  sessionActor = { type: "colectivos", id: "o1", email: "biblio@example.com" };
+
+  render(<App />);
+
+  await screen.findByRole("button", { name: "Abrir menú de Biblioteca Sur" });
+  expect(api.get).not.toHaveBeenCalledWith("/mi/mensajes/no-leidos");
+});

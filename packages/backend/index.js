@@ -3,8 +3,11 @@ import mongoose from "mongoose";
 import { crearApp } from "./src/app.js";
 import { conectarMongo } from "./src/config/mongo.js";
 import { iniciarCierreAutomatico } from "./src/jobs/cierreAutomatico.js";
+import { NotificacionService } from "./src/services/NotificacionService.js";
 
 await conectarMongo();
+const migradas = await NotificacionService.inicializarMensajesVistos();
+if (migradas > 0) console.log(`${migradas} colaboradoras empiezan con sus mensajes marcados como leídos`);
 const detenerCierreAutomatico = await iniciarCierreAutomatico();
 
 const PORT = process.env.PORT || process.env.SERVER_PORT || 8000;

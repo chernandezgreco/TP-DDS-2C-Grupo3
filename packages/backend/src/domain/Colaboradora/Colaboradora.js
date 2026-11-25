@@ -16,6 +16,7 @@ export class Colaboradora {
         experienciaHabilidades = [],
         linkedinFoto = "",
         cuentaEliminadaAt = null,
+        mensajesVistosHasta = null,
     ) {
         if (!esTextoNoVacio(nombreFantasia)) {
             throw new DomainError("El nombre de fantasía es obligatorio", { campo: "nombreFantasia" });
@@ -45,6 +46,8 @@ export class Colaboradora {
         this.experienciaHabilidades = [...experienciaHabilidades];
         this.linkedinFoto = linkedinFoto;
         this.cuentaEliminadaAt = cuentaEliminadaAt;
+        // fecha del mensaje más nuevo que ya vio; los posteriores cuentan como no leídos
+        this.mensajesVistosHasta = mensajesVistosHasta;
     }
 
     anonimizar(fecha = new Date()) {
@@ -58,6 +61,7 @@ export class Colaboradora {
         this.aceptaMensajeria = false;
         this.experienciaHabilidades = [];
         this.linkedinFoto = "";
+        this.mensajesVistosHasta = null;
         this.cuentaEliminadaAt = fecha;
 
         return this;
@@ -98,8 +102,22 @@ export class Colaboradora {
         return !this.cuentaEliminadaAt && this.aceptaMensajeria;
     }
 
-    // los medios de contacto son internos: no salen en ninguna respuesta JSON
+    // la marca sólo avanza: un aviso viejo que llega tarde no vuelve a mostrar como nuevos mensajes ya vistos
+    marcarMensajesVistos(hasta, ahora = new Date()) {
+        if (!(hasta instanceof Date) || Number.isNaN(hasta.getTime())) {
+            throw new DomainError("La fecha de los mensajes vistos no es válida", { campo: "hasta" });
+        }
+        if (hasta > ahora) {
+            throw new DomainError("La fecha de los mensajes vistos no puede ser futura", { campo: "hasta" });
+        }
+        if (!this.mensajesVistosHasta || hasta > this.mensajesVistosHasta) {
+            this.mensajesVistosHasta = hasta;
+        }
+    }
+
+    // los medios de contacto y la marca de lectura son internos: no salen en ninguna respuesta JSON
+    // (la marca dejaría ver en el perfil público cuándo estuvo activa)
     toJSON() {
-        return { ...this, mediosContacto: undefined };
+        return { ...this, mediosContacto: undefined, mensajesVistosHasta: undefined };
     }
 }
