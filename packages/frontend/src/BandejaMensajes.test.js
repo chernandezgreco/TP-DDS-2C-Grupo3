@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 import BandejaMensajes from "./BandejaMensajes";
 import { api } from "./api";
 
@@ -85,4 +85,33 @@ test("avisa cuando no hay mensajes", async () => {
   mostrar({ lista: [] });
 
   expect(await screen.findByText("No tenés mensajes.")).toBeInTheDocument();
+});
+
+test("mientras actualiza el botón no se deshabilita: el ícono gira y otro clic no repite el pedido", async () => {
+  mostrar();
+  await screen.findByText("¿Te sumás?");
+
+  // los pedidos quedan pendientes hasta llamar a terminar()
+  const pendientes = [];
+  const terminar = () => pendientes.forEach((resolver) => resolver());
+  api.get.mockClear();
+  api.get.mockImplementation(
+    (path) =>
+      new Promise((resolve) => {
+        pendientes.push(() => resolve(path === "/mi/mensajes/no-leidos" ? { cantidad: 0 } : mensajes));
+      }),
+  );
+  const boton = screen.getByRole("button", { name: "Actualizar" });
+  fireEvent.click(boton);
+
+  expect(boton).not.toBeDisabled();
+  expect(boton).toHaveAttribute("aria-busy", "true");
+  expect(boton.querySelector(".icono")).toHaveClass("girando");
+
+  fireEvent.click(boton);
+  expect(api.get).toHaveBeenCalledTimes(2); // la lista y el número, una sola vez
+
+  terminar();
+  await waitFor(() => expect(boton).toHaveAttribute("aria-busy", "false"));
+  expect(boton.querySelector(".icono")).not.toHaveClass("girando");
 });

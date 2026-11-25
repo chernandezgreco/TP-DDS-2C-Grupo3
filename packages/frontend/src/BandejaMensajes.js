@@ -28,8 +28,12 @@ export default function BandejaMensajes({ actorId, cantidadNoLeidos, onLeidos, c
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
   const cargadaRef = useRef(false);
+  const cargandoRef = useRef(false);
 
   const cargar = useCallback(async () => {
+    // si ya hay una carga en curso, otro clic en "Actualizar" no dispara un segundo pedido
+    if (cargandoRef.current) return;
+    cargandoRef.current = true;
     setCargando(true);
     setError("");
     try {
@@ -48,6 +52,7 @@ export default function BandejaMensajes({ actorId, cantidadNoLeidos, onLeidos, c
     } catch (e) {
       setError(e.message);
     } finally {
+      cargandoRef.current = false;
       setCargando(false);
     }
   }, [actorId, onLeidos]);
@@ -78,8 +83,9 @@ export default function BandejaMensajes({ actorId, cantidadNoLeidos, onLeidos, c
     <section className="panel bandeja" aria-busy={cargando}>
       <div className="bandeja-encabezado">
         <h2>Tu bandeja de entrada</h2>
-        <button type="button" className="text-button" onClick={cargar} disabled={cargando}>
-          <Icono nombre="recargar" />
+        {/* mientras carga no se deshabilita: el ícono gira y aria-busy lo anuncia */}
+        <button type="button" className="text-button" onClick={cargar} aria-busy={cargando}>
+          <Icono nombre="recargar" className={cargando ? "girando" : ""} />
           Actualizar
         </button>
       </div>

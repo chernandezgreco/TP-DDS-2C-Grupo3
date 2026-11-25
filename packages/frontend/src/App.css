@@ -1970,6 +1970,10 @@ button[aria-disabled="true"] {
 .bandeja-encabezado h2 {
   margin: 0;
 }
+/* "Actualizar" no se deshabilita mientras carga: el ícono gira (con movimiento reducido queda quieto) */
+.icono.girando {
+  animation: giro 0.8s linear infinite;
+}
 .bandeja-grupos {
   display: grid;
   gap: 16px;
