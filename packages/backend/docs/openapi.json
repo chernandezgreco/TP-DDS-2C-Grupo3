@@ -2298,7 +2298,8 @@
                     "enum": [
                       "EMAIL",
                       "WHATSAPP",
-                      "SMS"
+                      "SMS",
+                      "TELEGRAM"
                     ]
                   },
                   "valor": {
@@ -2423,7 +2424,8 @@
                           "enum": [
                             "EMAIL",
                             "WHATSAPP",
-                            "SMS"
+                            "SMS",
+                            "TELEGRAM"
                           ]
                         },
                         "valor": {
@@ -6691,7 +6693,8 @@
             "enum": [
               "EMAIL",
               "WHATSAPP",
-              "SMS"
+              "SMS",
+              "TELEGRAM"
             ]
           },
           "valor": {

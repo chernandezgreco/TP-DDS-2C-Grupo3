@@ -25,6 +25,7 @@ services:
       ALLOWED_ORIGINS: http://localhost:3000
       MONGO_URI: mongodb://mongo:27017/codigo_a_voluntad
       SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       EMAIL_FROM: ${EMAIL_FROM:-}
     depends_on:
       mongo:

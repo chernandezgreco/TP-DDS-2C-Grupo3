@@ -33,6 +33,16 @@ describe("MedioContacto", () => {
         expect(() => new MedioContacto(TipoMedioContacto.SMS, "11abc5761")).toThrow(DomainError);
     });
 
+    test("acepta un chat id de Telegram", () => {
+        const medio = new MedioContacto(TipoMedioContacto.TELEGRAM, " 123456789 ");
+
+        expect(medio.valor).toBe("123456789");
+    });
+
+    test("rechaza un usuario de Telegram en vez del chat id", () => {
+        expect(() => new MedioContacto(TipoMedioContacto.TELEGRAM, "@santi")).toThrow(DomainError);
+    });
+
     test("dos medios con mismo tipo y valor son iguales", () => {
         const uno = new MedioContacto(TipoMedioContacto.SMS, "1157612305");
         const otro = new MedioContacto(TipoMedioContacto.SMS, "11 5761-2305");

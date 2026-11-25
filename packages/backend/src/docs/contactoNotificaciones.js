@@ -18,7 +18,7 @@ const respuestaError = (descripcion) => ({
 const medio = {
     type: "object",
     properties: {
-        tipo: { type: "string", enum: ["EMAIL", "WHATSAPP", "SMS"] },
+        tipo: { type: "string", enum: ["EMAIL", "WHATSAPP", "SMS", "TELEGRAM"] },
         valor: { type: "string", example: "santi@mail.com" },
     },
 };

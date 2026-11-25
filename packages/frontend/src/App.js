@@ -1542,6 +1542,7 @@ export default function App() {
                                               "EMAIL",
                                               "WHATSAPP",
                                               "SMS",
+                                              "TELEGRAM",
                                             ],
                                           },
                                           {
@@ -1701,7 +1702,7 @@ export default function App() {
                                       name: "tipo",
                                       label: "Tipo",
                                       type: "select",
-                                      options: ["EMAIL", "WHATSAPP", "SMS"],
+                                      options: ["EMAIL", "WHATSAPP", "SMS", "TELEGRAM"],
                                       required: true,
                                     },
                                     {

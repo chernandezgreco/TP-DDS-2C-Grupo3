@@ -1,4 +1,4 @@
-const nombres = { EMAIL: "email", SMS: "SMS", WHATSAPP: "WhatsApp" };
+const nombres = { EMAIL: "email", SMS: "SMS", WHATSAPP: "WhatsApp", TELEGRAM: "Telegram" };
 const listarMedios = (medios) =>
   [...new Set(medios)].map((medio) => nombres[medio] || medio).join(", ");
 
