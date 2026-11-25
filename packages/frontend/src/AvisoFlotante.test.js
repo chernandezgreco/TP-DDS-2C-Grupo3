@@ -31,6 +31,23 @@ test("se muestra en el contenedor fijo de avisos y se anuncia como estado", () =
   expect(document.getElementById("avisos-flotantes")).toContainElement(region);
 });
 
+test("la advertencia tiene su propio estilo y permite cerrarla", () => {
+  const cerrar = jest.fn();
+  render(
+    <AvisoFlotante
+      mensaje="Mensaje interno guardado; falló WhatsApp."
+      tipo="advertencia"
+      onCerrar={cerrar}
+    />,
+  );
+  const aviso = screen.getByText("Mensaje interno guardado; falló WhatsApp.").closest(".notice-toast");
+  expect(aviso).toHaveClass("notice-warning");
+  expect(aviso).not.toHaveClass("success");
+  expect(screen.getByRole("status")).toHaveTextContent("falló WhatsApp");
+  fireEvent.click(screen.getByRole("button", { name: "Cerrar mensaje" }));
+  expect(cerrar).toHaveBeenCalledTimes(1);
+});
+
 test("se cierra solo a los 15 segundos, no antes", () => {
   render(<ConAviso />);
 

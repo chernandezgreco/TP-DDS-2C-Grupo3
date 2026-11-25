@@ -13,6 +13,7 @@ import ListaEtiquetas from "./ListaEtiquetas";
 import BotonModoDaltonico from "./BotonModoDaltonico";
 import EstadoBadge from "./EstadoBadge";
 import AvisoFlotante from "./AvisoFlotante";
+import { resumirEnvioNotificacion } from "./resultadoNotificacion";
 import Icono from "./Icono";
 import BandejaMensajes from "./BandejaMensajes";
 import useMensajesNoLeidos, { descripcionNoLeidos, textoContador } from "./useMensajesNoLeidos";
@@ -222,9 +223,9 @@ export default function App() {
     setError("");
     setNotice("");
     try {
-      await fn();
+      const resultado = await fn();
       await refresh();
-      setNotice(message);
+      setNotice(typeof message === "function" ? message(resultado) : message);
       return true;
     } catch (e) {
       setError(e.message);
@@ -323,7 +324,7 @@ export default function App() {
         // con un solo proyecto posible ya viene elegido
         proyectoId: proyectos.length === 1 ? idOf(proyectos[0]) : "",
       },
-      { submitLabel: "Enviar", submitIcon: "enviar", mensajeExito: "Mensaje enviado." },
+      { submitLabel: "Enviar", submitIcon: "enviar", mensajeExito: resumirEnvioNotificacion },
     );
   const pid = idOf(selected),
     isOwner =
@@ -623,7 +624,11 @@ export default function App() {
               </p>
             )}
           </div>
-          <AvisoFlotante mensaje={notice} onCerrar={() => setNotice("")} />
+          <AvisoFlotante
+            mensaje={notice.mensaje ?? notice}
+            tipo={notice.tipo ?? "exito"}
+            onCerrar={() => setNotice("")}
+          />
           {error && (
             <div role="alert" className="error">
               {error}
@@ -1112,7 +1117,7 @@ export default function App() {
                             {
                               submitLabel: "Enviar",
                               submitIcon: "enviar",
-                              mensajeExito: "Mensaje enviado.",
+                              mensajeExito: resumirEnvioNotificacion,
                             },
                           )
                         }
@@ -2144,11 +2149,12 @@ export default function App() {
                   onCancel={() => setForm(null)}
                   onSubmit={async (values) => {
                     const ok = await run(async () => {
-                      await api[form.method](
+                      const resultado = await api[form.method](
                         form.path,
                         form.transform ? form.transform(values) : values,
                       );
                       if (pid) await updateSelected();
+                      return resultado;
                     }, form.mensajeExito);
                     if (ok) setForm(null);
                   }}

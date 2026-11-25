@@ -248,8 +248,23 @@ test("un colectivo no consulta mensajes sin leer", async () => {
   expect(api.get).not.toHaveBeenCalledWith("/mi/mensajes/no-leidos");
 });
 
-test("el formulario para contactar a una colaboradora dice Enviar y confirma el envío", async () => {
+test.each([
+  ["envío correcto", { mediosUsados: ["WHATSAPP"] }, "Mensaje enviado.", false],
+  [
+    "canal externo fallido",
+    { mediosFallidos: ["WHATSAPP"] },
+    "Mensaje guardado en la bandeja interna. No se pudo enviar por WhatsApp.",
+    true,
+  ],
+  [
+    "canal externo simulado",
+    { mediosUsados: ["SMS"], mediosSimulados: ["SMS"] },
+    "Mensaje guardado en la bandeja interna. Envío simulado por SMS; no se realizó un envío real por esos canales.",
+    true,
+  ],
+])("contactar desde el perfil informa %s y cierra el formulario", async (_caso, resultado, esperado, advertencia) => {
   sessionActor = { type: "colectivos", id: "o1", email: "biblio@example.com" };
+  api.post.mockResolvedValue(resultado);
   const respuestas = api.get.getMockImplementation();
   api.get.mockImplementation(async (path) =>
     path === "/proyectos/p1/perfiles/f1/colaboradoras-potenciales"
@@ -275,7 +290,9 @@ test("el formulario para contactar a una colaboradora dice Enviar y confirma el 
       texto: "¿Te sumás?",
     }),
   );
-  expect(await screen.findByText("Mensaje enviado.")).toBeInTheDocument();
+  const aviso = await screen.findByText(esperado);
+  expect(aviso.closest(".notice-toast")).toHaveClass(advertencia ? "notice-warning" : "success");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
 describe("enviar mensaje desde la card de una colaboradora", () => {
@@ -287,8 +304,16 @@ describe("enviar mensaje desde la card de una colaboradora", () => {
   };
   const cami = { id: "c1", nombreFantasia: "Cami", habilidades: ["react"], aceptaMensajeria: true };
 
-  test("un colectivo le escribe eligiendo uno de sus proyectos compatibles", async () => {
+  test.each([
+    ["envío correcto", {}, "Mensaje enviado."],
+    [
+      "fallo externo",
+      { mediosFallidos: ["SMS"] },
+      "Mensaje guardado en la bandeja interna. No se pudo enviar por SMS.",
+    ],
+  ])("un colectivo le escribe desde la card con %s", async (_caso, resultado, esperado) => {
     sessionActor = { type: "colectivos", id: "o1", email: "biblio@example.com" };
+    api.post.mockResolvedValue(resultado);
     conColaboradoras([cami]);
     window.location.hash = "colaboradoras";
 
@@ -308,7 +333,26 @@ describe("enviar mensaje desde la card de una colaboradora", () => {
         texto: "¿Te sumás a la biblioteca?",
       }),
     );
-    expect(await screen.findByText("Mensaje enviado.")).toBeInTheDocument();
+    expect(await screen.findByText(esperado)).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  test("si falla la API conserva el formulario sin confirmar que el mensaje se guardó", async () => {
+    sessionActor = { type: "colectivos", id: "o1", email: "biblio@example.com" };
+    conColaboradoras([cami]);
+    api.post.mockRejectedValue(new Error("No se pudo guardar el mensaje."));
+    window.location.hash = "colaboradoras";
+
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "Enviar mensaje a Cami" }));
+    fireEvent.change(await screen.findByLabelText(/Mensaje/), { target: { value: "¿Te sumás?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
+
+    expect((await screen.findAllByText("No se pudo guardar el mensaje.")).length).toBeGreaterThan(0);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.queryByText("Mensaje enviado.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Mensaje guardado en la bandeja interna/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Enviar" })).not.toBeDisabled());
   });
 
   test("no aparece si la colaboradora no acepta mensajes o ningún proyecto busca sus habilidades", async () => {

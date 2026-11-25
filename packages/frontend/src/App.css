@@ -941,6 +941,7 @@ h3 {
   color: var(--texto-secundario);
 }
 .success,
+.notice-warning,
 .error {
   padding: 14px 16px;
   border-radius: 10px;
@@ -953,6 +954,10 @@ h3 {
   background: var(--color-exito-fondo);
   color: var(--color-exito-texto);
 }
+.notice-warning {
+  background: var(--color-info-fondo);
+  color: var(--color-info-texto);
+}
 .error {
   background: var(--color-error-fondo);
   color: var(--color-error-texto);
@@ -963,7 +968,8 @@ h3 {
   content: "\2713  " / "";
   font-weight: 800;
 }
-.error::before {
+.error::before,
+.notice-warning::before {
   content: "⚠ ";
   content: "⚠ " / "";
 }

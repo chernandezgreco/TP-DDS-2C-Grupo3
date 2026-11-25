@@ -22,7 +22,7 @@ function contenedorAvisos() {
 // Confirmación de una acción (guardar, editar, cerrar sesión...). Se cierra sola a los
 // 15 segundos o con la cruz. Mientras el puntero o el foco están encima no se cierra,
 // para que se pueda terminar de leer.
-function Aviso({ mensaje, onCerrar }) {
+function Aviso({ mensaje, tipo, onCerrar }) {
   const cerrar = useRef(onCerrar);
   const [pausado, setPausado] = useState(false);
 
@@ -57,7 +57,7 @@ function Aviso({ mensaje, onCerrar }) {
 
   return (
     <div
-      className="success notice-toast"
+      className={`${tipo === "advertencia" ? "notice-warning" : "success"} notice-toast`}
       onMouseEnter={() => setPausado(true)}
       onMouseLeave={() => setPausado(false)}
       onFocus={() => setPausado(true)}
@@ -78,15 +78,16 @@ function Aviso({ mensaje, onCerrar }) {
 
 Aviso.propTypes = {
   mensaje: PropTypes.string.isRequired,
+  tipo: PropTypes.oneOf(["exito", "advertencia"]).isRequired,
   onCerrar: PropTypes.func.isRequired,
 };
 
 // La región con role="status" está siempre presente para que los lectores de pantalla
 // anuncien el mensaje cuando aparece. La key reinicia el aviso si cambia el texto.
-export default function AvisoFlotante({ mensaje, onCerrar }) {
+export default function AvisoFlotante({ mensaje, tipo = "exito", onCerrar }) {
   return createPortal(
     <div role="status" aria-live="polite">
-      {mensaje && <Aviso key={mensaje} mensaje={mensaje} onCerrar={onCerrar} />}
+      {mensaje && <Aviso key={mensaje} mensaje={mensaje} tipo={tipo} onCerrar={onCerrar} />}
     </div>,
     contenedorAvisos(),
   );
@@ -94,5 +95,6 @@ export default function AvisoFlotante({ mensaje, onCerrar }) {
 
 AvisoFlotante.propTypes = {
   mensaje: PropTypes.string,
+  tipo: PropTypes.oneOf(["exito", "advertencia"]),
   onCerrar: PropTypes.func.isRequired,
 };
