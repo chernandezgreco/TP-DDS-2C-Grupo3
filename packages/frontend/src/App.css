@@ -687,8 +687,10 @@ h3 {
   margin: 0;
   box-shadow: none;
 }
-.search input:focus-visible {
+.search input:focus-visible,
+:root[data-vision]:not([data-vision="normal"]) .search input:focus-visible {
   outline: none;
+  box-shadow: none;
 }
 .check {
   display: flex;
