@@ -88,7 +88,7 @@ export const profileFields = (skills) => [
 ];
 export const achievementFields = [
   field("descripcion", "Descripción del logro", "textarea", { required: true }),
-  field("porcentajeCompletitud", "Avance (%)", "number", {
+  field("porcentajeCompletitud", "Avance total del proyecto (%)", "number", {
     min: 0,
     max: 100,
     required: true,

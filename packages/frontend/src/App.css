@@ -2067,3 +2067,51 @@ button[aria-disabled="true"] {
     padding-left: 12px;
   }
 }
+
+.grafico-avances {
+  border: 1px solid var(--borde-suave);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 16px 0;
+  min-width: 0;
+}
+.grafico-avances-scroll {
+  overflow-x: auto;
+}
+.grafico-avances svg {
+  display: block;
+  width: 100%;
+  min-width: 600px;
+  max-height: 340px;
+  font-size: 17px;
+  fill: var(--texto-secundario);
+}
+.avance-guia {
+  stroke: var(--borde-suave);
+  stroke-dasharray: 4 4;
+}
+.avance-linea {
+  fill: none;
+  stroke: var(--color-principal);
+  stroke-width: 3;
+}
+.avance-punto {
+  cursor: pointer;
+}
+.avance-area {
+  fill: transparent;
+}
+.avance-marca {
+  fill: var(--superficie);
+  stroke: var(--color-principal);
+  stroke-width: 3;
+}
+.avance-marca.seleccionada {
+  fill: var(--color-principal);
+  stroke: var(--texto-titulo);
+}
+.avance-detalle {
+  border-left: 3px solid var(--color-principal);
+  margin-top: 16px;
+  padding-left: 12px;
+}

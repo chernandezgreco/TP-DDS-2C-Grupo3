@@ -9,6 +9,7 @@ import ExperienciaHabilidades from "./ExperienciaHabilidades";
 import LinkedInIntegration from "./LinkedInIntegration";
 import PortabilidadDatos from "./PortabilidadDatos";
 import TareasProyecto from "./TareasProyecto";
+import GraficoAvances from "./GraficoAvances";
 import ListaEtiquetas from "./ListaEtiquetas";
 import BotonModoDaltonico from "./BotonModoDaltonico";
 import EstadoBadge from "./EstadoBadge";
@@ -101,6 +102,9 @@ export default function App() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [anonymous, setAnonymous] = useState(false);
+  const [graficoAbierto, setGraficoAbierto] = useState(false);
+  const [estadoLogros, setEstadoLogros] = useState({ cargando: true, error: "" });
+  const [revisionLogros, setRevisionLogros] = useState(0);
   function restaurarSeccion(hash) {
     setRoute(hash);
     setPage(hash.slice(1).split("/")[0] || "proyectos");
@@ -409,20 +413,26 @@ export default function App() {
     };
   }, [actor, page, data.proyectos, data.colaboraciones]);
   useEffect(() => {
+    setGraficoAbierto(false);
+  }, [pid]);
+  useEffect(() => {
     if (!selected) return;
     let active = true;
+    setEstadoLogros({ cargando: true, error: "" });
     api
       .get(`/proyectos/${idOf(selected)}/logros`)
       .then((logros) => {
-        if (active) setExtras((old) => ({ ...old, logros }));
+        if (!active) return;
+        setExtras((old) => ({ ...old, logros }));
+        setEstadoLogros({ cargando: false, error: "" });
       })
       .catch((e) => {
-        if (active) setError(e.message);
+        if (active) setEstadoLogros({ cargando: false, error: e.message });
       });
     return () => {
       active = false;
     };
-  }, [selected]);
+  }, [selected, revisionLogros]);
   const filtraPorEtiquetas =
     ["proyectos", "colectivos"].includes(page) && filtroEtiquetas.length > 0;
   // el backend devuelve los que tienen todas las etiquetas; se vuelve a pedir si cambian los datos
@@ -1152,10 +1162,12 @@ export default function App() {
                   <div className="toolbar">
                     <button
                       className="secondary"
-                      onClick={() => load("logros", `/proyectos/${pid}/logros`)}
+                      onClick={() => setGraficoAbierto((abierto) => !abierto)}
+                      aria-expanded={graficoAbierto}
+                      aria-controls="grafico-avances-proyecto"
                     >
                       <Icono nombre="ver" />
-                      Ver avances
+                      {graficoAbierto ? "Ocultar gráfico" : "Ver avances"}
                     </button>
                     {isOwner && (
                       <button
@@ -1173,7 +1185,19 @@ export default function App() {
                     )}
                   </div>
                 </div>
-                {extras.logros?.length === 0 && (
+                {estadoLogros.cargando && <p role="status">Cargando avances…</p>}
+                {estadoLogros.error && (
+                  <div role="alert" className="error">
+                    <p>No se pudieron cargar los avances: {estadoLogros.error}</p>
+                    <button className="secondary" onClick={() => setRevisionLogros((revision) => revision + 1)}>Reintentar avances</button>
+                  </div>
+                )}
+                <div id="grafico-avances-proyecto" hidden={!graficoAbierto}>
+                  {graficoAbierto && !estadoLogros.cargando && !estadoLogros.error && (
+                    <GraficoAvances key={pid} logros={extras.logros || []} />
+                  )}
+                </div>
+                {!graficoAbierto && !estadoLogros.cargando && !estadoLogros.error && extras.logros?.length === 0 && (
                   <p>Todavía no hay logros publicados.</p>
                 )}
                 {extras.logros?.map((l) => (
@@ -1228,7 +1252,7 @@ export default function App() {
                                   await api.delete(
                                     `/proyectos/${pid}/logros/${idOf(l)}`,
                                   );
-                                  setExtras({});
+                                  await updateSelected();
                                 });
                             }}
                           >

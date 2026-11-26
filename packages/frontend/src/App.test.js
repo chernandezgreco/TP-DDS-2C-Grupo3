@@ -462,3 +462,60 @@ test.each(["menu lateral", "menu del usuario"])("restaura Mi espacio desde una p
   expect(screen.getByRole("button", { name: /Abrir men/ })).toHaveAttribute("aria-expanded", "false");
   expect(window.location.hash).toBe("#espacio");
 });
+
+describe("gráfico de avance acumulado", () => {
+  const avances = [
+    { id: "l2", descripcion: "Integración lista", porcentajeCompletitud: 60, fechaCreacion: "2026-11-25T15:00:00Z" },
+    { id: "l1", descripcion: "Diseño terminado", porcentajeCompletitud: 25, fechaCreacion: "2026-11-20T15:00:00Z" },
+  ];
+
+  async function abrirProyecto() {
+    render(<App />);
+    await screen.findByRole("button", { name: /Ver proyecto/ });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /Ver proyecto/ })); });
+  }
+
+  test("despliega el gráfico, permite ocultarlo y vuelve cerrado al salir del proyecto", async () => {
+    const obtener = api.get.getMockImplementation();
+    api.get.mockImplementation((path) => path === "/proyectos/p1/logros" ? Promise.resolve(avances) : obtener(path));
+    await abrirProyecto();
+    expect(screen.queryByRole("region", { name: "Gráfico de avances del proyecto" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ver avances" }));
+    expect(screen.getByText("60% del proyecto")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ocultar gráfico" })).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar gráfico" }));
+    expect(screen.queryByRole("region", { name: "Gráfico de avances del proyecto" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ver avances" }));
+    await act(async () => { fireEvent.click(within(screen.getByRole("navigation", { name: /principal/ })).getByRole("link", { name: "Explorar proyectos" })); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: /Ver proyecto/ })); });
+    expect(screen.getByRole("button", { name: "Ver avances" })).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("muestra la carga pendiente y luego el estado vacío", async () => {
+    let responder;
+    const obtener = api.get.getMockImplementation();
+    api.get.mockImplementation((path) => path === "/proyectos/p1/logros" ? new Promise((resolve) => { responder = resolve; }) : obtener(path));
+    await abrirProyecto();
+    fireEvent.click(screen.getByRole("button", { name: "Ver avances" }));
+    expect(screen.getByText("Cargando avances…")).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Gráfico de avances del proyecto" })).not.toBeInTheDocument();
+    await act(async () => { responder([]); });
+    expect(screen.getByText(/Todavía no hay logros con fecha/)).toBeInTheDocument();
+  });
+
+  test("informa un error de carga y permite reintentar sin salir del proyecto", async () => {
+    const obtener = api.get.getMockImplementation();
+    let intentos = 0;
+    api.get.mockImplementation((path) => {
+      if (path !== "/proyectos/p1/logros") return obtener(path);
+      intentos += 1;
+      return intentos === 1 ? Promise.reject(new Error("Sin conexión")) : Promise.resolve(avances);
+    });
+    await abrirProyecto();
+    fireEvent.click(screen.getByRole("button", { name: "Ver avances" }));
+    expect(screen.getByText(/No se pudieron cargar los avances/)).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Reintentar avances" })); });
+    expect(screen.getByText("60% del proyecto")).toBeInTheDocument();
+    expect(screen.queryByText(/No se pudieron cargar los avances/)).not.toBeInTheDocument();
+  });
+});
