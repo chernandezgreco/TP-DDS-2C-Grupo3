@@ -101,6 +101,26 @@ export default function App() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [anonymous, setAnonymous] = useState(false);
+  function restaurarSeccion(hash) {
+    setRoute(hash);
+    setPage(hash.slice(1).split("/")[0] || "proyectos");
+    setSelected(null);
+    setPublicProfile(null);
+    setExtras({});
+    setQuery("");
+    setMatches(null);
+    setFiltroEtiquetas([]);
+    setOpen(false);
+    setForm(null);
+    setUserMenuOpen(false);
+  }
+  function navegarSeccion(event) {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    const hash = event.currentTarget.hash;
+    restaurarSeccion(hash);
+    if (window.location.hash !== hash) window.location.hash = hash;
+  }
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const { cantidad: noLeidos, marcarLeidos } = useMensajesNoLeidos(actor, page);
@@ -167,14 +187,7 @@ export default function App() {
     window.addEventListener("sesion-expirada", expired);
     const change = () => {
       if (window.location.hash === "#main") return;
-      setRoute(window.location.hash);
-      setPage(window.location.hash.slice(1).split("/")[0] || "proyectos");
-      setSelected(null);
-      setPublicProfile(null);
-      setExtras({});
-      setQuery("");
-      setMatches(null);
-      setFiltroEtiquetas([]);
+      restaurarSeccion(window.location.hash);
     };
     window.addEventListener("hashchange", change);
     return () => {
@@ -482,7 +495,7 @@ export default function App() {
         Saltar al contenido
       </a>
       <aside>
-        <a href="#proyectos" className="brand">
+        <a href="#proyectos" className="brand" onClick={navegarSeccion}>
           <span>{"{ }"}</span>
           <strong>
             Código a<br />
@@ -505,6 +518,7 @@ export default function App() {
                 {grupo.secciones.map((k) => (
                   <a
                     href={"#" + k}
+                    onClick={navegarSeccion}
                     key={k}
                     aria-current={page === k ? "page" : undefined}
                   >
@@ -566,8 +580,8 @@ export default function App() {
                     <div className="user-menu-panel">
                       <b>{title(data[actor.type].find((x) => idOf(x) === actor.id))}</b>
                       <small>{actor.email}</small>
-                      <a href="#espacio" onClick={() => setUserMenuOpen(false)}>Mi espacio</a>
-                      <a href="#mensajes" onClick={() => setUserMenuOpen(false)}>
+                      <a href="#espacio" onClick={navegarSeccion}>Mi espacio</a>
+                      <a href="#mensajes" onClick={navegarSeccion}>
                         Mensajes
                         {noLeidos > 0 && (
                           <span className="contador-mensajes">

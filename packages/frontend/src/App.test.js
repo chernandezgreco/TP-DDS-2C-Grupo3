@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act, within } from "@testing-library/react";
 import App from "./App";
 import { api } from "./api";
 jest.mock("./api", () => ({
@@ -419,4 +419,46 @@ describe("carga inicial", () => {
     expect(await screen.findByText(/Iniciá sesión para ver/)).toBeInTheDocument();
     expect(screen.queryByText("Comprobando tu sesión…")).not.toBeInTheDocument();
   });
+});
+
+
+test.each(["menu lateral", "logo"])("vuelve al listado desde un proyecto al pulsar %s en la misma seccion", async (origen) => {
+  window.history.replaceState(null, "", "#proyectos");
+  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+  const { container } = render(<App />);
+  await screen.findByText("Biblioteca comunitaria");
+  fireEvent.click(screen.getByRole("button", { name: /Ver proyecto/ }));
+  await waitFor(() => expect(screen.getByText("Frontend React")).toBeInTheDocument());
+  const enlace = origen === "logo"
+    ? container.querySelector("a.brand")
+    : within(screen.getByRole("navigation", { name: /principal/ })).getByRole("link", { name: "Explorar proyectos" });
+  await act(async () => { fireEvent.click(enlace); });
+  expect(screen.queryByText("Frontend React")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Ver proyecto/ })).toBeInTheDocument();
+  expect(window.location.hash).toBe("#proyectos");
+});
+
+test.each(["menu lateral", "menu del usuario"])("restaura Mi espacio desde una postulacion usando %s", async (origen) => {
+  sessionActor = { type: "colaboradoras", id: "c1", email: "cami@example.com" };
+  window.history.replaceState(null, "", "#espacio");
+  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+  const obtener = api.get.getMockImplementation();
+  api.get.mockImplementation((path) => path === "/mi/postulaciones"
+    ? Promise.resolve([{ id: "post1", proyectoId: "p1", estado: "PENDIENTE" }])
+    : obtener(path));
+  render(<App />);
+  fireEvent.click(await screen.findByRole("button", { name: /Ver proyecto/ }));
+  await waitFor(() => expect(screen.getByText("Frontend React")).toBeInTheDocument());
+  let enlace;
+  if (origen === "menu del usuario") {
+    fireEvent.click(screen.getByRole("button", { name: /Abrir men/ }));
+    enlace = screen.getAllByRole("link", { name: "Mi espacio" }).find((link) => link.closest(".user-menu-panel"));
+  } else {
+    enlace = within(screen.getByRole("navigation", { name: /principal/ })).getByRole("link", { name: "Mi espacio" });
+  }
+  await act(async () => { fireEvent.click(enlace); });
+  expect(screen.queryByText("Frontend React")).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Mi perfil y mis proyectos" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Abrir men/ })).toHaveAttribute("aria-expanded", "false");
+  expect(window.location.hash).toBe("#espacio");
 });
